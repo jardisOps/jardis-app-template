@@ -1,0 +1,126 @@
+# ---------------------------------------------------------------------------
+# jardis-app-template — the stack
+# ---------------------------------------------------------------------------
+# Found via COMPOSE_FILE in the root .env, so `docker compose` works from the
+# project root without -f. Relative paths below resolve against THIS file's
+# directory, hence the leading ../ on every mount.
+#
+# The default stack is web + app only. It runs against SQLite and needs no
+# database container; `db`, `cache` and `mail` are opt-in profiles. That is
+# possible because the Jardis kernel degrades every unconfigured service to
+# null instead of failing.
+#
+# phpcli carries the `cli` profile so it never starts on `up`. The Makefile
+# reaches it via `run --rm`, which activates the profile on demand.
+# ---------------------------------------------------------------------------
+x-php-env: &php-env
+  APP_ENV: ${APP_ENV:-dev}
+  PHP_MEMORY_LIMIT: ${PHP_MEMORY_LIMIT:-512M}
+  PHP_TIMEZONE: ${PHP_TIMEZONE:-UTC}
+  PHP_LOG_ERRORS: ${PHP_LOG_ERRORS:-On}
+  PHP_ERROR_REPORTING: ${PHP_ERROR_REPORTING:-E_ALL}
+  PHP_DISPLAY_ERRORS: ${PHP_DISPLAY_ERRORS:-On}
+  APCU_SHM_SIZE: ${APCU_SHM_SIZE:-64M}
+  OPCACHE_MEMORY_CONSUMPTION: ${OPCACHE_MEMORY_CONSUMPTION:-128}
+  OPCACHE_MAX_ACCELERATED_FILES: ${OPCACHE_MAX_ACCELERATED_FILES:-4000}
+  OPCACHE_REVALIDATE_FREQ: ${OPCACHE_REVALIDATE_FREQ:-0}
+  OPCACHE_JIT: ${OPCACHE_JIT:-1254}
+  OPCACHE_JIT_BUFFER_SIZE: ${OPCACHE_JIT_BUFFER_SIZE:-128M}
+  XDEBUG_MODE: ${XDEBUG_MODE:-debug}
+  XDEBUG_START_WITH_REQUEST: ${XDEBUG_START_WITH_REQUEST:-yes}
+  XDEBUG_CLIENT_HOST: ${XDEBUG_CLIENT_HOST:-host.docker.internal}
+  XDEBUG_CLIENT_PORT: ${XDEBUG_CLIENT_PORT:-9003}
+  XDEBUG_LOG_LEVEL: ${XDEBUG_LOG_LEVEL:-0}
+  PCOV_ENABLED: ${PCOV_ENABLED:-0}
+
+services:
+  # --- request context -----------------------------------------------------
+  app:
+    image: ${DOCKER_HUB:-headgent}/${PHP_IMAGE_FPM:-phpfpm}:${PHP_VERSION:-8.3}
+    container_name: ${COMPOSE_PROJECT_NAME:-jardis-app}-app
+    networks: [app-network]
+    environment: *php-env
+    volumes:
+      - ../:/app
+
+  # --- web ------------------------------------------------------------------
+  # The official nginx image, unmodified. The template only supplies the
+  # config template and its defaults; nginx renders it via envsubst at start.
+  web:
+    image: nginx:${NGINX_VERSION:-1.28}-alpine
+    container_name: ${COMPOSE_PROJECT_NAME:-jardis-app}-web
+    # service_healthy, not just "started": nginx resolves the upstream name
+    # already at config-test time and dies with "host not found in upstream"
+    # if fpm is not answering yet. The fpm image brings its own healthcheck.
+    depends_on:
+      app:
+        condition: service_healthy
+    networks: [app-network]
+    env_file:
+      - ../config/nginx/nginx-defaults.env
+    environment:
+      FASTCGI_UPSTREAM: app
+    ports:
+      - "${HTTP_PORT:-8080}:80"
+    volumes:
+      - ../config/nginx/templates:/etc/nginx/templates:ro
+      - ../:/app:ro
+
+  # --- tooling: composer, QA, console --------------------------------------
+  # Named phpcli because the inherited Makefile modules address it by name.
+  phpcli:
+    image: ${DOCKER_HUB:-headgent}/${PHP_IMAGE_CLI:-phpcli}:${PHP_VERSION:-8.3}
+    container_name: ${COMPOSE_PROJECT_NAME:-jardis-app}-cli
+    profiles: [cli]
+    networks: [app-network]
+    environment: *php-env
+    volumes:
+      - ../:/app
+
+  # --- opt-in: database ----------------------------------------------------
+  db:
+    image: mariadb:${MARIADB_VERSION:-11.8}
+    container_name: ${COMPOSE_PROJECT_NAME:-jardis-app}-db
+    profiles: [db]
+    networks: [app-network]
+    environment:
+      MARIADB_DATABASE: ${DB_NAME:-app}
+      MARIADB_USER: ${DB_USER:-app}
+      MARIADB_PASSWORD: ${DB_PASSWORD:-app}
+      MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-app-root}
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    volumes:
+      - db-data:/var/lib/mysql
+
+  # --- opt-in: cache -------------------------------------------------------
+  cache:
+    image: redis:7-alpine
+    container_name: ${COMPOSE_PROJECT_NAME:-jardis-app}-cache
+    profiles: [cache]
+    networks: [app-network]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # --- opt-in: mail catcher ------------------------------------------------
+  mail:
+    image: mailhog/mailhog:v1.0.1
+    container_name: ${COMPOSE_PROJECT_NAME:-jardis-app}-mail
+    profiles: [mail]
+    networks: [app-network]
+    ports:
+      - "${MAILHOG_UI_PORT:-8025}:8025"
+
+networks:
+  app-network:
+    driver: bridge
+    name: ${COMPOSE_PROJECT_NAME:-jardis-app}-network
+
+volumes:
+  db-data:

@@ -1,0 +1,47 @@
+<?php
+
+/**
+ * CLI entry point — the counterpart to public/index.php for workers, cron and
+ * one-off commands. Runs in the phpcli container: `make console ARGS=...`.
+ *
+ * Same kernel, same cascade, no request context: max_execution_time is 0 in
+ * the cli image, so a long-running consumer is not cut off.
+ */
+
+declare(strict_types=1);
+
+use JardisCore\Kernel\Bootstrap\BuildDomainKernelFromEnv;
+
+require dirname(__DIR__) . '/vendor/autoload.php';
+
+$root = dirname(__DIR__);
+$bootstrap = $root . '/src/App/bootstrap.php';
+
+$app = is_file($bootstrap)
+    ? require $bootstrap
+    : ['kernel' => (new BuildDomainKernelFromEnv())($root . '/config/env')];
+
+$kernel = $app['kernel'];
+$command = $argv[1] ?? 'list';
+
+switch ($command) {
+    case 'list':
+        echo "Available commands:\n";
+        echo "  list      this overview\n";
+        echo "  kernel    which services the kernel resolved\n";
+        exit(0);
+
+    case 'kernel':
+        // Every adapter is optional and degrades to null. This shows what is
+        // actually wired, which is the fastest way to tell a missing ENV from
+        // a missing package.
+        foreach (['dbConnection', 'cache', 'logger', 'mailer', 'httpClient', 'filesystem'] as $service) {
+            $resolved = $kernel->{$service}() !== null ? 'yes' : 'no';
+            printf("  %-12s %s\n", $service, $resolved);
+        }
+        exit(0);
+
+    default:
+        fwrite(STDERR, sprintf("Unknown command '%s'. Try 'list'.\n", $command));
+        exit(1);
+}

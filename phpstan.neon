@@ -1,0 +1,13 @@
+parameters:
+    # Analysis level, 0 to 8
+    level: 8
+
+    # Directories to analyse. public/ and bin/ are listed first and are never
+    # empty: with only src/ and tests/ the run aborts with "No files found to
+    # analyse" in the delivered state, and the shipped code — the front
+    # controller and the CLI entry point — would never be checked at all.
+    paths:
+        - public
+        - bin
+        - src
+        - tests

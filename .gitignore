@@ -1,0 +1,32 @@
+.DS_Store
+.idea/
+
+vendor/
+tests/reports/
+
+# The directory has to survive a clone — DB_PATH points into it and SQLite
+# fails silently on a missing directory (the kernel degrades to null, which
+# looks exactly like "not configured").
+var/*
+!var/.gitkeep
+
+# composer.lock IS tracked: this is type "project", not a library. Derived
+# projects get the exact versions this template was verified against.
+
+*.tmp
+*.cache
+*.log
+
+# .env is VERSIONED here (see the header there) — a template must run after
+# cloning. Local deviations and secrets belong in .env.local.
+.env.local
+.env.*.local
+
+# Skills installed by jardis/dev-skills come from vendor/ on every composer
+# install. Tracking them produces phantom diffs on each update; the same rule
+# jardiscore/kernel follows. AGENTS.md stays tracked: its managed block is
+# generated, but the file is part of what a clone should carry.
+.claude/skills/
+
+*.key
+support/secret.key

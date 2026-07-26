@@ -1,0 +1,39 @@
+{
+    "name": "jardisops/jardis-app-template",
+    "description": "Docker-based project template for Jardis domains: nginx + php-fpm, generated code in src/",
+    "type": "project",
+    "license": "proprietary",
+    "require": {
+        "php": ">=8.3",
+        "ext-json": "*",
+        "jardiscore/app": "^1.0",
+        "jardiscore/kernel": "^1.0",
+        "jardissupport/dotenv": "^1.0",
+        "jardissupport/secret": "^1.0",
+        "nyholm/psr7": "^1.8"
+    },
+    "require-dev": {
+        "jardis/dev-skills": "^1.0",
+        "phpunit/phpunit": "^10.5",
+        "phpstan/phpstan": "^2.0.4",
+        "squizlabs/php_codesniffer": "^3.11.2"
+    },
+    "autoload": {
+        "psr-4": {
+            "": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\": "tests/"
+        }
+    },
+    "config": {
+        "sort-packages": true,
+        "allow-plugins": {
+            "jardis/dev-skills": true
+        }
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}
