@@ -6,9 +6,14 @@
 # directory, hence the leading ../ on every mount.
 #
 # The default stack is web + app only. It runs against SQLite and needs no
-# database container; `db`, `cache` and `mail` are opt-in profiles. That is
+# further container; every other service is an opt-in profile. That is
 # possible because the Jardis kernel degrades every unconfigured service to
 # null instead of failing.
+#
+# Profiles are selected declaratively via COMPOSE_PROFILES in the root .env —
+# one comma-separated line, no YAML editing. `db-mariadb` and `db-postgres`
+# are alternatives: both answer on the network alias `db`, so DB_HOST=db in
+# config/env/ holds for either engine. Do not activate both at once.
 #
 # phpcli carries the `cli` profile so it never starts on `up`. The Makefile
 # reaches it via `run --rm`, which activates the profile on demand.
@@ -77,12 +82,29 @@ services:
     volumes:
       - ../:/app
 
-  # --- opt-in: database ----------------------------------------------------
-  db:
-    image: mariadb:${MARIADB_VERSION:-11.8}
-    container_name: ${COMPOSE_PROJECT_NAME:-jardis-app}-db
-    profiles: [db]
+  # --- opt-in: long-running worker ------------------------------------------
+  # A supervised consumer/worker process on the cli image. Only useful once
+  # the domain provides a long-running command — set WORKER_COMMAND in the
+  # root .env. It restarts on exit, which is what a real consumer wants.
+  worker:
+    image: ${DOCKER_HUB:-headgent}/${PHP_IMAGE_CLI:-phpcli}:${PHP_VERSION:-8.3}
+    container_name: ${COMPOSE_PROJECT_NAME:-jardis-app}-worker
+    profiles: [worker]
     networks: [app-network]
+    environment: *php-env
+    command: php /app/bin/console ${WORKER_COMMAND:-list}
+    restart: unless-stopped
+    volumes:
+      - ../:/app
+
+  # --- opt-in: database (pick ONE profile — both answer on alias "db") ------
+  db-mariadb:
+    image: mariadb:${MARIADB_VERSION:-11.8}
+    container_name: ${COMPOSE_PROJECT_NAME:-jardis-app}-db-mariadb
+    profiles: [db-mariadb]
+    networks:
+      app-network:
+        aliases: [db]
     environment:
       MARIADB_DATABASE: ${DB_NAME:-app}
       MARIADB_USER: ${DB_USER:-app}
@@ -94,7 +116,28 @@ services:
       timeout: 5s
       retries: 20
     volumes:
-      - db-data:/var/lib/mysql
+      - db-mariadb-data:/var/lib/mysql
+
+  db-postgres:
+    image: postgres:${POSTGRES_VERSION:-18}-alpine
+    container_name: ${COMPOSE_PROJECT_NAME:-jardis-app}-db-postgres
+    profiles: [db-postgres]
+    networks:
+      app-network:
+        aliases: [db]
+    environment:
+      POSTGRES_DB: ${DB_NAME:-app}
+      POSTGRES_USER: ${DB_USER:-app}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-app}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-app} -d ${DB_NAME:-app}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    volumes:
+      # PostgreSQL 18+ wants the mount one level up (data lands in a version
+      # subdirectory), which keeps pg_upgrade --link possible across majors.
+      - db-postgres-data:/var/lib/postgresql
 
   # --- opt-in: cache -------------------------------------------------------
   cache:
@@ -108,14 +151,70 @@ services:
       timeout: 3s
       retries: 10
 
+  # --- opt-in: message broker (RabbitMQ) ------------------------------------
+  # AMQP on rabbitmq:5672 inside the network; only the management UI is
+  # published. The phpcli/phpfpm images ship the amqp extension.
+  rabbitmq:
+    image: rabbitmq:${RABBITMQ_VERSION:-4.3}-management-alpine
+    container_name: ${COMPOSE_PROJECT_NAME:-jardis-app}-rabbitmq
+    profiles: [rabbitmq]
+    networks: [app-network]
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-app}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-app}
+    ports:
+      - "${RABBITMQ_UI_PORT:-15672}:15672"
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 10s
+      retries: 12
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+
+  # --- opt-in: event stream (Kafka) -----------------------------------------
+  # Single-node KRaft broker on kafka:9092 inside the network, nothing
+  # published to the host. The phpcli/phpfpm images ship rdkafka.
+  kafka:
+    image: apache/kafka:${KAFKA_VERSION:-4.3.1}
+    container_name: ${COMPOSE_PROJECT_NAME:-jardis-app}-kafka
+    profiles: [kafka]
+    networks: [app-network]
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_LOG_DIRS: /var/lib/kafka/data
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server localhost:9092 >/dev/null 2>&1"]
+      interval: 10s
+      timeout: 10s
+      retries: 15
+    volumes:
+      - kafka-data:/var/lib/kafka/data
+
   # --- opt-in: mail catcher ------------------------------------------------
+  # Mailpit: SMTP on mail:1025 inside the network, web UI published.
   mail:
-    image: mailhog/mailhog:v1.0.1
+    image: axllent/mailpit:${MAILPIT_VERSION:-v1.31}
     container_name: ${COMPOSE_PROJECT_NAME:-jardis-app}-mail
     profiles: [mail]
     networks: [app-network]
     ports:
-      - "${MAILHOG_UI_PORT:-8025}:8025"
+      - "${MAILPIT_UI_PORT:-8025}:8025"
+    healthcheck:
+      test: ["CMD", "/mailpit", "readyz"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
 
 networks:
   app-network:
@@ -123,4 +222,7 @@ networks:
     name: ${COMPOSE_PROJECT_NAME:-jardis-app}-network
 
 volumes:
-  db-data:
+  db-mariadb-data:
+  db-postgres-data:
+  rabbitmq-data:
+  kafka-data:

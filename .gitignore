@@ -16,6 +16,8 @@ var/*
 *.tmp
 *.cache
 *.log
+# *.cache above is meant for tool caches; this one is versioned config.
+!config/env/.env.cache
 
 # .env is VERSIONED here (see the header there) — a template must run after
 # cloning. Local deviations and secrets belong in .env.local.

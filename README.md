@@ -3,7 +3,8 @@
 A Docker-based project template for Jardis domains. Clone it, point the Jardis
 Builder at `src/`, and the generated code has a runtime around it: nginx plus
 php-fpm, a CLI container for workers and tooling, and opt-in services for
-database, cache and mail.
+database (MariaDB or PostgreSQL), cache, message broker, event stream, mail
+and a supervised worker.
 
 It builds no images. The PHP runtimes come from
 [`php-image-builder`](../php-image-builder) via Docker Hub — this template is
@@ -11,15 +12,10 @@ their first consumer on the fpm side.
 
 ## Requirements
 
-Docker, and a PHP runtime image that starts. The latter is currently the
-catch: **the published `headgent/phpfpm` does not boot** — it fails with
-`failed to open error_log (/proc/self/fd/2): Permission denied`, the very
-defect the new image builder fixes. Until those images are pushed, build them
-locally and point the stack at them:
-
-```sh
-cd ../php-image-builder && make build      # writes headgent/phpcli + phpfpm locally
-```
+Docker with compose. The PHP runtimes are pulled from Docker Hub
+(`headgent/phpcli` / `headgent/phpfpm`, published since 2026-07-26); no local
+image build is needed. The floating `:8.3` tag moves with the monthly
+republish — real projects pin the immutable `:8.3-<date>` twin in `.env`.
 
 ## Getting started
 
@@ -30,21 +26,49 @@ make console ARGS=kernel   # which services the kernel resolved
 make stop
 ```
 
-If port 8080 is taken, pass another one through the environment — compose
-prefers it over the `.env` file:
+If port 8080 is taken, pass another one **on the make command line** — a
+plain environment variable does not survive the Makefile's `include .env`
+(make re-exports the file's value), a make variable does (measured):
 
 ```sh
-HTTP_PORT=8091 make start
+make start HTTP_PORT=8091
 ```
 
 The delivered state runs on SQLite and needs no database container. That is
 possible because the Jardis kernel treats every adapter as optional: an unset
 ENV means the kernel carries `null` for that service instead of failing.
 
-For the full stack:
+## Opt-in services
+
+Every service beyond web + app is a compose profile, selected through **one
+line** in the root `.env` — no YAML editing, and the line is machine-writable
+for tools that configure the stack:
 
 ```sh
-make start-full  # adds db (MariaDB), cache (Redis) and mail (Mailhog)
+COMPOSE_PROFILES=db-mariadb,cache,mail
+```
+
+| Profile | Service | Reachable inside the network |
+|---|---|---|
+| `db-mariadb` | MariaDB | `db:3306` — alias, pick one engine |
+| `db-postgres` | PostgreSQL | `db:5432` — alias, pick one engine |
+| `cache` | Redis | `cache:6379` |
+| `rabbitmq` | RabbitMQ + management UI | `rabbitmq:5672`, UI on `:15672` |
+| `kafka` | Kafka (single-node KRaft) | `kafka:9092` |
+| `mail` | Mailpit (SMTP catcher) | `mail:1025`, UI on `:8025` |
+| `worker` | supervised `bin/console` | set `WORKER_COMMAND` first |
+
+`make start` picks the profiles up automatically. The application side is
+switched on separately in `config/env/` — `.env.database`, `.env.cache`,
+`.env.redis` and `.env.mail` carry commented, ready-to-uncomment values that
+point at the service names above. Broker configuration for generated code
+(Kafka/RabbitMQ) is not part of the kernel cascade; the services are simply
+reachable under their hostnames.
+
+The classic shortcut still works:
+
+```sh
+make start-full  # adds db (MariaDB), cache (Redis) and mail (Mailpit)
 ```
 
 ## Where things live

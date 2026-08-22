@@ -1,16 +1,16 @@
 <---stack-------->: ## -----------------------------------------------------------------------
-start: ## Start the stack (web + app) and wait until ready
+start: ## Start the stack (web + app + COMPOSE_PROFILES from .env) and wait until ready
 	$(DOCKER_COMPOSE) up -d --wait
 	@echo "✓ http://localhost:$(HTTP_PORT)"
 .PHONY: start
 
-start-full: ## Start the stack including db, cache and mail
-	$(DOCKER_COMPOSE) --profile db --profile cache --profile mail up -d --wait
-	@echo "✓ http://localhost:$(HTTP_PORT)   mail: http://localhost:$(MAILHOG_UI_PORT)"
+start-full: ## Start the stack including db (MariaDB), cache and mail
+	$(DOCKER_COMPOSE) --profile db-mariadb --profile cache --profile mail up -d --wait
+	@echo "✓ http://localhost:$(HTTP_PORT)   mail: http://localhost:$(MAILPIT_UI_PORT)"
 .PHONY: start-full
 
 stop: ## Stop and remove all containers of this project
-	@$(DOCKER_COMPOSE) --profile db --profile cache --profile mail --profile cli down --remove-orphans
+	@$(DOCKER_COMPOSE) --profile "*" down --remove-orphans
 	@echo "Containers stopped and removed."
 .PHONY: stop
 
@@ -18,7 +18,7 @@ restart: stop start ## Restart the stack
 .PHONY: restart
 
 status: ## Show container status
-	@$(DOCKER_COMPOSE) --profile db --profile cache --profile mail --profile cli ps -a
+	@$(DOCKER_COMPOSE) --profile "*" ps -a
 .PHONY: status
 
 logs: ## Follow the logs of all running containers
