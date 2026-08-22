@@ -37,11 +37,23 @@ Bewusst abweichend, jeweils mit Grund:
 | `type: "project"` statt `"library"` | Es ist ein Anwendungsgerüst, keine Bibliothek. |
 | `stack.mk` neu geschrieben | Die Vorlage rief `bin/provision` auf. `orchestration` hat sie ungeprüft kopiert und trägt seither tote Targets. |
 | kein Xdebug-Port-Mapping | Xdebug verbindet sich ausgehend zur IDE, es lauscht nicht im Container. |
-| drei Services statt einem | Request (fpm), Web (nginx), Werkzeug (cli). |
+| mehrere Services statt einem | Kern: Request (fpm), Web (nginx), Werkzeug (cli); dazu Opt-in-Profile (s. u.). |
 | `qa-stack.mk`: ein Hilfetext | `integration-test` nannte `tests/fixtures/<provider>/` — hier nicht vorhanden. Im Modulkopf vermerkt. Sonst byte-identisch. |
 
 Der Service heißt weiterhin `phpcli`: `docker.mk` und `qa-stack.mk` sprechen
 ihn namentlich an. Umbenennen hieße, beide Module zu forken.
+
+## Opt-in-Dienste über Compose-Profile
+
+Jeder Dienst jenseits von `web` + `app` trägt ein `profiles:`-Etikett und
+wird über **eine Zeile** geschaltet: `COMPOSE_PROFILES` in der Root-`.env` —
+die maschinenschreibbare Schnittstelle für Jardis, niemals YAML editieren.
+Profile: `db-mariadb`/`db-postgres` (Alternativen, beide auf Netzwerk-Alias
+`db` — nie beide aktivieren, sonst löst der Alias auf beide IPs auf),
+`cache`, `rabbitmq`, `kafka`, `mail`, `worker`, `cli`. `stop`/`status`
+nutzen `--profile "*"`, damit nie ein Profil in einer Aufzählung fehlt.
+Die Anwendungsseite wird getrennt geschaltet: auskommentierte
+Schaltpunkt-Dateien in `config/env/`.
 
 ## Die zwei Konfigurationsschichten
 
