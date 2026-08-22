@@ -57,7 +57,11 @@ Schaltpunkt-Dateien in `config/env/`.
 
 ## Die zwei Konfigurationsschichten
 
-Sie werden nicht vermischt, sonst steht jeder Wert zweimal da:
+Das Root/`config/env`/`src`-Layout ist kein Template-eigener Entscheid, sondern
+die projektübergreifende `projekt-layout-konvention` der Jardis-Wissensbasis
+(`jardis/claude/wissensbasis/projekt-layout-konvention.md`) — dieses Repo
+implementiert und zitiert sie, statt sie zu wiederholen. Die zwei Schichten
+werden nicht vermischt, sonst steht jeder Wert zweimal da:
 
 - **Stack** — `.env` im Root, gelesen von `docker compose` und dem Makefile.
 - **Anwendung** — `config/env/`, gelesen von der DotEnv-Kaskade *im Container*.
@@ -81,6 +85,8 @@ dort liegt gemischtes Eigentum.
 
 | Pfad | Wem |
 |---|---|
+| `.env` | dir, ab dem Klonen — Ausnahme: die `COMPOSE_PROFILES`-Zeile bleibt dauerhaft maschinenschreibbar |
+| `config/env/` | dir, ab dem Klonen |
 | `src/{BC}/Aggregate/` | Generator, hermetisch — wird bei jedem Build überschrieben |
 | `src/App/bootstrap.php` | einmal geschrieben, danach dir (ForceOverwrite:false) |
 | `src/{BC}/Rule/`, Teile von `Process/` | dir |

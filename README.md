@@ -60,10 +60,11 @@ COMPOSE_PROFILES=db-mariadb,cache,mail
 
 `make start` picks the profiles up automatically. The application side is
 switched on separately in `config/env/` — `.env.database`, `.env.cache`,
-`.env.redis` and `.env.mail` carry commented, ready-to-uncomment values that
-point at the service names above. Broker configuration for generated code
-(Kafka/RabbitMQ) is not part of the kernel cascade; the services are simply
-reachable under their hostnames.
+`.env.redis`, `.env.mail` and `.env.messaging` carry commented,
+ready-to-uncomment values that point at the service names above.
+`.env.messaging` picks exactly one transport (`kafka`, `rabbitmq` or
+`redis`) for the kernel's `messaging()` accessor — its `redis` transport
+reuses `.env.redis`'s connection values (one stack, one Redis).
 
 The classic shortcut still works:
 
@@ -87,14 +88,30 @@ The rule behind it: the project root holds what a tool looks for on its own
 (`compose.yml` via `COMPOSE_FILE`, `Makefile`, `composer.json`, `.env`), and
 `config/` holds what is read at runtime.
 
+## Ownership
+
+The project-root/`config/env`/`src` layout is a Jardis-wide convention (see
+the `projekt-layout-konvention` entry in the Jardis knowledge base) — this
+template's part of it is which paths Jardis writes once and which stay
+yours from the start:
+
+| Path | Owned by |
+|---|---|
+| `.env` | you, once cloned — except the `COMPOSE_PROFILES` line, which stays machine-writable for provisioning tools |
+| `config/env/` | you, once cloned |
+| `src/{BC}/Aggregate/` | the Builder, hermetic — overwritten on every build |
+| `src/App/bootstrap.php` | the Builder writes it **once** (`ForceOverwrite:false`); yours from that point on |
+| `public/index.php`, `bin/console` | you — never generated |
+
 ## Wiring in a generated domain
 
 1. Set the Builder's OutputDir to this project's `src/`.
 2. Build. The Builder writes `src/App/bootstrap.php` **once** and never
    overwrites it — from then on the file is yours.
-3. In that file, point `BuildDomainKernelFromEnv` at `../../config/env`
-   instead of `__DIR__`: the cascade lives in `config/env/`, the generated file
-   assumes its own directory.
+3. That file calls `BuildDomainKernelFromEnv` with the project root, the
+   same way `public/index.php`/`bin/console` do — the packer derives
+   `config/env/` itself, so no path needs adjusting relative to where the
+   generated file lives.
 4. Add routes in `public/index.php`; the domain facades come out of the array
    `bootstrap.php` returns.
 

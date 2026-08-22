@@ -29,16 +29,16 @@ $bootstrap = $root . '/src/App/bootstrap.php';
  * unexpected would otherwise put a full stack trace into the HTTP response,
  * since display_errors is On in the dev profile.
  *
- * The generated bootstrap.php builds the kernel itself, relative to its OWN
- * directory (src/App/). Since our cascade lives in config/env/, that one line
- * has to be pointed here after the first build — bootstrap.php belongs to you
- * from the moment it is created, a rebuild leaves it alone.
+ * `BuildDomainKernelFromEnv` takes the project root and derives
+ * `config/env/` itself (projekt-layout-konvention) — the generated
+ * bootstrap.php calls it the same way, from wherever it lives under src/, so
+ * no path needs re-pointing after the first build.
  */
 try {
     /** @var array<string, mixed> $app */
     $app = is_file($bootstrap)
         ? require $bootstrap
-        : ['kernel' => (new BuildDomainKernelFromEnv())($root . '/config/env')];
+        : ['kernel' => (new BuildDomainKernelFromEnv())($root)];
 
     $kernel = $app['kernel'] ?? null;
 
