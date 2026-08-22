@@ -10,16 +10,10 @@
   mailer) — alle Packagist-konsistent. Alle Phasen Doer grün + Verifier
   GRÜN (P4 inkl. Finding-Fix + Nachprüfung). path-repo/Compose-Mount
   entfernt. Nichts rot.
-- **Nächster Schritt:** (1) Welle-Teil-2-Stand messen (Preflight-Posten
-  unten): für data/dbQuery/repository/validation/workflow je prüfen, ob
-  der Widening-Patch (contracts `^1.0 || ^2.0`) auf Packagist ist; Fehlende
-  per do-git-update nachfahren (Muster+Vorab-Freigabe: Prozess-Notizen
-  „Welle"). (2) Dann app v1.1.0 umsetzen+releasen (Bescheid in Leitplanke 1:
-  kernel ^2.0 + contracts ^2.0, getting-started/examples auf Projekt-Root;
-  vendored examples/symfony-demo bewusst auf v1 belassen mit Hinweis,
-  eigener Composer-Baum). (3) Dann P5-Template-Teil (PLAN §P5: Packer-
-  Aufruf mit $root, kernel ^2.0, config/env/.env.messaging-Schaltpunkt,
-  README/CLAUDE.md; AK5.1–5.4 e2e beide Zustände). Je mit Doer→Verifier.
+- **Nächster Schritt:** P6 starten (Koffer-Sweep 8 Repos + Wissensbasis-
+  Umbenennung, PLAN §P6; Dateiliste = Explorer-Erhebung; .backup-Skill-
+  Duplikate in kernel UND Template löschen). Danach P7 (R6-Dokument,
+  endet mit STOPP „Abnahme Rolf").
 - **Offene Bescheide:** —
 - **Leitplanken:**
   1. Bescheide Rolf 2026-08-22: D1 Konvention Root/config/env/src · D2 Packer
@@ -123,12 +117,15 @@
       /release major, Workflow-Tag 0401d13) → kernel v2.0.0 (PR #15/#16,
       Tag 0ae2882); alle Tag==main==Packagist, develop synchron. Dazu
       Patch-Welle (6 Repos, s. Prozess-Notizen) per Rolf-Bescheid Weg 1.
-- [~] P5: Template-Nachzug + App-Doku — IN ARBEIT (2026-08-22 abends):
-      zwei Blocker-Ebenen beschieden (app v1.1.0 + Welle Teil 2, s.
-      Leitplanke 1); Welle Teil 2 lief bei Session-Ende noch (Stand im
-      Preflight messen); app-Umsetzung + Template-Teil offen. P5-Doer
-      hatte alle Halbfertig-Edits sauber zurückgesetzt — beide
-      Arbeitsbäume (Template, app) sind clean, nichts Halbes liegt herum.
+- [x] P5: Template-Nachzug + App-Doku — 2026-08-22/23. app v1.1.0 releast
+      (Tag 8e01144==main==Packagist, kernel ^2.0); Wellen Teil 2 (5/5,
+      inkl. repository-Testfix v1.1.2) + Teil 3 (secret v1.0.5) komplett,
+      alle Packagist-verifiziert; Template auf Projekt-Root (index.php/
+      console Packer($root)), kernel v2.0.0 gezogen, .env.messaging-
+      Schaltpunkt, README-Ownership (G21), CLAUDE.md zitiert Wissensbasis.
+      Doer grün + Verifier BESTANDEN (health 200 Auslieferungszustand,
+      Schaltpunkt-Gegenprobe wirft G5-konform). Muster-Klasse final
+      vermessen: auth/scheduling bleiben einzige v1-Pinner (kein Graph).
 - [ ] P6: Koffer-Sweep 8 Repos + Wissensbasis-Umbenennung (+ QA-Läufe)
 - [ ] P7: R6-Dokument an Builder (Abnahme Rolf = STOPP-Punkt)
 - [ ] Abschluss: Akzeptanz-Gate gegen das ganze PRD, Docs-Sync, Retro
@@ -162,6 +159,13 @@
   DotEnvInterface unverändert.
 
 ## Prozess-Notizen (3.7)
+- 2026-08-22 P5/app: Doer grün (kernel/contracts ^2.0, getting-started
+  Projekt-Root, examples/Fixtures projectRoot:, symfony-demo bewusst v1 mit
+  Hinweis; 122 Tests) · Verifier BESTANDEN (eigene QA + Gegenproben, Doku
+  wörtlich gegen kernel-v2-Code geprüft). UPDATE-RELEASE-Protokoll app
+  (Vorab-Freigabe Bescheid Rolf + PLAN Nr. 6): jardiscore/app · v1.0.3 →
+  v1.1.0 (minor) · Auto-Release-Workflow · Branch
+  feature/260822_kernel-v2-project-root · keine Anomalie.
 - 2026-08-22 P4-Blocker AUFGELÖST: Rückfrage-Gate → UNENTSCHEIDBAR →
   STOPP → Bescheid Rolf (Weg 1, Patch-Welle). Welle durch und vom
   Orchestrator auf Packagist verifiziert: dotenv v1.2.1, classversion
@@ -284,7 +288,30 @@
   3 Commits ahead origin (Push ausstehend, kein Blocker).
 
 ## Delegierte Entscheidungen (Rückfrage-Gate)
-- —
+- 2026-08-22 (Rolf schläft, „mach einfach weiter"): Welle Teil 2 zu 4/5
+  durch (data v1.0.4, dbquery v1.1.2, validation v1.1.3, workflow v1.0.4,
+  je Packagist-konsistent lt. Wellen-Agent). repository blockiert: CI ohne
+  Lockfile zieht dbquery v1.1.x (Backtick-Quoting), 3 Tests asserten alte
+  SQL-Strings — vorbestehender latenter Drift, kein Wellen-Schaden.
+  Orchestrator-Entscheid: Testfix im Rahmen der Testfehler-Regel (Soll
+  zuerst klären, STOPP falls dbquery-Bug) + Release auf dem offenen
+  PR-#12-Branch — der repository-Release selbst ist beschieden (Welle
+  Teil 2), nur der Weg braucht den Fix; „keine SQL-Strings in Assertions"
+  (development.md §5) deckt die Anpassungsrichtung. ERLEDIGT: Backticks
+  = gewolltes dbquery-v1.1.0-Verhalten (CHANGELOG „Code that
+  string-compares generated SQL must be adjusted"), 3 Assertions auf
+  Regex mit Kommentar, repository v1.1.2 Packagist-konsistent. Welle
+  Teil 2 KOMPLETT 5/5, vom Orchestrator verifiziert (alle ^1.0 || ^2.0).
+- 2026-08-22 (delegiert, dritter identischer Fall): Template-Graph
+  blockiert an jardissupport/secret (direktes require, contracts ^1.0).
+  Finaler Familien-Grep über ALLE lokalen Packages (L27-Nachholung):
+  nur noch auth/scheduling/secret pinnen ^1.0; ausschließlich secret
+  hängt in einem Zielgraphen (kernel/app/Template), 0 Interface-Treffer.
+  Orchestrator-Entscheid unter dem zweifach beschiedenen Wellen-Muster +
+  „weiter bis P7"-Mandat: Welle Teil 3 = NUR secret (Widening-Patch).
+  auth/scheduling bleiben bewusst v1-gebunden (Folgekandidaten). Damit
+  ist die Muster-Klasse abschließend vermessen — kein vierter Fall
+  möglich in diesem Lauf.
 
 ## Offene Punkte / Risiken
 - P3-Verifier-Nebenbefund: `domainRoot` steht noch in kernel
