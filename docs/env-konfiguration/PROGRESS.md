@@ -14,7 +14,14 @@
   Umbenennung, PLAN §P6; Dateiliste = Explorer-Erhebung; .backup-Skill-
   Duplikate in kernel UND Template löschen). Danach P7 (R6-Dokument,
   endet mit STOPP „Abnahme Rolf").
-- **Offene Bescheide:** —
+- **Offene Bescheide:** STOPP: Abnahme Rolf für das P7-R6-Dokument
+  (geplantes User-Gate, PLAN §P7): tools/builder/docs/requirements/
+  projekt-template-env.md (NEU, deutsch, 5 PRD-R6-Punkte belegt, §5 nennt
+  appstarter.go:83-Fehlstelle mit Fix-Richtung) + eine Verlinkungszeile
+  .claude/wissen/INDEX.md:56 — beides UNKOMMITTIERT im Builder-Repo (dort
+  fremder Feature-Branch aktiv; Commit nach Abnahme, Msg liegt in
+  Prozess-Notizen). Erst Rolfs Abnahme löscht diesen Marker; danach
+  Abschluss-Phase (Akzeptanz-Gate gegen das ganze PRD + Docs-Sync + Retro).
 - **Leitplanken:**
   1. Bescheide Rolf 2026-08-22: D1 Konvention Root/config/env/src · D2 Packer
      nimmt Projekt-Root · D3 Bugfixes zuerst · D4 $_ENV-Fallback entfernen ·
@@ -126,8 +133,19 @@
       Doer grün + Verifier BESTANDEN (health 200 Auslieferungszustand,
       Schaltpunkt-Gegenprobe wirft G5-konform). Muster-Klasse final
       vermessen: auth/scheduling bleiben einzige v1-Pinner (kein Graph).
-- [ ] P6: Koffer-Sweep 8 Repos + Wissensbasis-Umbenennung (+ QA-Läufe)
-- [ ] P7: R6-Dokument an Builder (Abnahme Rolf = STOPP-Punkt)
+- [x] P6: Koffer-Sweep 8 Repos + Wissensbasis-Umbenennung — 2026-08-23.
+      Doer grün (AK6.1–6.4, QA in kernel/app/contracts/dev-skills voll),
+      Verifier GRÜN (eigene Greps; einzige Restfundstelle kernel
+      docs/app-layer/PRD.md = fremde Lauf-Rechenschaft, Plan-Ausnahme).
+      Committet: claude main (5 ahead, Push offen); Doku-Fast-Path-PRs
+      gemerged → Auto-Releases contracts v2.0.1, app v1.1.1, dev-skills
+      v1.0.6; kernel v2.0.1 manuell (Tag 7849435==main). .backup-Skills
+      gelöscht. Skills core-kernel (v2-Rewrite) + support-dotenv
+      (addRawKeys/FromString) nachgezogen.
+- [~] P7: R6-Dokument an Builder — Doer grün 2026-08-23 (Dokument +
+      INDEX-Verlinkung, additiv, fremder Branch unberührt); WARTET auf
+      Abnahme Rolf (STOPP). Commit-Msg: docs(requirements): add builder
+      requirement doc for template ENV convention (R6).
 - [ ] Abschluss: Akzeptanz-Gate gegen das ganze PRD, Docs-Sync, Retro
 
 ## Letzte abgeschlossene Phase
