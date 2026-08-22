@@ -14,7 +14,7 @@ Block, der Grund statt der Entstehungsgeschichte.
 ## Was dieses Repo nicht tut
 
 **Es baut keine Images.** `headgent/phpcli` und `headgent/phpfpm` kommen aus
-`devops/docker/php-image-builder` über Docker Hub. Ein `Dockerfile` gehört hier
+`devops/php-image-builder` über Docker Hub. Ein `Dockerfile` gehört hier
 nicht hinein — wenn ein Laufzeit-Bedürfnis nicht erfüllt ist, wird es dort
 gelöst, nicht hier umgangen.
 
