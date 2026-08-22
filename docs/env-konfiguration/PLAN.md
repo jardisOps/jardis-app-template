@@ -57,7 +57,24 @@ dev-skills.
 4. **kernel v2.0.0** (P4) — R2+R3+R4; contracts `^2.0`.
 5. **messaging** (P4) — Doku/.env.example-Begradigung; Schnitt im
    do-git-update-Pfad (voraussichtlich Patch).
-6. Kein Release: app (Doku), Template, claude, dev-skills.
+6. Kein Release: Template, claude, dev-skills. GEÄNDERT (Bescheid Rolf
+   2026-08-22, P5-Blocker): app releast doch — **v1.1.0 (minor)** mit
+   kernel `^2.0` + contracts `^2.0` und Doku/examples auf Projekt-Root
+   (P5-App-Doku-Teil wandert in diesen Release); Grund: app pinnte
+   kernel/contracts `^1.0` und blockierte den Template-Nachzug.
+7. **Patch-Welle vor P4-Releases (Bescheid Rolf 2026-08-22, Weg 1 — löst
+   den gemessenen Composer-Konflikt: contracts-2.0.0 unlösbar neben ^1.0-
+   Pins):** je ein Patch-Release mit contracts-Constraint `^1.0 || ^2.0`
+   für dotenv (v1.2.1), classversion, dbconnection, eventdispatcher,
+   filesystem, mailer — sequentiell via do-git-update, VOR AK4.6.
+   messaging: Widening im ohnehin geplanten Release gebündelt.
+   cache/http/logger/factory nicht betroffen (fordern contracts nicht bzw.
+   nur transitiv über dotenv). Keiner der Betroffenen nutzt
+   DomainKernelInterface (grep src/ = 0). Welle Teil 2 (Bescheid Rolf
+   2026-08-22, P5): auch data, dbquery, repository, validation, workflow
+   je ein Widening-Patch (apps require-dev braucht sie; gemessen 0
+   Interface-Treffer). Verbleibende v1-gebundene Folgekandidaten:
+   scheduling, secret, auth.
 
 ## Phasen
 
