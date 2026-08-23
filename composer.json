@@ -28,6 +28,19 @@
             "Tests\\": "tests/"
         }
     },
+    "extra": {
+        "jardis/dev-skills": {
+            "bundled-skills": {
+                "include": [
+                    "jardis-catalog",
+                    "jardis-start-here",
+                    "jardis-mcp-consumer",
+                    "do-git-*",
+                    "do-project-git-setup"
+                ]
+            }
+        }
+    },
     "config": {
         "sort-packages": true,
         "allow-plugins": {
