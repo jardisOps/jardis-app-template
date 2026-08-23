@@ -33,7 +33,7 @@ Bewusst abweichend, jeweils mit Grund:
 
 | Abweichung | Grund |
 |---|---|
-| `.env` ist versioniert | Ein Template muss nach dem Klonen laufen. Secrets gehören nach `.env.local`. |
+| `.env` ist versioniert | Ein Template muss nach dem Klonen laufen. Werte werden direkt hier geändert — `.env.local` gilt nur für `config/env/`, nicht für diese Datei (compose liest nur sie). |
 | `type: "project"` statt `"library"` | Es ist ein Anwendungsgerüst, keine Bibliothek. |
 | `stack.mk` neu geschrieben | Die Vorlage rief `bin/provision` auf. `orchestration` hat sie ungeprüft kopiert und trägt seither tote Targets. |
 | kein Xdebug-Port-Mapping | Xdebug verbindet sich ausgehend zur IDE, es lauscht nicht im Container. |

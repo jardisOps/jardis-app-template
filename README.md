@@ -82,7 +82,7 @@ make start-full  # adds db (MariaDB), cache (Redis) and mail (Mailpit)
 | `config/env/` | the DotEnv cascade the kernel reads inside the container |
 | `config/nginx/` | the config template, rendered by the official nginx image at start |
 | `support/` | build tooling: compose file and Makefile modules |
-| `.env` | stack configuration — versioned, secrets belong in `.env.local` |
+| `.env` | stack configuration — versioned, trivial defaults; change values in place (compose reads only this file, `.env.local` does not apply here) |
 
 The rule behind it: the project root holds what a tool looks for on its own
 (`compose.yml` via `COMPOSE_FILE`, `Makefile`, `composer.json`, `.env`), and
@@ -141,3 +141,8 @@ make phpunit     # tests
 make phpstan     # level 8
 make phpcs       # PSR-12 + strict types
 ```
+
+The same three gates run as GitHub Actions on every PR
+(`.github/workflows/ci.yml`, house-line copy of the package repos' CI).
+No secret is required: the Docker Hub login step only runs when a
+`DOCKER_PAT` secret is configured.

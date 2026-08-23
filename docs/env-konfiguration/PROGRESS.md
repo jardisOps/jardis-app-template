@@ -4,28 +4,27 @@
 - **Ziel:** ENV-Konfiguration widerspruchsfrei (Konvention Projekt-Root/config/env,
   datei-reiner Kernel, Bugfixes, Messaging-Bootstrap, „Koffer" abgeschafft,
   Requirement-Dokument an Jardis) — Details: PRD R1–R6.
-- **Stand:** P1–P4 KOMPLETT (2026-08-22). Releases heute: dotenv v1.2.0+
-  v1.2.1, kernel v1.2.0+v2.0.0, contracts v2.0.0, messaging v1.0.4 +
-  Patch-Welle (classversion/dbconnection/eventdispatcher/filesystem/
-  mailer) — alle Packagist-konsistent. Alle Phasen Doer grün + Verifier
-  GRÜN (P4 inkl. Finding-Fix + Nachprüfung). path-repo/Compose-Mount
-  entfernt. Nichts rot.
-- **Nächster Schritt:** Dokument-Durchgang MIT Rolf am P7-R6-Dokument
-  (tools/builder/docs/requirements/projekt-template-env.md, unkommittiert;
-  Rolf: „guter erster Entwurf, darüber müssen wir noch reden" — erste
-  Diskussionsfrage war die „Provisionierungs"-Terminologie, evtl. schärfen
-  zu „beim Aufsetzen eines Zielprojekts durch den Builder"). Nach Abnahme:
-  Commit im Builder-Repo (Msg s. Phasen-Liste), dann Abschluss-Phase
-  (Akzeptanz-Gate gegen ganzes PRD + Docs-Sync + Retro; Lektionen-
-  Kandidaten s. Prozess-Notizen).
-- **Offene Bescheide:** STOPP: Abnahme Rolf für das P7-R6-Dokument
-  (geplantes User-Gate, PLAN §P7): tools/builder/docs/requirements/
-  projekt-template-env.md (NEU, deutsch, 5 PRD-R6-Punkte belegt, §5 nennt
-  appstarter.go:83-Fehlstelle mit Fix-Richtung) + eine Verlinkungszeile
-  .claude/wissen/INDEX.md:56 — beides UNKOMMITTIERT im Builder-Repo (dort
-  fremder Feature-Branch aktiv; Commit nach Abnahme, Msg liegt in
-  Prozess-Notizen). Erst Rolfs Abnahme löscht diesen Marker; danach
-  Abschluss-Phase (Akzeptanz-Gate gegen das ganze PRD + Docs-Sync + Retro).
+- **Stand:** ABGESCHLOSSEN (2026-08-23). Akzeptanz-Gate GRÜN (R1–R7 gegen
+  Ground Truth, voller Template-QA-Lauf, Auslieferungszustand /health 200
+  gemessen, keine Integrationslücken). Docs-Sync: Drift in 4 publizierten
+  Repos gefunden+gefixt → 4 freigegebene Doku-Patch-Releases (kernel
+  v2.0.2, contracts v2.0.2, dotenv v1.2.2, app v1.1.2 — alle Tag==main==
+  Packagist, develop synchron). Retro: L33–L36 in lektionen.md kodifiziert.
+  Zusatz auf Bescheid Rolf: Template-ci.yml (Hauslinie) + README-Vermerk;
+  .env.local-Widerspruch gefixt (.env/README/CLAUDE.md).
+- **Carry-over-Triage (4.5):** GEPARKT in jardis/claude/BACKLOG.md
+  (zentraler Ort, Bescheid Rolf 2026-08-23 — GitHub-Issues bewusst nicht):
+  dbConnection-Packer-Lücken · auth/scheduling-v1-Pinner · dotenv-Bool-
+  Grenze · Deployment/K3s-Vorhaben · Template-GitHub-Anlage (Template-
+  Repository-Markierung). GESTRICHEN: R3-Release-Schnitt-Frage (durch
+  v2.0.0 beantwortet), R4-Broker-Testinfra (in P4 gebaut). BEARBEITET:
+  Template-CI (dieser Abschluss). P7-Folgethemen (Kernel-SecretHandler,
+  config:check, GitHub-Skill) leben im R6-Dokument §7–§10 + builder
+  TODOS.md (P0 Kontext-Chat).
+- **Nächster Schritt:** — (4.6: Digest in Wissensbasis erledigt —
+  projekt-layout-konvention fortgeschrieben; Ordner-Löschung folgt als
+  eigener Commit nach diesem Abschluss-Commit, Rechenschaft = Git-Historie)
+- **Offene Bescheide:** keine.
 - **Leitplanken:**
   1. Bescheide Rolf 2026-08-22: D1 Konvention Root/config/env/src · D2 Packer
      nimmt Projekt-Root · D3 Bugfixes zuerst · D4 $_ENV-Fallback entfernen ·
@@ -139,10 +138,12 @@
       v1.0.6; kernel v2.0.1 manuell (Tag 7849435==main). .backup-Skills
       gelöscht. Skills core-kernel (v2-Rewrite) + support-dotenv
       (addRawKeys/FromString) nachgezogen.
-- [~] P7: R6-Dokument an Builder — Doer grün 2026-08-23 (Dokument +
-      INDEX-Verlinkung, additiv, fremder Branch unberührt); WARTET auf
-      Abnahme Rolf (STOPP). Commit-Msg: docs(requirements): add builder
-      requirement doc for template ENV convention (R6).
+- [x] P7: R6-Dokument an Builder — 2026-08-23 ABGENOMMEN nach Dokument-
+      Durchgang mit Rolf (Dokument von 5 auf 11 Paragraphen erweitert:
+      Einrichtung, ENV-UI, Secrets, MCP, Runtime-Seite; Bescheide s. Kopf-
+      Historie). Committet builder 5a2c4384e (+ TODOS.md P0 Kontext-Chat).
+      Nebenprodukt: .env.local-Widerspruch im Template gefixt (.env,
+      README, .claude/CLAUDE.md — uncommittiert bis Abschluss).
 - [ ] Abschluss: Akzeptanz-Gate gegen das ganze PRD, Docs-Sync, Retro
 
 ## Letzte abgeschlossene Phase
