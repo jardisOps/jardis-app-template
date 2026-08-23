@@ -4,7 +4,9 @@
 # template's own surface); "make phpunit" instead of phpunit-coverage (the
 # delivered test suite is intentionally empty — coverage of nothing is noise).
 # Docker Hub login only runs when the DOCKER_PAT secret exists, so a freshly
-# derived project passes CI before configuring any secret.
+# derived project passes CI before configuring any secret. The smoke job is
+# template-specific: it guards the core promise that the delivery state runs
+# without configuration (`make start` on SQLite, /health answers 200).
 name: CI Pipeline
 
 on:
@@ -131,6 +133,49 @@ jobs:
         env:
           HOME: /home/runner
         run: make phpunit
+
+      - name: Cleanup
+        if: always()
+        run: make remove
+
+      - name: Logout from Docker Hub
+        if: always()
+        env:
+          DOCKER_CONFIG: /tmp/.docker
+        run: docker logout
+
+  smoke:
+    name: smoke
+    runs-on: ubuntu-latest
+    env:
+      HAS_DOCKER_PAT: ${{ secrets.DOCKER_PAT != '' }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Login to Docker Hub
+        if: ${{ github.actor != 'dependabot[bot]' && env.HAS_DOCKER_PAT == 'true' }}
+        env:
+          DOCKER_CONFIG: /tmp/.docker
+        run: |
+          mkdir -p $DOCKER_CONFIG
+          echo "${{ secrets.DOCKER_PAT }}" | docker login -u "${{ secrets.DOCKER_USER_NAME }}" --password-stdin
+
+      - name: Install dependencies
+        run: make install
+
+      - name: Start the delivery stack
+        run: make start
+
+      - name: Probe /health
+        run: |
+          PORT=$(grep -E '^HTTP_PORT=' .env | cut -d= -f2)
+          curl -fsS --retry 3 --retry-delay 2 --retry-all-errors "http://localhost:${PORT}/health"
+
+      - name: Show container state on failure
+        if: failure()
+        run: |
+          docker compose --profile "*" ps -a
+          docker compose logs
 
       - name: Cleanup
         if: always()
