@@ -47,6 +47,9 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
+      - name: Check env files for secrets
+        run: bash support/check-env-secrets.sh --tree
+
       - name: Login to Docker Hub
         if: ${{ github.actor != 'dependabot[bot]' && secrets.DOCKER_PAT != '' }}
         env:
