@@ -20,7 +20,9 @@ var/*
 !config/env/.env.cache
 
 # .env is VERSIONED here (see the header there) — a template must run after
-# cloning. Local deviations and secrets belong in .env.local.
+# cloning; it holds trivial defaults only, never real secrets. Nothing reads
+# a root .env.local (compose and make read .env only); the .env.local rules
+# below matter for config/env/, where the DotEnv cascade picks them up.
 .env.local
 .env.*.local
 
