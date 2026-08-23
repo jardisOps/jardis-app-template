@@ -1,6 +1,6 @@
 ---
 name: devops-app-template
-description: The Docker runtime scaffold for Jardis domains from devops/jardis-app-template — nginx + php-fpm + CLI on the headgent images, opt-in services via compose profiles (MariaDB/Postgres, Redis, RabbitMQ, Kafka, Mailpit, worker), two config layers (.env for the stack, config/env/ DotEnv cascade for the app), runs unconfigured on SQLite with /health answering 200. Use when starting a new Jardis project, adding a service to a stack, wiring builder output into a runtime, or asking what the delivered template already provides. TRIGGER: jardis-app-template, app template, COMPOSE_PROFILES, config/env, Auslieferungszustand, make start, /health, secret guardrail, worker service.
+description: The Docker runtime scaffold for Jardis domains from devops/jardis-app-template — nginx + php-fpm + CLI on the headgent images, opt-in services via compose profiles (MariaDB/Postgres, Redis, RabbitMQ, Kafka, Mailpit, worker), two config layers (.env for the stack, config/env/ DotEnv cascade for the app), runs unconfigured on SQLite with /health answering 200. Use when starting a new Jardis project, adding a service to a stack, wiring builder output into a runtime, or asking what the delivered template already provides. TRIGGER: jardis-app-template, app template, COMPOSE_PROFILES, config/env, Auslieferungszustand, make start, /health, secret guardrail, make encrypt, generate-key-file, secret.key, worker service.
 ---
 
 # Jardis app template (devops/jardis-app-template)
@@ -53,6 +53,17 @@ env file (keyless packer). `make profiles-check` probes every profile once
 | Application | `config/env/` cascade incl. `.env.<topic>.{APP_ENV}` deltas | DotEnv inside the container (values arrive via `environment:`) |
 
 Layout follows `jardis/claude/wissensbasis/projekt-layout-konvention.md`.
+
+## Secrets
+
+The guardrail (pre-commit + CI) blocks plaintext credentials in the versioned
+env files; the sanctioned way in: `make generate-key-file` (writes
+`support/secret.key`, gitignored, chmod 600 — in prod mounted at the same
+path), then `make encrypt VALUE="..."` (AES-256-GCM; `encrypt-sodium` for
+Sodium) and paste the printed `secret(...)` as the value, e.g.
+`DB_PASSWORD=secret(...)`. jardiscore/kernel >= 2.1 resolves `secret(...)`
+at bootstrap (since 2.2 in one pass via dotenv >= 1.3) — application code
+sees plaintext only.
 
 ## Daily driving
 

@@ -39,6 +39,7 @@ Bewusst abweichend, jeweils mit Grund:
 | kein Xdebug-Port-Mapping | Xdebug verbindet sich ausgehend zur IDE, es lauscht nicht im Container. |
 | mehrere Services statt einem | Kern: Request (fpm), Web (nginx), Werkzeug (cli); dazu Opt-in-Profile (s. u.). |
 | `qa-stack.mk`: ein Hilfetext | `integration-test` nannte `tests/fixtures/<provider>/` — hier nicht vorhanden. Im Modulkopf vermerkt. Sonst byte-identisch. |
+| `secret.mk` aus `jardissupport/secret` übernommen | Meldungen auf Englisch (Repo-Regel); der PHP-Aufruf via `docker compose run --rm --no-deps phpcli` entspricht bereits der hiesigen Form. Sonst byte-identisch, KEY_FILE-Default `support/secret.key`. |
 | `pre-commit-hook.sh`: Secret-Guardrail-Aufruf | Weil die `.env` hier versioniert ist, prüft `support/check-env-secrets.sh` gestagte env-Zeilen auf echte Secrets (Token-Formate, lange Klartext-Werte zu `*_PASSWORD/_SECRET/_TOKEN/_KEY`) — Ausweg: `secret(...)`, `.local`-Datei oder `JARDIS_ALLOW_ENV_SECRET=1`. CI fährt denselben Check (`--tree`). Sonst byte-identisch. |
 
 Der Service heißt weiterhin `phpcli`: `docker.mk` und `qa-stack.mk` sprechen
