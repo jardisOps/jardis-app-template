@@ -29,8 +29,11 @@ var/*
 # Skills installed by jardis/dev-skills come from vendor/ on every composer
 # install. Tracking them produces phantom diffs on each update; the same rule
 # jardiscore/kernel follows. AGENTS.md stays tracked: its managed block is
-# generated, but the file is part of what a clone should carry.
-.claude/skills/
+# generated, but the file is part of what a clone should carry. Exception:
+# devops-app-template is THIS repo's own skill source (synced into
+# jardis-claude via its skills.manifest), not a vendor install.
+.claude/skills/*
+!.claude/skills/devops-app-template/
 
 *.key
 support/secret.key
