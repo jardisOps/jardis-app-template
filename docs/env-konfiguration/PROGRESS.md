@@ -10,10 +10,14 @@
   mailer) — alle Packagist-konsistent. Alle Phasen Doer grün + Verifier
   GRÜN (P4 inkl. Finding-Fix + Nachprüfung). path-repo/Compose-Mount
   entfernt. Nichts rot.
-- **Nächster Schritt:** P6 starten (Koffer-Sweep 8 Repos + Wissensbasis-
-  Umbenennung, PLAN §P6; Dateiliste = Explorer-Erhebung; .backup-Skill-
-  Duplikate in kernel UND Template löschen). Danach P7 (R6-Dokument,
-  endet mit STOPP „Abnahme Rolf").
+- **Nächster Schritt:** Dokument-Durchgang MIT Rolf am P7-R6-Dokument
+  (tools/builder/docs/requirements/projekt-template-env.md, unkommittiert;
+  Rolf: „guter erster Entwurf, darüber müssen wir noch reden" — erste
+  Diskussionsfrage war die „Provisionierungs"-Terminologie, evtl. schärfen
+  zu „beim Aufsetzen eines Zielprojekts durch den Builder"). Nach Abnahme:
+  Commit im Builder-Repo (Msg s. Phasen-Liste), dann Abschluss-Phase
+  (Akzeptanz-Gate gegen ganzes PRD + Docs-Sync + Retro; Lektionen-
+  Kandidaten s. Prozess-Notizen).
 - **Offene Bescheide:** STOPP: Abnahme Rolf für das P7-R6-Dokument
   (geplantes User-Gate, PLAN §P7): tools/builder/docs/requirements/
   projekt-template-env.md (NEU, deutsch, 5 PRD-R6-Punkte belegt, §5 nennt
@@ -76,15 +80,8 @@
   Builder   /Users/Rolf/Development/headgent/jardis/tools/builder (nur R6-Dok)
 
 ## Wiederanlauf-Preflight (vor dem ersten Schritt jeder neuen Session)
-- [ ] **ZUERST — Welle-Teil-2-Stand (Session-Ende 2026-08-22 abends, Agent
-      lief evtl. noch):** je Repo data/dbQuery/repository/validation/
-      workflow (unter jardis/support/): `git -C <repo> status --short`
-      (halbfertige fix/260822_widen-contracts-constraint-Branches?) UND
-      `curl -s https://repo.packagist.org/p2/jardissupport/<name>.json |
-      jq '.packages[][0] | .version + " " + .require["jardissupport/contracts"]'`
-      — Constraint `^1.0 || ^2.0` = Release durch. Unfertige nachfahren
-      (patch, Muster s. Prozess-Notizen Welle Teil 1), Halbreste (offene
-      PRs/Branches) erst sichten, nie blind neu anfangen.
+- [x] Welle-Stand: OBSOLET — alle drei Wellen komplett und Packagist-
+      verifiziert (2026-08-23), kein offener Wellen-Rest.
 - [ ] **Arbeitsbaum:** `git status --short` + Branch/HEAD in JEDEM betroffenen
       Repo (Liste unter „Bezug") — uncommittete Reste? Erst klären, dann
       arbeiten.
@@ -177,6 +174,31 @@
   DotEnvInterface unverändert.
 
 ## Prozess-Notizen (3.7)
+- **Lektionen-Kandidaten für die Abschluss-Retro** (festgehalten 2026-08-23,
+  Bitte Rolf „Wissenswertes festhalten"; Kodifizierung in lektionen.md
+  macht die Retro):
+  1. Major-Release eines Basis-Packages (contracts) braucht VORAB die
+     graph-weite Konsumenten-Vermessung (Familien-Grep über die
+     composer.json ALLER Repos + aller Zielgraph-require-devs) — wir
+     stolperten in drei Stufen (kernel-Graph → app-Graph → Template-Graph)
+     statt einmal zu messen; drei Bescheid-Runden statt einer.
+  2. Repos ohne committetes composer.lock sind latent CI-rot: der
+     dbquery-Backtick-Drift schlummerte seit v1.1.0 und flog erst beim
+     nächsten frischen install auf. Verwandt: SQL-String-Assertions
+     verletzen rules-testing und zerbrechen an legitimen
+     Dependency-Sprüngen.
+  3. Auto-Release-Workflows machen aus jedem fix/*-develop-Merge einen
+     Release — Doku-Sweeps über publizierte Repos sind deshalb bewusst
+     als Patch-Releases einzuplanen (P6: contracts v2.0.1, app v1.1.1,
+     dev-skills v1.0.6), nicht als „nur Doku, kein Release".
+- **Wissens-Sicherung Stand 2026-08-23 (Projektregeln):** Wissensbasis
+  aktuell (projekt-layout-konvention NEU, domainkernel-ist-die-
+  infrastrukturflaeche umbenannt+fortgeschrieben, ein-stack-Eintrag);
+  kuratierte Skills aktuell (core-kernel v2-Rewrite, support-dotenv
+  v1.2-API, 12 weitere gesweept); READMEs aktuell (Template mit
+  Ownership-Tabelle, kernel, app, contracts, dev-skills, messaging);
+  kein zusätzliches Wissensdokument nötig — R6-Inhalt lebt im
+  P7-Dokument, Herkunft in dieser Lauf-Rechenschaft.
 - 2026-08-22 P5/app: Doer grün (kernel/contracts ^2.0, getting-started
   Projekt-Root, examples/Fixtures projectRoot:, symfony-demo bewusst v1 mit
   Hinweis; 122 Tests) · Verifier BESTANDEN (eigene QA + Gegenproben, Doku
