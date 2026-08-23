@@ -17,6 +17,25 @@ stop: ## Stop and remove all containers of this project
 restart: stop start ## Restart the stack
 .PHONY: restart
 
+# Sequential on purpose: db-mariadb and db-postgres share the network alias
+# "db" and must never run at once. The worker probe runs the real
+# WORKER_COMMAND once, so it needs a prior `make install`. Keep this list in
+# sync with the profiles in support/docker-compose.yml.
+PROBE_PROFILES := db-mariadb db-postgres cache rabbitmq kafka mail
+
+profiles-check: ## Probe every opt-in profile once (start, wait healthy, remove) — needs `make install` for the worker
+	@for p in $(PROBE_PROFILES); do \
+		echo "→ $$p"; \
+		$(DOCKER_COMPOSE) --profile $$p up -d --wait $$p; \
+		$(DOCKER_COMPOSE) --profile $$p rm -sf $$p; \
+	done
+	@echo "→ worker"
+	@$(DOCKER_COMPOSE) run --rm --no-deps worker
+	@echo "→ cli"
+	@$(DOCKER_COMPOSE) run --rm --no-deps phpcli php -v
+	@echo "✓ all opt-in profiles start"
+.PHONY: profiles-check
+
 status: ## Show container status
 	@$(DOCKER_COMPOSE) --profile "*" ps -a
 .PHONY: status

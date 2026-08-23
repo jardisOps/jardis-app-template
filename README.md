@@ -72,6 +72,12 @@ The classic shortcut still works:
 make start-full  # adds db (MariaDB), cache (Redis) and mail (Mailpit)
 ```
 
+Before a release of the template itself, `make profiles-check` probes every
+opt-in profile once — start, wait until healthy, remove — sequentially,
+because the two db profiles share the network alias `db`. The worker probe
+runs the real `WORKER_COMMAND` once and therefore needs a prior
+`make install`.
+
 ## Where things live
 
 | Path | What |
@@ -145,7 +151,9 @@ make phpcs       # PSR-12 + strict types
 The same three gates run as GitHub Actions on every PR
 (`.github/workflows/ci.yml`, house-line copy of the package repos' CI).
 No secret is required: the Docker Hub login step only runs when a
-`DOCKER_PAT` secret is configured.
+`DOCKER_PAT` secret is configured. A fourth, template-specific `smoke` job
+guards the delivery-state promise: `make start` with no configuration,
+then `/health` must answer 200.
 
 Because `.env` and `config/env/` are versioned, a secret guardrail
 (`support/check-env-secrets.sh`) blocks commits that put real credentials
