@@ -146,3 +146,10 @@ The same three gates run as GitHub Actions on every PR
 (`.github/workflows/ci.yml`, house-line copy of the package repos' CI).
 No secret is required: the Docker Hub login step only runs when a
 `DOCKER_PAT` secret is configured.
+
+Because `.env` and `config/env/` are versioned, a secret guardrail
+(`support/check-env-secrets.sh`) blocks commits that put real credentials
+into them — known token formats and non-trivial plaintext values for
+`*_PASSWORD`/`*_SECRET`/`*_TOKEN`/`*_KEY` keys. Encrypt such values as
+`secret(...)` or keep them in gitignored `*.local` files. The pre-commit
+hook runs it on staged lines, CI on the whole tree.

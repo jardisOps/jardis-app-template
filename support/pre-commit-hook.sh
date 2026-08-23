@@ -30,6 +30,10 @@ if [[ $user =~ [.,:'!@#$%^&*()_+'] ]]; then
     exit 1;
 fi
 
+# Guardrail: no real secrets in the versioned env files (template deviation
+# from the house-line hook — .env is committed here, see .claude/CLAUDE.md).
+bash ./support/check-env-secrets.sh --staged || exit 1
+
 if [[ -n "$files" ]]; then
     echo "Processing phpcs:"
     $DOCKER_COMPOSE run --rm phpcli vendor/bin/phpcs ${files} -
