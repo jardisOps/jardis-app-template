@@ -34,3 +34,6 @@ var/*
 
 *.key
 support/secret.key
+
+# Local working papers (Vorhaben docs) — not part of the delivered template
+/docs/
