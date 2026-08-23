@@ -60,7 +60,8 @@ COMPOSE_PROFILES=db-mariadb,cache,mail
 
 `make start` picks the profiles up automatically. The application side is
 switched on separately in `config/env/` — `.env.database`, `.env.cache`,
-`.env.redis`, `.env.mail` and `.env.messaging` carry commented,
+`.env.redis`, `.env.logger`, `.env.mail`, `.env.http` and
+`.env.messaging` carry commented,
 ready-to-uncomment values that point at the service names above.
 `.env.messaging` picks exactly one transport (`kafka`, `rabbitmq` or
 `redis`) for the kernel's `messaging()` accessor — its `redis` transport
