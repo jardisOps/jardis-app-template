@@ -95,6 +95,16 @@ The rule behind it: the project root holds what a tool looks for on its own
 (`compose.yml` via `COMPOSE_FILE`, `Makefile`, `composer.json`, `.env`), and
 `config/` holds what is read at runtime.
 
+## Secrets
+
+Credentials never go into the versioned env files in plaintext. Run
+`make generate-key-file` once (creates `support/secret.key`, gitignored),
+then `make encrypt VALUE="..."` and put the printed ciphertext into the
+`config/env/` file, e.g. `DB_PASSWORD=secret(...)`. The key file is the only
+real secret: in production it is mounted (volume or K8s secret) at the same
+path. The kernel (jardiscore/kernel >= 2.1) resolves `secret(...)` values
+during bootstrap — application code only ever sees plaintext.
+
 ## Ownership
 
 The project-root/`config/env`/`src` layout is a Jardis-wide convention (see
