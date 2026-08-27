@@ -67,12 +67,26 @@ $routes = new Routes(new Psr17Factory());
 $routes->health('/health');
 
 /**
- * Domain routes go here. With a generated domain the facade comes out of the
- * array above:
+ * Generic mount for Builder-emitted domain routes. Every build writes
+ * src/Api/{Domain}/routes.php (contract: `return function (Routes $routes,
+ * {Domain} $domain, string $prefix = ''): void`). The facade key in the
+ * bootstrap array is the lcfirst'd domain name — the same name the Api/
+ * directory carries, so the mount derives it from the path. Zero matches
+ * before the first build is fine: the app keeps running unconfigured and
+ * /health answers 200.
  *
- *   $sales = $app['sales'];
- *   $routes->get('/orders/{id}', static fn ($request) =>
- *       $sales->order()->getOrderById((string) $request->getAttribute('id')));
+ * To mount everything under a common prefix, pass it as the third argument:
+ *
+ *   (require $routesFile)($routes, $facade, '/api');
+ *
+ * Hand-written routes are still welcome right here, next to the loop.
  */
+foreach (glob($root . '/src/Api/*/routes.php') ?: [] as $routesFile) {
+    $facade = $app[lcfirst(basename(dirname($routesFile)))] ?? null;
+
+    if (is_object($facade)) {
+        (require $routesFile)($routes, $facade);
+    }
+}
 
 (new App($routes, $kernel, new AppConfig(debug: (bool) $kernel->env('app_debug'))))->run();
