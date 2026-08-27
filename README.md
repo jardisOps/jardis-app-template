@@ -129,8 +129,12 @@ yours from the start:
    same way `public/index.php`/`bin/console` do — the packer derives
    `config/env/` itself, so no path needs adjusting relative to where the
    generated file lives.
-4. Add routes in `public/index.php`; the domain facades come out of the array
-   `bootstrap.php` returns.
+4. Routes need no wiring: every build also writes
+   `src/Api/{Domain}/{openapi.yaml,routes.php}`, and `public/index.php`
+   mounts each `routes.php` automatically with the matching facade from the
+   `bootstrap.php` array. Hand-written routes still go next to that loop.
+5. For typed frontend access to the emitted `openapi.yaml` contract, follow
+   the recipe in [`FRONTEND.md`](FRONTEND.md).
 
 Autoloading needs no maintenance: generated domains carry top-level namespaces
 (`namespace Sales;`), and `composer.json` maps `""` to `src/`. A second domain
