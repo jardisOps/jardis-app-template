@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "65d869c68e481e2c7327cab02e7ffcba",
+    "content-hash": "d52e0b2d2c956cd59168dd82ca4b9f6a",
     "packages": [
         {
             "name": "jardiscore/app",
@@ -238,16 +238,16 @@
         },
         {
             "name": "jardissupport/contracts",
-            "version": "v2.0.0",
+            "version": "v2.0.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/jardisSupport/contracts.git",
-                "reference": "0401d137ac24cab05bae962a4b982571e7150371"
+                "reference": "189f73f5fee59f33d43a2311f32f3ad16262af97"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/jardisSupport/contracts/zipball/0401d137ac24cab05bae962a4b982571e7150371",
-                "reference": "0401d137ac24cab05bae962a4b982571e7150371",
+                "url": "https://api.github.com/repos/jardisSupport/contracts/zipball/189f73f5fee59f33d43a2311f32f3ad16262af97",
+                "reference": "189f73f5fee59f33d43a2311f32f3ad16262af97",
                 "shasum": ""
             },
             "require": {
@@ -296,9 +296,142 @@
                 "docs": "https://docs.jardis.io/en/support/contracts",
                 "email": "jardisDev@headgent.com",
                 "issues": "https://github.com/jardisSupport/contracts/issues",
-                "source": "https://github.com/jardisSupport/contracts/tree/v2.0.0"
+                "source": "https://github.com/jardisSupport/contracts/tree/v2.0.2"
             },
-            "time": "2026-08-22T19:30:06+00:00"
+            "time": "2026-08-23T08:41:47+00:00"
+        },
+        {
+            "name": "jardissupport/data",
+            "version": "v1.0.4",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/jardisSupport/data.git",
+                "reference": "5eb4f673ccd1104494951172c6099bd53c62c539"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/jardisSupport/data/zipball/5eb4f673ccd1104494951172c6099bd53c62c539",
+                "reference": "5eb4f673ccd1104494951172c6099bd53c62c539",
+                "shasum": ""
+            },
+            "require": {
+                "jardissupport/contracts": "^1.0 || ^2.0",
+                "php": ">=8.2"
+            },
+            "require-dev": {
+                "ext-json": "*",
+                "phpstan/phpstan": "2.1.56",
+                "phpunit/phpunit": "10.5.63",
+                "squizlabs/php_codesniffer": "3.13.6"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "JardisSupport\\Data\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Jardis Development",
+                    "email": "jardisDev@headgent.com"
+                }
+            ],
+            "description": "Entity hydration with change tracking, bidirectional field mapping, and identity generation (UUID v4/v5/v7, NanoID)",
+            "homepage": "https://jardis.io",
+            "keywords": [
+                "Headgent",
+                "change-tracking",
+                "data",
+                "domain-driven-design",
+                "entity",
+                "entity-hydration",
+                "field-mapping",
+                "hexagonal-architecture",
+                "hydration",
+                "identity",
+                "jardis",
+                "nanoid",
+                "php",
+                "snapshot",
+                "uuid"
+            ],
+            "support": {
+                "docs": "https://docs.jardis.io/en/support/data",
+                "email": "jardisDev@headgent.com",
+                "issues": "https://github.com/jardisSupport/data/issues",
+                "source": "https://github.com/jardisSupport/data/tree/v1.0.4"
+            },
+            "time": "2026-08-22T19:55:50+00:00"
+        },
+        {
+            "name": "jardissupport/dbquery",
+            "version": "v1.1.2",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/jardisSupport/dbquery.git",
+                "reference": "152e6d4929e952b4937db6027165c10312171a7d"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/jardisSupport/dbquery/zipball/152e6d4929e952b4937db6027165c10312171a7d",
+                "reference": "152e6d4929e952b4937db6027165c10312171a7d",
+                "shasum": ""
+            },
+            "require": {
+                "ext-pdo": "*",
+                "jardissupport/contracts": "^1.0 || ^2.0",
+                "jardissupport/dotenv": "^1.0",
+                "php": ">=8.2"
+            },
+            "require-dev": {
+                "ext-mbstring": "*",
+                "phpstan/phpstan": "2.1.56",
+                "phpunit/phpunit": "10.5.63",
+                "squizlabs/php_codesniffer": "3.13.6"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "JardisSupport\\DbQuery\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Jardis Development",
+                    "email": "jardisDev@headgent.com"
+                }
+            ],
+            "description": "Fluent SQL query builder with CTEs, window functions, subqueries, and JSON support for MySQL, MariaDB, PostgreSQL, and SQLite",
+            "homepage": "https://jardis.io",
+            "keywords": [
+                "Headgent",
+                "database",
+                "domain-driven-design",
+                "hexagonal-architecture",
+                "jardis",
+                "jardisSupport",
+                "pdo",
+                "php",
+                "query",
+                "query-builder",
+                "sql",
+                "sql-builder"
+            ],
+            "support": {
+                "docs": "https://docs.jardis.io/en/support/dbquery",
+                "email": "jardisDev@headgent.com",
+                "issues": "https://github.com/jardisSupport/dbquery/issues",
+                "source": "https://github.com/jardisSupport/dbquery/tree/v1.1.2"
+            },
+            "time": "2026-08-22T19:59:24+00:00"
         },
         {
             "name": "jardissupport/dotenv",
@@ -425,6 +558,71 @@
             "time": "2026-08-09T10:55:04+00:00"
         },
         {
+            "name": "jardissupport/repository",
+            "version": "v1.1.2",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/jardisSupport/repository.git",
+                "reference": "9e210aad3afa8d2d556d2e3b17bae6fea237a962"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/jardisSupport/repository/zipball/9e210aad3afa8d2d556d2e3b17bae6fea237a962",
+                "reference": "9e210aad3afa8d2d556d2e3b17bae6fea237a962",
+                "shasum": ""
+            },
+            "require": {
+                "ext-pdo": "*",
+                "jardissupport/contracts": "^1.0 || ^2.0",
+                "jardissupport/dbquery": "^1.0",
+                "php": ">=8.2"
+            },
+            "require-dev": {
+                "jardisadapter/dbconnection": "^1.0",
+                "jardissupport/dotenv": "^1.0",
+                "phpstan/phpstan": "2.1.56",
+                "phpunit/phpunit": "10.5.63",
+                "squizlabs/php_codesniffer": "3.13.6"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "JardisSupport\\Repository\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Jardis Development",
+                    "email": "jardisDev@headgent.com"
+                }
+            ],
+            "description": "Repository pattern for PHP — generic CRUD with raw-data access, read/write splitting, and pluggable primary-key strategies; the persistence layer Jardis-generated repositories build on",
+            "homepage": "https://jardis.io",
+            "keywords": [
+                "Headgent",
+                "crud",
+                "database",
+                "domain-driven-design",
+                "hexagonal-architecture",
+                "jardis",
+                "persistence",
+                "php",
+                "repository",
+                "repository-pattern"
+            ],
+            "support": {
+                "docs": "https://docs.jardis.io/en/support/repository",
+                "email": "jardisDev@headgent.com",
+                "issues": "https://github.com/jardisSupport/repository/issues",
+                "source": "https://github.com/jardisSupport/repository/tree/v1.1.2"
+            },
+            "time": "2026-08-22T20:15:31+00:00"
+        },
+        {
             "name": "jardissupport/secret",
             "version": "v1.0.5",
             "source": {
@@ -493,6 +691,125 @@
                 "source": "https://github.com/jardisSupport/secret/tree/v1.0.5"
             },
             "time": "2026-08-22T20:35:05+00:00"
+        },
+        {
+            "name": "jardissupport/validation",
+            "version": "v1.1.3",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/jardisSupport/validation.git",
+                "reference": "254b330302c6adb7f6f2802e39e37eca5b76b0e3"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/jardisSupport/validation/zipball/254b330302c6adb7f6f2802e39e37eca5b76b0e3",
+                "reference": "254b330302c6adb7f6f2802e39e37eca5b76b0e3",
+                "shasum": ""
+            },
+            "require": {
+                "jardissupport/contracts": "^1.0 || ^2.0",
+                "php": ">=8.2"
+            },
+            "require-dev": {
+                "phpstan/phpstan": "2.1.56",
+                "phpunit/phpunit": "10.5.63",
+                "squizlabs/php_codesniffer": "3.13.6"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "JardisSupport\\Validation\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Jardis Development",
+                    "email": "jardisDev@headgent.com"
+                }
+            ],
+            "description": "Object graph validation with recursive traversal, 21 built-in validators, and fluent field rule composition",
+            "homepage": "https://jardis.io",
+            "keywords": [
+                "Headgent",
+                "domain-driven-design",
+                "jardis",
+                "object-validation",
+                "php",
+                "validation",
+                "validator"
+            ],
+            "support": {
+                "docs": "https://docs.jardis.io/en/support/validation",
+                "email": "jardisDev@headgent.com",
+                "issues": "https://github.com/jardisSupport/validation/issues",
+                "source": "https://github.com/jardisSupport/validation/tree/v1.1.3"
+            },
+            "time": "2026-08-22T20:07:13+00:00"
+        },
+        {
+            "name": "jardissupport/workflow",
+            "version": "v1.0.4",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/jardisSupport/workflow.git",
+                "reference": "4aad102d9d9da585f557a29c540fe7bc1eb57b82"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/jardisSupport/workflow/zipball/4aad102d9d9da585f557a29c540fe7bc1eb57b82",
+                "reference": "4aad102d9d9da585f557a29c540fe7bc1eb57b82",
+                "shasum": ""
+            },
+            "require": {
+                "jardissupport/contracts": "^1.0 || ^2.0",
+                "php": ">=8.2"
+            },
+            "require-dev": {
+                "phpstan/phpstan": "2.1.56",
+                "phpunit/phpunit": "10.5.63",
+                "squizlabs/php_codesniffer": "3.13.6"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "JardisSupport\\Workflow\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Jardis Development",
+                    "email": "jardisDev@headgent.com"
+                }
+            ],
+            "description": "Directed workflow engine with status-based transitions, automatic data accumulation, and builder API",
+            "homepage": "https://jardis.io",
+            "keywords": [
+                "Headgent",
+                "domain-driven-design",
+                "jardis",
+                "orchestration",
+                "php",
+                "process-orchestration",
+                "state-machine",
+                "steps",
+                "transitions",
+                "workflow"
+            ],
+            "support": {
+                "docs": "https://docs.jardis.io/en/support/workflow",
+                "email": "jardisDev@headgent.com",
+                "issues": "https://github.com/jardisSupport/workflow/issues",
+                "source": "https://github.com/jardisSupport/workflow/tree/v1.0.4"
+            },
+            "time": "2026-08-22T20:09:37+00:00"
         },
         {
             "name": "nikic/fast-route",

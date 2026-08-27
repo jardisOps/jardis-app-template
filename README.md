@@ -136,6 +136,10 @@ yours from the start:
 5. For typed frontend access to the emitted `openapi.yaml` contract, follow
    the recipe in [`FRONTEND.md`](FRONTEND.md).
 
+The runtime packages generated code imports (`jardissupport/data`, `dbquery`,
+`repository`, `validation`, `workflow`) ship preinstalled — a fresh build
+runs without any `composer require`.
+
 Autoloading needs no maintenance: generated domains carry top-level namespaces
 (`namespace Sales;`), and `composer.json` maps `""` to `src/`. A second domain
 works without touching any config — but note that `bootstrap.php` is not

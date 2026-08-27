@@ -91,6 +91,42 @@ Versioned classes via Namespace-Injection and/or Proxy-Registry. Entry point: `$
 
 https://docs.jardis.io/en/support/classversion
 
+<!-- source: jardissupport/data -->
+# jardissupport/data
+
+Entity hydration, change tracking, deep clone, field mapping, identity generation — all reflection-based, no ORM. Three service classes: `Hydration`, `Identity`, `FieldMapper` implement Contracts from `jardissupport/contracts`.
+
+## Usage essentials
+
+- **Entity convention required:** `private array $__snapshot = [];` must exist on every hydrated entity — `getChanges()`, `toArray()`, and `aggregateToArray()` depend on it. Getter resolution order: `get{Name}()` > `is{Name}()` > `has{Name}()` > Reflection fallback; setter `set{Name}()` > Reflection + `TypeCaster`. Snake→Camel on column mapping (`user_name` → `userName`).
+- **Value-Based Detection** separates DB columns from relations without a `#[Relation]` attribute: DB column = `null|scalar|DateTimeInterface|BackedEnum|plain array`, relation = objects or arrays of objects. `HydrateEntity` additionally checks the property type (array property + flat scalar array → hydrate as JSON column; array property + indexed array of assoc → skip as MANY-relation data). The `#[Relation]` attribute is NOT evaluated by this package — metadata only, for the Builder.
+- **`hydrate()` vs `apply()`:** both set properties, but `hydrate()` merges into `__snapshot` (DB load, no changes), `apply()` leaves the snapshot untouched → `getChanges()` detects the modifications. Snapshot is **MERGE, not REPLACE** — multiple `hydrate()` calls accumulate. Snapshot holds only **scalars**: `DateTime` → `'Y-m-d H:i:s'`, `BackedEnum` → `->value`, no objects.
+- **`toArray()` vs `aggregateToArray()`:** `toArray()` is flat (DB-column properties only, for `Repository::insert()`), `aggregateToArray()` serializes the full graph (recursive incl. relations, relation property names stay camelCase). Both read **keys from `__snapshot`** (real DB column names), **values from current properties**. Round-trip safe: `hydrate(['order_number' => 'X']) → aggregateToArray() → ['order_number' => 'X']`.
+- **Identity generators:** `generateUuid7()` recommended (time-ordered, RFC 9562, monotonic counter for batch ordering and cross-instance collision avoidance); `generateUuid5()` deterministic (namespace + name, same input → same UUID); `generateUuid4()` for compatibility only; `generateNanoId(21, alphabet)` compact URL-safe. Use case: `identifier` = UUID v7 CHAR(36) public-facing, PK = autoincrement INT internal for FKs.
+- **FieldMapper asymmetry:** `toColumns` is flat (Command-DTOs are flat), `fromColumns` recursive (Query responses are nested); `fromAggregate($array, $mapProvider, $entityName)` has a per-entity provider and **omits unmapped keys** (implicit PK/FK filtering). Empty-map shortcut: returns `$data` unchanged. Symmetry: `fromColumns(toColumns($data, $map), $map) === $data`. Layer rule: Domain defines entities, Infrastructure/Repository uses `Hydration`+`FieldMapper`, Application never directly.
+
+## Full reference
+
+https://docs.jardis.io/en/support/data
+
+<!-- source: jardissupport/dbquery -->
+# jardissupport/dbquery
+
+Fluent SQL query builder for MySQL/MariaDB/PostgreSQL/SQLite — four builders (`DbQuery` SELECT + CTE + Window, `DbInsert`, `DbUpdate`, `DbDelete`), state-separated (Builder → State → dialect-specific generator → Prepared SQL).
+
+## Usage essentials
+
+- **Dialect via Enum:** `Dialect::MySQL|MariaDB|PostgreSQL|SQLite` with `value`, `defaultVersion()` (8.0 / 10.6 / 14 / 3.39) and `supportsVersion()`. `sql($dialect, prepared: true, version: '...')` is the only output path — string dialects are parsed internally via `Dialect::tryFromString()`. **Always use `prepared: true`**, no raw concatenation.
+- **Prepared output via `DbPreparedQuery`:** `->sql()` returns SQL with `?` placeholders, `->bindings()` returns the matching parameter array, `->type()` returns the dialect string; `(string)$prepared` equals `->sql()`. Ready to use as-is with `PDO::prepare()`/`execute($bindings)`.
+- **Dialect limits are hard-validated:** `FULL JOIN` throws `InvalidArgumentException` on MySQL/SQLite (PostgreSQL only). `UPDATE`/`DELETE` + `JOIN`/`ORDER BY`/`LIMIT` only on MySQL/MariaDB — PostgreSQL and SQLite throw `InvalidArgumentException`. No silent fallback behavior.
+- **Conflict handling is dialect-specific:** MySQL/MariaDB `->onDuplicateKeyUpdate('field', $value)`, PostgreSQL `->onConflict('email')->doUpdate([...])` or `->doNothing()`, SQLite `->orIgnore()` / `->replace()`. `DbInsert::fromSelect($selectQuery)` for `INSERT...SELECT`.
+- **Raw SQL only via `Expression::raw()`** (not escaped, not validated) — usable in WHERE, SET, JSON paths. JSON ops are dialect-aware: `->whereJson('settings')->extract('$.theme')->equals('dark')`, `->length()`, `->contains/notContains`. Condition chaining with `->and()`/`->or()` + optional bracket param `('(' / ')')` for grouping.
+- **Version-aware SQL via `BuilderRegistry`** (instance-based, **not static** — multi-dialect usage in parallel within the same request is possible). Pattern: `namespace\method\mysql\v80\FullJoin` (dots removed from version), fallback to base class. Layer rule: builders live in the Infrastructure/Repository Layer, **Domain never imports** the builders.
+
+## Full reference
+
+https://docs.jardis.io/en/support/dbquery
+
 <!-- source: jardissupport/dotenv -->
 # jardissupport/dotenv
 
@@ -127,6 +163,24 @@ Minimal PSR-11 container: a single `Factory` class, no shared registry, no Class
 
 https://docs.jardis.io/en/support/factory
 
+<!-- source: jardissupport/repository -->
+# jardissupport/repository
+
+Generic CRUD Repository for raw DB-access array data (no Entities, no Hydration), with Read/Write Splitting via `ConnectionPoolInterface|PDO`, three PK strategies, and consistent `PDOException → PersistException` wrapping.
+
+## Usage essentials
+
+- **Facade `Repository` is the only entry point** — constructor accepts `ConnectionPoolInterface` (real Read/Write Splitting via `getReader()`/`getWriter()`) or plain `PDO` (wrapped internally via `PdoConnectionPool` → same connection for reader and writer). Handlers (`InsertHandler`, `UpdateHandler`, `DeleteHandler`, `DeleteAllHandler`, `FindByIdHandler`, `ExistsHandler`, `QueryExecutor`) are instantiated lazily via `??=`.
+- **Raw Data, not Entities:** `insert()/update()/delete()` take `array<string,mixed>`, `findById()/findByQuery()` return `?array`/`array<int,array>`. Hydration and Change-Tracking are the responsibility of `jardissupport/data` — the layer above, not here. `QueryExecutor` forces `PDO::FETCH_ASSOC` explicitly (regardless of PDO default).
+- **PK strategies via Enum `PkStrategy` from `jardissupport/contracts`:** `AUTOINCREMENT` (default, `lastInsertId()` → `int`), `INTEGER` (MAX+1 with 3 retries on Duplicate Key → `int`, duplicate detection via SQLSTATE `23000` or SQLite string match), `NONE` (caller provides PK in `$values` → `int|string`). Empty `$values` → `PersistException` (including NONE without PK).
+- **`findByQuery()` expects a `DbQueryBuilderInterface`** from `jardissupport/dbquery` (no criteria arrays!) — returns full query power (JOINs, Aggregation, Window Functions) with guaranteed `prepared: true`. For COUNT/Aggregation simply use `->select('COUNT(*) AS total')` — result is `[['total' => 42]]`.
+- **Consistent Exception wrapping:** All write Handlers (`Insert`, `Update`, `Delete`, `DeleteAll`) catch `PDOException` and throw `PersistException` (from `jardissupport/contracts`). `RecordNotFoundException` is defined but not thrown by the Repository itself — only for custom implementations. `$repo->update(..., [])` is a no-op and returns `true` (bool); `$repo->deleteAll(..., [])` is a no-op and returns `void` (no return value).
+- **Layer rule:** Repository is a Secondary Port (Hexagonal). The Domain imports **only** `RepositoryInterface` from `jardissupport/contracts` — **never** `JardisSupport\Repository\Repository` directly. The implementation lives in `Infrastructure`/Composition Root; `PdoConnection::getDatabaseName()` supports MySQL, PostgreSQL, and SQLite.
+
+## Full reference
+
+https://docs.jardis.io/en/support/repository
+
 <!-- source: jardissupport/secret -->
 # jardissupport/secret
 
@@ -144,5 +198,42 @@ Secret resolution for `secret(...)`-markers in `.env` values — decrypts via AE
 ## Full Reference
 
 https://docs.jardis.io/en/support/secret
+
+<!-- source: jardissupport/validation -->
+# jardissupport/validation
+
+Object graph validation via Reflection — no annotations, no interfaces on domain classes, `ObjectValidator` + `ValidatorRegistry` + `CompositeFieldValidator` compose 21 stateless `ValueValidator` singletons.
+
+## Usage essentials
+
+- **Three-class entry point:** `new ObjectValidator(ValidatorRegistry)` → `validate($root)` traverses the graph recursively (exception-safe via `try/finally`). `ValidatorRegistry::register($class, $validator)` matches by class string with parent/interface fallback, `CompositeFieldValidator` builds rules via fluent API `->field('x')->validates(Class, $options)`. `ValidationContext` protects against circular refs with `spl_object_id()` + `maxDepth: 100`.
+- **Field resolution in strict order:** `get{Field}()` → `is{Field}()` → `has{Field}()` → `{Field}()` (ucfirst) → Reflection on property. PSR getters always first, Reflection only as last-resort fallback — no `__get`/magic method support.
+- **Null-safe convention (with exactly 2 exceptions):** All `ValueValidator`s return `null` when the value is `null` — **except** `NotBlank` and `NotEmpty`, which explicitly validate against `null`. Custom validators with `implements ValueValidatorInterface` (`jardissupport/contracts`, `validateValue(mixed, array $options = []): ?string`) must include `if ($value === null) return null;` at the top.
+- **Custom message pattern is required for every error return:** `$hasCustomMessage = array_key_exists('message', $options); $message = $options['message'] ?? 'Default';` — on every error return `$hasCustomMessage ? $message : 'Detail-Message'`. When `message` is set in the `$options` array, it takes precedence over any detail message, regardless of which rule fails.
+- **Factory methods return `$options` arrays, parameter is named `$options` (not `$args`):** `Email::strict()`, `Uuid::v4()`, `Range::between(18, 120)`, `Length::zipCode()`. In `FieldBuilder`, `validates($class, $options)` and `breaksOn($class, $options)` are the two public methods — `breaksOn()` automatically finalizes pending `validates()` calls before registration.
+- **`excludeFields()` distinguishes Create vs. Update:** When `id === null` (Create), listed fields are skipped; when `id` is set (Update), ALL fields are validated — including excluded ones. `withIdentityField('customId')` changes the identity field name (default `'id'`). `breaksOn()` respects `excludeFields()` — excluded fields are not evaluated for break conditions. The domain layer **never** imports Validation (Application validates Commands/DTOs before Domain).
+
+## Full reference
+
+https://docs.jardis.io/en/support/validation
+
+<!-- source: jardissupport/workflow -->
+# jardissupport/workflow
+
+Multi-step orchestration: Handler chains via `WorkflowConfig`, status and named transitions, typed `WorkflowContext` propagated through the chain.
+
+## Usage essentials
+
+- **Two-class execution:** `$workflow = new Workflow();` or `new Workflow(fn(string $class, mixed $data) => $container->get($class))` (Factory for DI); call `$workflow($config, $data = null)` returns a `WorkflowContextInterface` carrying every handler invocation as a flat handler-stamped entry. Always starts at the first `addNode()` entry — the order of node registration determines the entry point. The engine is stateless and single-shot: iteration over inputs and aggregation across multiple runs are the caller's job.
+- **Handler contract is fixed:** Every handler has `__invoke(WorkflowContextInterface $context): WorkflowResult` and MUST return `WorkflowResult` (otherwise `InvalidArgumentException`). Per-run input arrives via the handler factory — typically the factory wires `$data` into the handler's constructor or spawns a fresh BoundedContext with `$data` as payload so the handler can read it via `$this->payload()`. The handler reaches its predecessor's result via `$context->getPrevious()`, any handler's most recent result via `$context->getLatest(SomeHandler::class)`, or all invocations of a handler via `$context->getAll(SomeHandler::class)`. Mantle slots: `$context->reference()` / `setReference()` (pre-loaded data set by the flow's entry companion), `$context->response()` / `setResponse()` (final answer built by the final companion), `$context->getException()` / `setException()` (captured by the orchestrator before re-throw).
+- **Transition resolution is a direct status lookup:** `determineNextHandler()` reads `config->getTransitions($currentHandler)`, looks up `transitions[$result->getStatus()]`, and returns it only if that target is itself a registered node (R5 routing-safety — prevents dispatch to a handler whose signature/role does not match the pipeline). No transitions configured, no entry for the status, or an unregistered target → the engine returns control to the caller. No status fallback chain. **Opt-in strict routing** (`new WorkflowConfig(strictRouting: true)`, default `false`) tightens the "no entry for the status" case: `'STATUS' => null` stays a legitimate, silent, declared terminal end, but a status with no transition key at all now raises `JardisSupport\Workflow\Exception\UnroutedStatusException` (`getNode()`/`getStatus()`) instead of silently stopping. The R5 hand-off case is unaffected by the flag either way; default `false` is byte-identical to pre-strict-routing behaviour.
+- **`WorkflowResult` as routing VO:** `new WorkflowResult(WorkflowResult::ON_SUCCESS, $data)` or `WorkflowResult::ON_FAIL, $errors`. Constants (all seven, no others): `ON_SUCCESS`/`ON_FAIL`/`ON_TIMEOUT`/`ON_SKIP`/`ON_CANCEL`/`ON_EVENT`/`ON_EXIT`. Accessors: `getStatus()`, `getData()`, `getHandlerFqcn()` (stamped by the engine via `withHandler()` during `append()`).
+- **`WorkflowContext` as flat execution log:** Mutable DTO. `append($fqcn, $result)` stamps the result via `withHandler()` and pushes it to the chain — re-invocations of the same handler (retry loops, cross-branch revisits) **never overwrite earlier entries**, so history is lossless. `getPrevious()` = immediate predecessor (null on first call); `getLatest($fqcn)` = most recent invocation of that handler; `getAll($fqcn)` = every invocation of that handler in execution order; `getChain()` = full ordered `list<WorkflowResultInterface>` where every result knows its producing handler. `WorkflowState<TPayload>` is the recommended typed alternative for process orchestrators — implements `WorkflowContextInterface` by delegating to an internal `WorkflowContext`, adding a typed `payload`/`original`/`modified` three-step; pass it as `$workflow($config, $data, $state)`.
+- **Fluent Builder is the recommended config approach:** `(new WorkflowBuilder())->node(Class)->onSuccess(Next)->onFail(Other)->onTimeout(Self)->node(Next)->build()` returns `WorkflowConfigInterface`. `WorkflowNodeBuilder` has 7 transition methods (`onSuccess`/`onFail`/`onTimeout`/`onSkip`/`onCancel`/`onEvent`/`onExit`) plus `node()` and `build()`. Alternatively use `WorkflowConfig::addNode(Class, [ON_SUCCESS => Next, ON_FAIL => Other])` directly.
+- **Contract and Layer rule:** Public interfaces from `jardissupport/contracts` (`WorkflowInterface`, `WorkflowConfigInterface`, `WorkflowContextInterface`, `WorkflowResultInterface`, `WorkflowBuilderInterface`, `WorkflowNodeBuilderInterface`). The Application Layer builds the config and starts the Workflow — **Domain never imports Workflow**. Handlers stay thin and delegate to domain services; `WorkflowResult` is a return type Contract, not a domain concept.
+
+## Full reference
+
+https://docs.jardis.io/en/support/workflow
 
 <!-- END jardis/dev-skills -->
