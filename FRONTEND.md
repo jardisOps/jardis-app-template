@@ -1,39 +1,39 @@
-# Frontend-Rezept — typisierter API-Zugriff auf die Jardis-Außentür
+# Frontend recipe — typed API access to the Jardis front door
 
-Jeder Build des Jardis Builders erzeugt je Domain zwei Dateien in diesem Projekt:
+Every build of the Jardis Builder generates two files per domain in this project:
 
-| Datei | Rolle |
+| File | Role |
 |---|---|
-| `src/Api/{Domain}/openapi.yaml` | **Die Quelle für dieses Rezept** — der vollständige OpenAPI-3.1-Vertrag der Domain-Außentür (alle Lese-Routen, Commands, Prozesse, Fehlerformen). Wird bei jedem Build frisch erzeugt. |
-| `src/Api/{Domain}/routes.php` | Die PHP-Seite desselben Vertrags — `public/index.php` mountet sie automatisch (generischer Mount, siehe dort). |
+| `src/Api/{Domain}/openapi.yaml` | **The source for this recipe** — the full OpenAPI 3.1 contract of the domain's front door (all read routes, commands, processes, error shapes). Freshly generated on every build. |
+| `src/Api/{Domain}/routes.php` | The PHP side of the same contract — `public/index.php` mounts it automatically (generic mount, see there). |
 
-Das Frontend leitet seine Typen aus der `openapi.yaml` ab. Es gibt **keinen** Jardis-eigenen
-Client-Generator und keinen Laufzeitcode aus diesem Rezept — nur Typen plus einen ~20-zeiligen
-Fetch-Helper, der danach in Dev-Hoheit liegt.
+The frontend derives its types from `openapi.yaml`. There is **no** Jardis-own
+client generator and no runtime code from this recipe — only types plus a
+~20-line fetch helper that stays under dev ownership afterward.
 
-## 1. Typen erzeugen
+## 1. Generate types
 
-Einmalig als Dev-Dependency ins Frontend-Projekt, dann nach **jedem** Build neu ausführen
-(die Spec ändert sich mit dem Domain-Modell):
+Add once as a dev dependency to the frontend project, then re-run after
+**every** build (the spec changes with the domain model):
 
 ```bash
 npx openapi-typescript src/Api/Ecommerce/openapi.yaml -o frontend/src/api/ecommerce.d.ts
 ```
 
-Ziel-Datei: `frontend/src/api/{domain}.d.ts` — reine Typ-Deklarationen (`paths`,
-`components`, `operations`), kein ausführbarer Code. Bei mehreren Domains je Domain eine
-Datei. Der Pfad `frontend/` steht hier beispielhaft für dein Frontend-Projekt — das Template
-selbst bringt keins mit.
+Target file: `frontend/src/api/{domain}.d.ts` — pure type declarations (`paths`,
+`components`, `operations`), no executable code. With multiple domains, one
+file per domain. The `frontend/` path here stands in for your frontend
+project — the template itself doesn't ship one.
 
-## 2. Envelope-Fetch-Helper
+## 2. Envelope fetch helper
 
-Jede Antwort der Außentür trägt denselben Envelope `{status, data, errors, meta}`
-(Erfolg wie Fehler; `400` = Feld-Validierung, `422` = Rule-Ablehnung, `5xx` = technisch).
-Der folgende Helper zieht sich Query-, Body- und Response-Typen aus der erzeugten `.d.ts` —
-Autocomplete und Compile-Fehler bei Vertragsbruch, ohne Generator:
+Every response from the front door carries the same envelope `{status, data, errors, meta}`
+(success and error alike; `400` = field validation, `422` = rule rejection, `5xx` = technical).
+The following helper pulls query, body, and response types from the generated `.d.ts` —
+autocomplete and compile errors on contract breakage, without a generator:
 
 ```ts
-// frontend/src/api/jardisFetch.ts — einmal kopieren, danach Dev-Hoheit
+// frontend/src/api/jardisFetch.ts — copy once, then dev ownership
 import type { paths } from './ecommerce';
 
 type Op<P extends keyof paths, M> = M extends keyof paths[P] ? paths[P][M] : never;
@@ -61,39 +61,40 @@ export async function jardisFetch<P extends keyof paths & string, M extends 'get
 }
 ```
 
-Verifiziert: kompiliert mit `tsc --strict` gegen die aus einem echten Build-Erzeugnis
-(`Ecommerce`-Spec, 27 Routen) erzeugten Typen; fehlende Pflichtfelder und falsche
-Feld-Typen im Body sind Compile-Fehler.
+Verified: compiles with `tsc --strict` against the types generated from a real
+build artifact (`Ecommerce` spec, 27 routes); missing required fields and
+wrong field types in the body are compile errors.
 
-### Benutzung
+### Usage
 
 ```ts
-// Lesen: Liste mit typisierter Query — data.items[].invoiceNumber ist string
+// Read: list with typed query — data.items[].invoiceNumber is string
 const list = await jardisFetch('/accounting/customerInvoices', 'get', {
     query: { limit: 20, offset: 0 },
 });
 
-// Schreiben: Command mit Pfad-Parameter + typisiertem Body.
-// Decimal-Felder sind im Vertrag Strings (format: decimal), z. B. "4.50".
+// Write: command with path parameter + typed body.
+// Decimal fields are strings in the contract (format: decimal), e.g. "4.50".
 const result = await jardisFetch('/accounting/customerInvoices/{invoiceNumber}/dunningNotice', 'post', {
     params: { invoiceNumber: 'RE-2026-001' },
-    body: { dunningLevel: 1, dunningDate: '2026-08-27', /* … alle Pflichtfelder */ },
+    body: { dunningLevel: 1, dunningDate: '2026-08-27', /* … all required fields */ },
 });
-if (result.status !== 200) { /* errors auswerten: 400 Feld-Validierung, 422 Rule */ }
+if (result.status !== 200) { /* evaluate errors: 400 field validation, 422 rule */ }
 ```
 
-Hinweise zum Vertrag:
+Notes on the contract:
 
-- **Schreib-Antworten tragen Referenzen** (fachlicher Identifier der Wurzel + Kind-Referenzen),
-  nie Zustandskopien — zum Nachladen die Lese-Routen benutzen (Liste → Keys → `queries/by{Key}s`).
-- **Nicht-200-Antworten** kommen im selben Envelope; der Helper typisiert den 200-Ausgang,
-  `status`/`errors` stehen zur Laufzeit in jeder Antwort.
-- `POST` ist nicht idempotent, `PUT`/`DELETE` sind es (steht auch in der Spec-Beschreibung).
+- **Write responses carry references** (business identifier of the root plus
+  child references), never state copies — use the read routes to reload
+  (list → keys → `queries/by{Key}s`).
+- **Non-200 responses** arrive in the same envelope; the helper types the
+  200 path, `status`/`errors` are present in every response at runtime.
+- `POST` is not idempotent, `PUT`/`DELETE` are (also stated in the spec description).
 
-## 3. Spec ausliefern (optional)
+## 3. Serve the spec (optional)
 
-Soll das Frontend (oder Swagger-UI) die Spec zur Laufzeit laden, genügt eine Route in
-`public/index.php` neben dem Mount:
+If the frontend (or Swagger UI) should load the spec at runtime, a single
+route in `public/index.php` next to the mount is enough:
 
 ```php
 $routes->get('/openapi.yaml', static function () use ($root) {
@@ -108,16 +109,18 @@ $routes->get('/openapi.yaml', static function () use ($root) {
 });
 ```
 
-Alternativ liefert der Webserver die Datei statisch aus (nginx `location`-Block auf
-`src/Api/`) — für reine Build-Zeit-Nutzung (Abschnitt 1) braucht es gar keine Auslieferung.
+Alternatively the web server serves the file statically (nginx `location`
+block on `src/Api/`) — for pure build-time use (section 1), no serving is
+needed at all.
 
-## Rahmen
+## Boundaries
 
-- **Voraussetzung:** `jardiscore/app ^1` (steht in der `composer.json` dieses Templates) —
-  die erzeugte `routes.php` baut auf dessen `Routes`-API und Envelope-Mapper.
-- **Auth/Middleware sind App-Hoheit** — der erzeugte Vertrag enthält bewusst keine
-  Security-Schemes; Authentifizierung gehört in die PSR-15-Pipeline der einbettenden App
-  und ist kein Gegenstand dieses Rezepts.
-- Fußnote: Wer statt des Helpers einen kompletten Client erzeugen will, kann Werkzeuge wie
-  `orval` oder `@hey-api/openapi-ts` auf dieselbe `openapi.yaml` richten. Dieses Rezept
-  spricht dafür keine Empfehlung aus.
+- **Prerequisite:** `jardiscore/app ^1` (listed in this template's
+  `composer.json`) — the generated `routes.php` builds on its `Routes` API
+  and envelope mapper.
+- **Auth/middleware are app territory** — the generated contract
+  deliberately contains no security schemes; authentication belongs in the
+  embedding app's PSR-15 pipeline and is not part of this recipe.
+- Footnote: anyone who wants a complete client instead of the helper can
+  point tools like `orval` or `@hey-api/openapi-ts` at the same
+  `openapi.yaml`. This recipe makes no recommendation either way.
