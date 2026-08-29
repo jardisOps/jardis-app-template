@@ -127,6 +127,24 @@ The rule behind it: the project root holds what a tool looks for on its own
 (`compose.yml` via `COMPOSE_FILE`, `Makefile`, `composer.json`, `.env`), and
 `config/` holds what is read at runtime.
 
+## Where the ENV keys come from
+
+The ENV **key set** has one source of truth: `jardis/core/kernel`'s
+`docs/env-examples/.env*.example` files — the keys the eleven Bootstrap
+handlers actually read. `config/env/` here is a copy of that key set with
+its own delivery state (SQLite active, everything else commented out) and
+its own default values — never a second, independently maintained list.
+
+`bin/sync-env-from-kernel.sh --check` compares the key set per file against
+`$JARDIS_KERNEL_DIR/docs/env-examples` (default: the sibling `jardis/core/kernel`
+checkout) and exits `0` on parity, `1` if a Kernel key is missing here, `2` if
+the Kernel checkout isn't found. `--print-missing` prints any gap as
+ready-to-paste commented lines. `make env-parity-check` runs `--check`.
+
+There is no write mode: where a missing key belongs inside its file is
+semantic (e.g. a `REDIS_*` key belongs under the block it activates), and
+only a human — or the Builder's own generator — can place it correctly.
+
 ## Secrets
 
 Credentials never go into the versioned env files in plaintext. Run
