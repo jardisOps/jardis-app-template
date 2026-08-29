@@ -63,9 +63,11 @@ switched on separately in `config/env/` — `.env.database`, `.env.cache`,
 `.env.redis`, `.env.logger`, `.env.mail`, `.env.http` and
 `.env.messaging` carry commented,
 ready-to-uncomment values that point at the service names above.
-`.env.messaging` picks exactly one transport (`kafka`, `rabbitmq` or
-`redis`) for the kernel's `messaging()` accessor — its `redis` transport
-reuses `.env.redis`'s connection values (one stack, one Redis).
+`.env.messaging` picks exactly one transport (`kafka`, `rabbitmq`, `redis` or
+`database`) for the kernel's `messaging()` accessor — its `redis` transport
+reuses `.env.redis`'s connection values (one stack, one Redis). `database` is
+the simplest queue there is: it reuses the project's own DB_* connection, no
+container and no compose profile — see "Database queue schema" below.
 
 The classic shortcut still works:
 
@@ -78,6 +80,36 @@ opt-in profile once — start, wait until healthy, remove — sequentially,
 because the two db profiles share the network alias `db`. The worker probe
 runs the real `WORKER_COMMAND` once and therefore needs a prior
 `make install`.
+
+### Database queue schema
+
+Choosing `MESSAGING_TRANSPORT=database` needs the event tables in place
+first — the kernel wires publisher and consumer, it does not create schema
+(Säule 1). Table creation is a migration, same as any other table your
+domain needs:
+
+- **MySQL/MariaDB** — run the delivered reference schema,
+  `support/sql/domain_events.sql` (also ships in
+  `jardisadapter/messaging:src/Schema/domain_events.sql`).
+- **SQLite** — run this DDL (same shape, SQLite dialect):
+  ```sql
+  CREATE TABLE domain_events (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      topic VARCHAR(255) NOT NULL,
+      payload TEXT NOT NULL,
+      created_at TEXT NOT NULL,
+      processed_at TEXT NULL DEFAULT NULL,
+      attempts INTEGER NOT NULL DEFAULT 0,
+      last_error TEXT NULL DEFAULT NULL
+  )
+  ```
+- **PostgreSQL** — adapt the MySQL schema (`AUTO_INCREMENT` → `SERIAL` /
+  `GENERATED ALWAYS AS IDENTITY`, `DATETIME(6)` → `TIMESTAMP(6)`); no
+  ready-made file ships for it.
+
+The `domain_event_subscriptions` table (fan-out / consumer groups) is only
+needed once you pass a `group` option to `messaging()->consume()` — see
+`support/sql/domain_events.sql` for its shape.
 
 ## Where things live
 
