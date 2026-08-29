@@ -20,3 +20,8 @@ help:
 	@echo -e "\033[1m targets:\033[0m"
 	@egrep '^(.+):*\ ##\ (.+)' ${MAKEFILE_LIST} | sed 's|^[^:]*:||' | column -t -c 2 -s ':#'
 .PHONY: help
+
+<---env-------->: ## -----------------------------------------------------------------------
+env-parity-check: ## Check config/env/* ENV-key parity against the Kernel examples (see README)
+	bin/sync-env-from-kernel.sh --check
+.PHONY: env-parity-check
