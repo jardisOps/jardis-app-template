@@ -16,15 +16,14 @@ var/*
 *.tmp
 *.cache
 *.log
-# *.cache above is meant for tool caches; this one is versioned config.
-!config/env/.env.cache
 
-# .env is VERSIONED here (see the header there) — a template must run after
-# cloning; it holds trivial defaults only, never real secrets. Nothing reads
-# a root .env.local (compose and make read .env only); the .env.local rules
-# below matter for config/env/, where the DotEnv cascade picks them up.
-.env.local
-.env.*.local
+# ONE config file, and it is NOT versioned: `.env` is yours per checkout,
+# `.env.example` is the delivered original (make copies it on first use).
+# The glob also covers every overlay name this template deliberately does not
+# support — check-env-secrets.sh rejects such a file outright, so nobody
+# builds a second, invisible configuration layer next to the one file.
+.env*
+!.env.example
 
 # Skills installed by jardis/dev-skills come from vendor/ on every composer
 # install. Tracking them produces phantom diffs on each update; the same rule

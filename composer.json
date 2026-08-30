@@ -7,7 +7,7 @@
         "php": ">=8.3",
         "ext-json": "*",
         "jardiscore/app": "^1.0",
-        "jardiscore/kernel": "^2.0",
+        "jardiscore/kernel": "^2.4",
         "jardissupport/data": "^1.0",
         "jardissupport/dbquery": "^1.1",
         "jardissupport/dotenv": "^1.0",
