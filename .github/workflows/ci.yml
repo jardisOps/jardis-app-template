@@ -1,7 +1,8 @@
 # House-line CI (byte-near copy of the package repos' ci.yml). Deviations,
-# each with a reason: no "cp .env.example .env" step (the template versions
-# .env on purpose, see README); paths include config/env and support/ (the
-# template's own surface); "make phpunit" instead of phpunit-coverage (the
+# each with a reason: no "cp .env.example .env" step — the Makefile creates
+# .env from .env.example on its own (a missing include is remade); paths
+# include support/ and .env.example (the template's own surface); "make
+# phpunit" instead of phpunit-coverage (the
 # delivered test suite is intentionally empty — coverage of nothing is noise).
 # Docker Hub login only runs when the DOCKER_PAT secret exists, so a freshly
 # derived project passes CI before configuring any secret. The smoke job is
@@ -16,7 +17,6 @@ on:
       - 'src/**'
       - 'public/**'
       - 'tests/**'
-      - 'config/**'
       - 'composer.json'
       - '.github/workflows/**'
       - 'Makefile'
@@ -24,14 +24,13 @@ on:
       - 'phpcs.xml'
       - 'phpstan.neon'
       - 'phpunit.xml'
-      - '.env'
+      - '.env.example'
   pull_request:
     branches: [main, develop]
     paths:
       - 'src/**'
       - 'public/**'
       - 'tests/**'
-      - 'config/**'
       - 'composer.json'
       - '.github/workflows/**'
       - 'Makefile'
@@ -39,7 +38,7 @@ on:
       - 'phpcs.xml'
       - 'phpstan.neon'
       - 'phpunit.xml'
-      - '.env'
+      - '.env.example'
   workflow_dispatch:
 
 jobs:
@@ -168,7 +167,7 @@ jobs:
 
       - name: Probe /health
         run: |
-          PORT=$(grep -E '^HTTP_PORT=' .env | cut -d= -f2)
+          PORT=$(grep -E '^HTTP_PORT=' .env.example | cut -d= -f2)
           curl -fsS --retry 3 --retry-delay 2 --retry-all-errors "http://localhost:${PORT}/health"
 
       - name: Show container state on failure

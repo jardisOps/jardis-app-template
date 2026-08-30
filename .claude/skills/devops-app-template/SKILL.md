@@ -1,6 +1,6 @@
 ---
 name: devops-app-template
-description: The Docker runtime scaffold for Jardis domains from devops/jardis-app-template — nginx + php-fpm + CLI on the headgent images, opt-in services via compose profiles (MariaDB/Postgres, Redis, RabbitMQ, Kafka, Mailpit, worker), two config layers (.env for the stack, config/env/ DotEnv cascade for the app), runs unconfigured on SQLite with /health answering 200. Use when starting a new Jardis project, adding a service to a stack, wiring builder output into a runtime, or asking what the delivered template already provides. TRIGGER: jardis-app-template, app template, COMPOSE_PROFILES, config/env, Auslieferungszustand, make start, /health, secret guardrail, make encrypt, generate-key-file, secret.key, worker service.
+description: The Docker runtime scaffold for Jardis domains from devops/jardis-app-template — nginx + php-fpm + CLI on the headgent images, opt-in services via compose profiles (MariaDB/Postgres, Redis, RabbitMQ, Kafka, Mailpit, worker), ONE root .env in blocks (stack, nginx, and the eight kernel blocks) created from the versioned .env.example, runs unconfigured on SQLite with /health answering 200. Use when starting a new Jardis project, adding a service to a stack, wiring builder output into a runtime, or asking what the delivered template already provides. TRIGGER: jardis-app-template, app template, COMPOSE_PROFILES, .env blocks, .env.example, Auslieferungszustand, make start, /health, secret guardrail, make encrypt, generate-key-file, secret.key, worker service.
 ---
 
 # Jardis app template (devops/jardis-app-template)
@@ -36,34 +36,49 @@ MariaDB is the shipped MySQL-compatible engine (same `pdo_mysql` driver, same
 alias/port — a derived project wanting Oracle MySQL swaps the one service);
 the Jardis dbConnection adapter itself supports MySQL/MariaDB/Postgres/SQLite.
 The application side is switched separately: commented, ready-to-uncomment
-values in `config/env/` — one file per kernel adapter: `.env.database`
-(the only mandatory `load()`), `.env.cache`, `.env.redis` (shared by cache
-layer and logger handler), `.env.logger` (LOG_HANDLERS gate; file, console,
-errorlog, syslog, redis, slack/teams/loki/webhook), `.env.mail`, `.env.http`
-(tuning only — the client is on once the adapter is installed), and
-`.env.messaging` (exactly one transport). The filesystem adapter needs no
-env file (keyless packer). `make profiles-check` probes every profile once
-(pre-release check of the template itself).
+values in the SAME `.env`, one block per kernel adapter — `database`,
+`redis` (shared by cache layer and logger handler), `cache`, `logger`
+(LOG_HANDLERS gate; file, console, errorlog, syslog, redis,
+slack/teams/loki/webhook), `mail`, `http` (tuning only — the client is on
+once the adapter is installed), `messaging` (exactly one transport). The
+filesystem adapter needs no key at all (keyless packer). `make
+profiles-check` probes every profile once (pre-release check of the template
+itself).
 
-## Two config layers — never mixed
+## One file, in blocks — no overlays
 
-| Layer | File(s) | Read by |
+`.env` in the project root holds every value once. `.env.example` is the
+versioned original; the first `make` copies it (the Makefile remakes the
+missing include and restarts). There is no cascade — no `.env.local`, no
+`.env.{APP_ENV}` — and the guardrail rejects such a file.
+
+| Block | Named by | Read by |
 |---|---|---|
-| Stack | `.env` (root, versioned — secret guardrail blocks real credentials, `secret(...)` or `*.local` instead) | docker compose + Makefile |
-| Application | `config/env/` cascade incl. `.env.<topic>.{APP_ENV}` deltas | DotEnv inside the container (values arrive via `environment:`) |
+| `stack` | this template | docker compose + Makefile (images, ports, profiles, PHP/Xdebug values the image entrypoint reads) |
+| `nginx` | php-image-builder `src/shared/nginx/nginx-defaults.env` | the official nginx image via envsubst — compose passes the 11 keys in per `environment:`, never `env_file` |
+| `app`, `database`, `redis`, `cache`, `logger`, `http`, `mail`, `messaging` | jardiscore/kernel `docs/.env.example` | DotEnv inside the container; process environment always wins |
 
-Layout follows `jardis/claude/wissensbasis/projekt-layout-konvention.md`.
+Rule: **the reader names the key, the template mirrors it.**
+`bin/sync-env-from-kernel.sh --check` (= `make env-parity-check`) measures the
+eight kernel blocks against the kernel example blockwise: exit 1 on a missing
+or misplaced key, 2 without a kernel checkout. A deliberate template extra
+(e.g. `DB_ROOT_PASSWORD`) is marked by a `# Template:` comment line directly
+above the key and stays silent; an unmarked extra is reported
+(`ENV-PARITY.extra`, exit 0). Layout follows
+`jardis/claude/wissensbasis/projekt-layout-konvention.md`.
 
 ## Secrets
 
 The guardrail (pre-commit + CI) blocks plaintext credentials in the versioned
-env files; the sanctioned way in: `make generate-key-file` (writes
+`.env.example`; the sanctioned way in: `make generate-key-file` (writes
 `support/secret.key`, gitignored, chmod 600 — in prod mounted at the same
-path), then `make encrypt VALUE="..."` (AES-256-GCM; `encrypt-sodium` for
-Sodium) and paste the printed `secret(...)` as the value, e.g.
-`DB_PASSWORD=secret(...)`. jardiscore/kernel >= 2.1 resolves `secret(...)`
-at bootstrap (since 2.2 in one pass via dotenv >= 1.3) — application code
-sees plaintext only.
+path, or the key comes from `APP_SECRET_KEY` in the process environment),
+then `make encrypt VALUE="..."` (AES-256-GCM; `encrypt-sodium` for Sodium)
+and paste the printed `secret(...)` as the value, e.g.
+`MAIL_PASSWORD=secret(...)`. jardiscore/kernel >= 2.4 resolves it at
+bootstrap — application code sees plaintext only. **Only kernel-read keys
+may be encrypted:** the guardrail fails a `secret(...)` on any key docker
+compose consumes (it cannot decrypt), and it rejects overlay files.
 
 ## Daily driving
 
