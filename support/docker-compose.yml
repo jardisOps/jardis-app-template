@@ -13,7 +13,12 @@
 # Profiles are selected declaratively via COMPOSE_PROFILES in the root .env —
 # one comma-separated line, no YAML editing. `db-mariadb` and `db-postgres`
 # are alternatives: both answer on the network alias `db`, so DB_HOST=db in
-# config/env/ holds for either engine. Do not activate both at once.
+# the root .env holds for either engine. Do not activate both at once.
+#
+# Every placeholder below is interpolated from the ONE root .env (compose
+# reads it natively). No service gets `env_file: ../.env`: that would hand every
+# key — database passwords included — to containers that have no business
+# seeing them. Each service is passed exactly the keys it reads.
 #
 # phpcli carries the `cli` profile so it never starts on `up`. The Makefile
 # reaches it via `run --rm`, which activates the profile on demand.
@@ -61,14 +66,27 @@ services:
       app:
         condition: service_healthy
     networks: [app-network]
-    env_file:
-      - ../config/nginx/nginx-defaults.env
+    # The template variables of nginx/templates/default.conf.template, passed
+    # in one by one from the root .env `nginx` block. No `:-default` twins
+    # here on purpose: the defaults are documented once, in that block — a
+    # second copy would be a second truth. envsubst leaves an unset variable
+    # unresolved and nginx then fails loudly at start, which is what we want.
     environment:
-      FASTCGI_UPSTREAM: app
+      NGINX_HOST: ${NGINX_HOST}
+      NGINX_APP_ROOT: ${NGINX_APP_ROOT}
+      NGINX_DOCUMENT_ROOT: ${NGINX_DOCUMENT_ROOT}
+      NGINX_INDEX_FILE: ${NGINX_INDEX_FILE}
+      NGINX_FASTCGI_UPSTREAM: ${NGINX_FASTCGI_UPSTREAM}
+      NGINX_PHP_PORT: ${NGINX_PHP_PORT}
+      NGINX_CLIENT_MAX_BODY_SIZE: ${NGINX_CLIENT_MAX_BODY_SIZE}
+      NGINX_FASTCGI_READ_TIMEOUT: ${NGINX_FASTCGI_READ_TIMEOUT}
+      NGINX_FASTCGI_SEND_TIMEOUT: ${NGINX_FASTCGI_SEND_TIMEOUT}
+      NGINX_FASTCGI_CONNECT_TIMEOUT: ${NGINX_FASTCGI_CONNECT_TIMEOUT}
+      NGINX_REQUEST_SCHEME: ${NGINX_REQUEST_SCHEME}
     ports:
       - "${HTTP_PORT:-8080}:80"
     volumes:
-      - ../config/nginx/templates:/etc/nginx/templates:ro
+      - ./nginx/templates:/etc/nginx/templates:ro
       - ../:/app:ro
 
   # --- tooling: composer, QA, console --------------------------------------
@@ -106,7 +124,7 @@ services:
       app-network:
         aliases: [db]
     environment:
-      MARIADB_DATABASE: ${DB_NAME:-app}
+      MARIADB_DATABASE: ${DB_DATABASE:-app}
       MARIADB_USER: ${DB_USER:-app}
       MARIADB_PASSWORD: ${DB_PASSWORD:-app}
       MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-app-root}
@@ -126,11 +144,11 @@ services:
       app-network:
         aliases: [db]
     environment:
-      POSTGRES_DB: ${DB_NAME:-app}
+      POSTGRES_DB: ${DB_DATABASE:-app}
       POSTGRES_USER: ${DB_USER:-app}
       POSTGRES_PASSWORD: ${DB_PASSWORD:-app}
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-app} -d ${DB_NAME:-app}"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-app} -d ${DB_DATABASE:-app}"]
       interval: 5s
       timeout: 5s
       retries: 20

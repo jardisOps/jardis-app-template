@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "d52e0b2d2c956cd59168dd82ca4b9f6a",
+    "content-hash": "a6672c7adc3fee02eeff834c64ad0043",
     "packages": [
         {
             "name": "jardiscore/app",
@@ -80,23 +80,23 @@
         },
         {
             "name": "jardiscore/kernel",
-            "version": "v2.0.0",
+            "version": "v2.4.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/jardisCore/kernel.git",
-                "reference": "0ae2882eff03b8191660a88b56582eea9299dc0a"
+                "reference": "236ca29bd066afec31b6642b8b61e4c8e0ac0088"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/jardisCore/kernel/zipball/0ae2882eff03b8191660a88b56582eea9299dc0a",
-                "reference": "0ae2882eff03b8191660a88b56582eea9299dc0a",
+                "url": "https://api.github.com/repos/jardisCore/kernel/zipball/236ca29bd066afec31b6642b8b61e4c8e0ac0088",
+                "reference": "236ca29bd066afec31b6642b8b61e4c8e0ac0088",
                 "shasum": ""
             },
             "require": {
                 "ext-pdo": "*",
                 "jardissupport/classversion": "^1.0",
                 "jardissupport/contracts": "^2.0",
-                "jardissupport/dotenv": "^1.2",
+                "jardissupport/dotenv": "^1.5",
                 "jardissupport/factory": "^1.0",
                 "php": ">=8.2",
                 "psr/container": "^2.0",
@@ -118,6 +118,7 @@
                 "jardisadapter/logger": "^1.0",
                 "jardisadapter/mailer": "^1.0",
                 "jardisadapter/messaging": "^1.0",
+                "jardissupport/secret": "^1.1",
                 "phpstan/phpstan": "2.1.56",
                 "phpunit/phpunit": "11.5.55",
                 "squizlabs/php_codesniffer": "3.13.6"
@@ -133,7 +134,8 @@
                 "jardisadapter/http": "For PSR-18 HTTP client with handler pipeline via the Bootstrap-Packer",
                 "jardisadapter/logger": "For log handlers (File, Console, Redis, Database, etc.) via the Bootstrap-Packer",
                 "jardisadapter/mailer": "For SMTP mailer with STARTTLS, AUTH, HTML/text, attachments via the Bootstrap-Packer",
-                "jardisadapter/messaging": "For Kafka/RabbitMQ/Redis messaging via the Bootstrap-Packer"
+                "jardisadapter/messaging": "For Kafka/RabbitMQ/Redis/Database messaging via the Bootstrap-Packer",
+                "jardissupport/secret": "For decrypting secret(...) ENV values via the Bootstrap-Packer; the key comes from the APP_SECRET_KEY process environment variable or from <projectRoot>/support/secret.key"
             },
             "type": "library",
             "autoload": {
@@ -170,9 +172,9 @@
                 "docs": "https://docs.jardis.io/en/core/kernel",
                 "email": "jardisDev@headgent.com",
                 "issues": "https://github.com/jardisCore/kernel/issues",
-                "source": "https://github.com/jardisCore/kernel/tree/v2.0.0"
+                "source": "https://github.com/jardisCore/kernel/tree/v2.4.0"
             },
-            "time": "2026-08-22T19:39:40+00:00"
+            "time": "2026-08-30T07:37:54+00:00"
         },
         {
             "name": "jardissupport/classversion",
@@ -435,16 +437,16 @@
         },
         {
             "name": "jardissupport/dotenv",
-            "version": "v1.2.1",
+            "version": "v1.6.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/jardisSupport/dotenv.git",
-                "reference": "408b32cada59406e9183cea3cd39a4732be4cbd8"
+                "reference": "a4c9def356d93183ca3c906fc696b8bff95986e8"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/jardisSupport/dotenv/zipball/408b32cada59406e9183cea3cd39a4732be4cbd8",
-                "reference": "408b32cada59406e9183cea3cd39a4732be4cbd8",
+                "url": "https://api.github.com/repos/jardisSupport/dotenv/zipball/a4c9def356d93183ca3c906fc696b8bff95986e8",
+                "reference": "a4c9def356d93183ca3c906fc696b8bff95986e8",
                 "shasum": ""
             },
             "require": {
@@ -494,9 +496,9 @@
                 "docs": "https://docs.jardis.io/en/support/dotenv",
                 "email": "jardisDev@headgent.com",
                 "issues": "https://github.com/jardisSupport/dotenv/issues",
-                "source": "https://github.com/jardisSupport/dotenv/tree/v1.2.1"
+                "source": "https://github.com/jardisSupport/dotenv/tree/v1.6.0"
             },
-            "time": "2026-08-22T18:07:56+00:00"
+            "time": "2026-08-30T10:34:54+00:00"
         },
         {
             "name": "jardissupport/factory",
@@ -624,16 +626,16 @@
         },
         {
             "name": "jardissupport/secret",
-            "version": "v1.0.5",
+            "version": "v1.1.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/jardisSupport/secret.git",
-                "reference": "b30e9b4c5ca797e365510e2d5954256a88239942"
+                "reference": "9da3f6c2f7e20906e908a7da26abc81948278644"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/jardisSupport/secret/zipball/b30e9b4c5ca797e365510e2d5954256a88239942",
-                "reference": "b30e9b4c5ca797e365510e2d5954256a88239942",
+                "url": "https://api.github.com/repos/jardisSupport/secret/zipball/9da3f6c2f7e20906e908a7da26abc81948278644",
+                "reference": "9da3f6c2f7e20906e908a7da26abc81948278644",
                 "shasum": ""
             },
             "require": {
@@ -688,9 +690,9 @@
                 "docs": "https://docs.jardis.io/en/support/secret",
                 "email": "jardisDev@headgent.com",
                 "issues": "https://github.com/jardisSupport/secret/issues",
-                "source": "https://github.com/jardisSupport/secret/tree/v1.0.5"
+                "source": "https://github.com/jardisSupport/secret/tree/v1.1.0"
             },
-            "time": "2026-08-22T20:35:05+00:00"
+            "time": "2026-08-30T06:32:59+00:00"
         },
         {
             "name": "jardissupport/validation",

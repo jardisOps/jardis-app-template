@@ -24,15 +24,15 @@ $bootstrap = $root . '/src/App/bootstrap.php';
 
 /**
  * Everything up to a usable kernel runs inside this boundary. The framework
- * brings its own error handling, but only from `new App(...)` onwards — a
- * missing config/env/.env.database or a bootstrap.php that returns something
- * unexpected would otherwise put a full stack trace into the HTTP response,
- * since display_errors is On in the dev profile.
+ * brings its own error handling, but only from `new App(...)` onwards — an
+ * unreadable .env or a bootstrap.php that returns something unexpected would
+ * otherwise put a full stack trace into the HTTP response, since
+ * display_errors is On in the dev profile.
  *
- * `BuildDomainKernelFromEnv` takes the project root and derives
- * `config/env/` itself (projekt-layout-konvention) — the generated
- * bootstrap.php calls it the same way, from wherever it lives under src/, so
- * no path needs re-pointing after the first build.
+ * `BuildDomainKernelFromEnv` takes the project root and reads the ONE `.env`
+ * there (process environment wins) — the generated bootstrap.php calls it the
+ * same way, from wherever it lives under src/, so no path needs re-pointing
+ * after the first build.
  */
 try {
     /** @var array<string, mixed> $app */
