@@ -221,6 +221,22 @@ The runtime packages generated code imports (`jardissupport/data`, `dbquery`,
 `repository`, `validation`, `workflow`) ship preinstalled — a fresh build
 runs without any `composer require`.
 
+The `jardisadapter/*` packages (`cache`, `dbconnection`, `eventdispatcher`,
+`filesystem`, `http`, `logger`, `mailer`, `messaging`) are the exception —
+they are optional and NOT preinstalled, matching "every adapter degrades to
+`null` when unconfigured" above. When a stack selection needs one, install it
+in the phpcli container — works even with the stack stopped:
+
+```sh
+make composer-require PACKAGE=jardisadapter/cache
+make composer-require PACKAGE=jardisadapter/mailer VERSION=^1.2
+```
+
+`PACKAGE` is required (the target fails fast without it); `VERSION` is an
+optional Composer constraint. This is the same target the Jardis Builder
+uses when a stack selection references an adapter not yet in
+`composer.json`.
+
 Autoloading needs no maintenance: generated domains carry top-level namespaces
 (`namespace Sales;`), and `composer.json` maps `""` to `src/`. A second domain
 works without touching any config — but note that `bootstrap.php` is not
