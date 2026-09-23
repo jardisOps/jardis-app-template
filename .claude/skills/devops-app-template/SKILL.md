@@ -83,9 +83,13 @@ compose consumes (it cannot decrypt), and it rejects overlay files.
 ## Daily driving
 
 `make start` / `stop` / `status` / `logs` · `make console ARGS=...` ·
-`make shell` · `make install` · QA: `make phpunit` / `phpstan` (level 8) /
-`phpcs` (PSR-12) — the same gates run in CI plus the smoke job; gitflow
-pre-commit/pre-push hooks are wired via `make` (dev-skills `do-git-*` flow).
+`make shell` · `make install` · `make composer-require PACKAGE=vendor/name
+[VERSION=constraint]` (one-off container run, works stack-down, composer's
+exit code passes through — how the Builder adds a missing
+`jardisadapter/*` package to the project) · QA: `make phpunit` / `phpstan`
+(level 8) / `phpcs` (PSR-12) — the same gates run in CI plus the smoke job;
+gitflow pre-commit/pre-push hooks are wired via `make` (dev-skills
+`do-git-*` flow).
 Deployment is deliberately NOT in the template (K3s is its own undertaking;
 the deploy base image `headgent/phpweb` exists — see
 `jardis/claude/wissensbasis/deploy-image-kombiniert-phpweb.md`).
