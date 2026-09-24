@@ -197,7 +197,7 @@ yours from the start:
 |---|---|
 | `.env` | you, from the first `make` on — except the `COMPOSE_PROFILES` line, which stays machine-writable for provisioning tools |
 | `.env.example` | the template — the delivered original every clone starts from |
-| `src/{BC}/Aggregate/` | the Builder, hermetic — overwritten on every build |
+| `src/{BC}/Model/` | the Builder, hermetic — overwritten on every build |
 | `src/App/bootstrap.php` | the Builder writes it **once** (`ForceOverwrite:false`); yours from that point on |
 | `public/index.php`, `bin/console` | you — never generated |
 
