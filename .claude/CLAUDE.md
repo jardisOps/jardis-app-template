@@ -97,7 +97,7 @@ dort liegt gemischtes Eigentum.
 |---|---|
 | `.env` | dir, ab dem ersten `make` — Ausnahme: die `COMPOSE_PROFILES`-Zeile bleibt dauerhaft maschinenschreibbar |
 | `.env.example` | dem Template — die ausgelieferte Vorlage, aus der jeder Klon startet |
-| `src/{BC}/Aggregate/` | Generator, hermetisch — wird bei jedem Build überschrieben |
+| `src/{BC}/Model/` | Generator, hermetisch — wird bei jedem Build überschrieben |
 | `src/App/bootstrap.php` | einmal geschrieben, danach dir (ForceOverwrite:false) |
 | `src/{BC}/Rule/`, Teile von `Process/` | dir |
 | `public/index.php`, `bin/console` | dir, wird nie generiert |
