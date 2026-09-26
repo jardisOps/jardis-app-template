@@ -99,7 +99,7 @@ dort liegt gemischtes Eigentum.
 | `.env.example` | dem Template — die ausgelieferte Vorlage, aus der jeder Klon startet |
 | `src/{BC}/Model/` | Generator, hermetisch — wird bei jedem Build überschrieben |
 | `src/App/bootstrap.php` | einmal geschrieben, danach dir (ForceOverwrite:false) |
-| `src/{BC}/Rule/`, Teile von `Process/` | dir |
+| `src/{BC}/Closure/`, Teile von `Process/` | dir |
 | `public/index.php`, `bin/console` | dir, wird nie generiert |
 
 Eine zweite Domain erscheint **nicht** von selbst in `bootstrap.php` — die
