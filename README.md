@@ -7,7 +7,7 @@ database (MariaDB or PostgreSQL), cache, message broker, event stream, mail
 and a supervised worker.
 
 It builds no images. The PHP runtimes come from
-[`php-image-builder`](../php-image-builder) via Docker Hub — this template is
+[`php-image-builder`](https://github.com/jardisOps/php-image-builder) via Docker Hub — this template is
 their first consumer on the fpm side.
 
 ## Requirements
