@@ -8,8 +8,7 @@ description: The Docker runtime scaffold for Jardis domains from devops/jardis-a
 Source repo: `/Users/Rolf/Development/headgent/devops/jardis-app-template`
 ([jardisOps/jardis-app-template](https://github.com/jardisOps/jardis-app-template)).
 Full reference: its `README.md`. It is cloned/derived per project — one stack
-carries exactly ONE technical environment
-(`jardis/claude/wissensbasis/ein-stack-eine-technische-umgebung.md`).
+carries exactly ONE technical environment.
 
 ## What a fresh clone gives you
 
@@ -64,8 +63,9 @@ eight kernel blocks against the kernel example blockwise: exit 1 on a missing
 or misplaced key, 2 without a kernel checkout. A deliberate template extra
 (e.g. `DB_ROOT_PASSWORD`) is marked by a `# Template:` comment line directly
 above the key and stays silent; an unmarked extra is reported
-(`ENV-PARITY.extra`, exit 0). Layout follows
-`jardis/claude/wissensbasis/projekt-layout-konvention.md`.
+(`ENV-PARITY.extra`, exit 0). Layout follows the Jardis project-layout
+convention: every configuration value lives exactly once, in the `.env` in the
+project root.
 
 ## Secrets
 
@@ -91,5 +91,4 @@ exit code passes through — how the Builder adds a missing
 gitflow pre-commit/pre-push hooks are wired via `make` (dev-skills
 `do-git-*` flow).
 Deployment is deliberately NOT in the template (K3s is its own undertaking;
-the deploy base image `headgent/phpweb` exists — see
-`jardis/claude/wissensbasis/deploy-image-kombiniert-phpweb.md`).
+the deploy base image `headgent/phpweb` exists).
