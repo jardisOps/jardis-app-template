@@ -60,9 +60,8 @@ Schaltpunkt-Zeilen in den Dienst-Blöcken der `.env`.
 ## Eine Konfigurationsschicht, eine Datei
 
 Jeder Konfigurationswert des Projekts lebt genau einmal, in der `.env` im
-Projekt-Root — das ist die projektübergreifende `projekt-layout-konvention`
-der Jardis-Wissensbasis (`jardis/claude/wissensbasis/projekt-layout-konvention.md`);
-dieses Repo implementiert und zitiert sie, statt sie zu wiederholen. Drei
+Projekt-Root — das ist die projektübergreifende Projekt-Layout-Konvention von
+Jardis; dieses Repo implementiert sie. Drei
 Leser teilen sich dieselbe Datei, jeder liest nur die Schlüssel, die er kennt:
 
 - **`docker compose`** — interpoliert `${…}` in `support/docker-compose.yml`
