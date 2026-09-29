@@ -5,8 +5,7 @@ description: The Docker runtime scaffold for Jardis domains from devops/jardis-a
 
 # Jardis app template (devops/jardis-app-template)
 
-Source repo: `/Users/Rolf/Development/headgent/devops/jardis-app-template`
-([jardisOps/jardis-app-template](https://github.com/jardisOps/jardis-app-template)).
+Source repo: [jardisOps/jardis-app-template](https://github.com/jardisOps/jardis-app-template).
 Full reference: its `README.md`. It is cloned/derived per project — one stack
 carries exactly ONE technical environment.
 

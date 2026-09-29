@@ -111,4 +111,4 @@ Datei wird nicht neu geschrieben. Die Facade-Zeile ist von Hand nachzutragen.
   `jardiscore/kernel` und `phpfpm`, es gibt also nichts zum Abschauen.
 - **Nicht überkonstruieren.** Was ein Zielprojekt selbst entscheiden soll,
   entscheidet das Template nicht vor.
-- **Code Review nach jeder Codierung** (`do-qa-codereview`), kein Commit ohne.
+- **Code Review nach jeder Codierung**, kein Commit ohne.
