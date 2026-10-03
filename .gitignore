@@ -36,5 +36,6 @@ var/*
 *.key
 support/secret.key
 
-# Local working papers (Vorhaben docs) — not part of the delivered template
-/docs/
+# Local working papers stay out of the template; docs/vorhaben/ (undertaking documents) is tracked
+/docs/*
+!/docs/vorhaben/
