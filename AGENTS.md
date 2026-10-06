@@ -4,48 +4,74 @@
 
 Aggregated by `jardis/dev-skills`. Run `composer install` to refresh.
 
-Before hand-building a reusable building block, consult the `jardis-catalog` skill to check for an installable Jardis package. For the full workflow from schema to implementation, start with the `jardis-start-here` skill.
-
 <!-- source: jardis/dev-skills -->
 # jardis/dev-skills — Agent Notes
 
-Composer plugin that distributes Jardis skills (`<vendor>/.claude/skills/<name>/SKILL.md`) and aggregates `AGENTS.md` from Jardis vendor packages into the consumer project.
+Composer plugin that distributes Jardis skills (into `.claude/skills` and `.agents/skills` of the consumer project) and aggregates `AGENTS.md` from Jardis vendor packages into the consumer project.
 
 ## What this package contributes
 
 - **Discovery** of skills from `vendor/jardis*/*/.claude/skills/*/SKILL.md` and from this repo's own `skills/` directory.
-- **Bundle skills** (opt-in via `extra."jardis/dev-skills"."bundled-skills"`) covering Jardis methodology:
-  - `schema-authoring` — pre-Designer Schema.yaml authoring (companion `examples/Schema.yaml`)
-  - `platform-implementation` — extending Designer-generated PHP code (Extensions/ layout, ClassVersion v2 override mechanics, V1–V12 prohibitions)
-  - `platform-usage` — wiring Designer-generated Commands/Queries into a transport (HTTP / CLI / queue / worker), DomainResponse mapping
-  - `platform-versioning` — ClassVersion resolution chain + the Versionierungs-Modell for Designer-generated code
-  - `platform-workflow` — Workflow-Engine API consumed by FlowDesigner-generated Use-Case orchestrators
-  - `platform-cookbook` — Phase-3 recipes, troubleshooting, and event transport for Designer-generated code
-  - `rules-architecture` / `rules-frontend` / `rules-patterns` / `rules-testing` — cross-cutting rules (`rules-frontend` = stack-agnostic FE review constitution)
-- **Managed prefixes:** `adapter-`, `core-`, `support-`, `tools-`, `schema-`, `plan-`, `platform-`, `rules-`. Skills with these prefixes are installed/removed by the plugin; skills without them belong to the user.
-- **AGENTS.md aggregation** between markers `<!-- BEGIN jardis/dev-skills ... -->` / `<!-- END jardis/dev-skills -->`. User content outside the markers is preserved. A source package's own managed block is stripped before embedding (`Handler/Install/StripManagedBlock`), so the result is always a single, non-nested block. `*.backup` skill directories are skipped during discovery and never re-backed-up.
+- **Bundle skills** — 33 folders in `skills/`, listed in `src/Data/BundleSkills.php`. Each declares `profile: core` or `profile: jardis` in its frontmatter; the installed set is the skills of the resolved profile (`core` 25, `jardis` 33 — the eight `jardis` skills are `start-orientation`, `design-*`, `generated-code-*`), unless `extra."jardis/dev-skills"."bundled-skills"` narrows it (`false` or `[]` keeps only the mandatory groups `foundation-*` and `process-*`). Resolution (`Handler/Install/ResolveInstallProfile`): the key `extra."jardis/dev-skills"."profile"`, else an installation from before 1.7.0 (manifest without `profile`, or legacy folders) keeps `jardis` and is not marked, else detection of a `vendor/jardis*/*` package other than `jardis/dev-skills`. The router (`profile:` marker areas) and the reviewer shells (17 in `core`) follow the profile. By area prefix:
+  - `start-orientation` — entry point and routing into the other skills
+  - `packages-find-existing` — package catalog; generated from `catalog/manifest.json` (`make generate-catalog`), never edited by hand
+  - `design-draft-schema`, `design-headless-mcp` — drafting a Schema.json; driving the Designer through `jardis mcp`
+  - `generated-code-extend`, `-wire-transport`, `-versioning`, `-workflow-api`, `-recipes` — working with Designer-generated PHP code
+  - `foundation-architecture`, `-patterns`, `-testing`, `-frontend-review`, `-php`, `-working-principles` — cross-cutting rules
+  - `git-setup-repository`, `-start-branch`, `-commit-change`, `-push-and-open-pr`, `-check-compliance` — Gitflow workflow
+  - `knowledge-maintain-pool`, `knowledge-record-decision` — the decision pool of a project
+  - `process-*` (ten skills, reviewer sources in `skills/process-review-board/reviewers/`) and `code-review-change` — the development process
+  - The 18 names of 1.3.x (`src/Data/RenamedSkills.php`) live on as redirect skills until 2.0.0.
+- **Managed skills via manifest:** the plugin installs and removes only the skill folders listed in `.claude/skills/.jardis-managed.json` (`src/Data/Manifest.php`); folders of the user are never touched. Without a manifest, `BundleSkills::NAMES` plus the old names govern, never a name prefix. Locally changed folders are backed up to `.claude/.jardis-backup/`.
+- **AGENTS.md aggregation** between markers `<!-- BEGIN jardis/dev-skills ... -->` / `<!-- END jardis/dev-skills -->`; the router text (`router/AGENTS-router.md`) opens the block. User content outside the markers is preserved. A source package's own managed block is stripped before embedding (`Handler/Install/StripManagedBlock`), so the result is always a single, non-nested block. An `AGENTS.md` that is a link, or lies behind one, is not written; a pre-existing `AGENTS.md` without markers is moved to `AGENTS.md.backup`.
+- **`agents-md` key** (`src/Data/AgentsMdMode.php`, resolved in `Handler/Discovery/ResolveAgentsMdMode`): `aggregate` or `none`; without the key the default is `none` when the vendor part of the root package name begins with `jardis`, else `aggregate`. With `none` there is no block, no `CLAUDE.md` import and no Gemini entry, and `Handler/Install/RetireAgentsMd` removes what an earlier run left; skills, shells, manifest and exclude block run unchanged.
+- **Add-ons** (each one only warns on failure): `CLAUDE.md` import block, `.gemini/settings.json` context entry, reviewer shells for five tools (`src/Data/ShellFormat.php`), Git exclude block (`process-docs`). The git rules of the router have three stances through `extra."jardis/dev-skills"."git-rules"`: `true` (default, branch, commit and merge are gates of the human), `"delegated"` (the session creates branch and commits itself, merge and push stay gates of the human), `false` (no git rules).
+- **Tools for consumers:** `scripts/pool-check.php` (knowledge pool checker, linked as `vendor/bin/pool-check.php`), `scripts/commit-msg` and `scripts/install-commit-msg-hook` (the hook warns, it never rejects a commit), `scripts/check-commit-messages` (CI range check).
 
 ## Working in this repo
 
-- **Architecture:** Closure-Orchestrator — `src/SkillInstaller.php` and `src/SkillUninstaller.php` compose handlers from `src/Handler/`. Data classes under `src/Data/`. No business logic in orchestrators.
+- **Architecture:** Closure-Orchestrator — `src/SkillInstaller.php` and `src/SkillUninstaller.php` compose the sub-orchestrators `src/InstallSkills.php`, `src/InstallAddons.php` and `src/UninstallAddons.php` and the handlers in `src/Handler/`. Data classes under `src/Data/`. No business logic in orchestrators.
 - **Plugin entry:** `src/Plugin.php` (`Composer\Plugin\PluginInterface` + `EventSubscriberInterface`) wires `post-install-cmd`, `post-update-cmd`, `pre-package-uninstall`.
 - **Tests:** Integration > Unit. New tests go under `tests/Integration/<area>/<ClassName>Test.php`. Use `tests/Support/TempProject` for filesystem fixtures.
-- **Quality gates:** `make phpunit` (150+ tests), `make phpstan` (Level 8), `make phpcs` (PSR-12). All three must be green.
-- **Skill authoring:** Every bundled `SKILL.md` follows `docs/SKILL-FORMAT.md` v3 — frontmatter `zone`/`prerequisites`/`next`, single-line description (≤60 words), topical numbered body sections (`### 1. …`), per-zone line budget (`post-active` = 550). Long working artefacts live in a sibling `skills/<name>/examples/` directory and do not count against the body budget. Reshape rationale in `docs/PRD-skill-overhaul.md`.
+- **Quality gates:** `make phpunit`, `make phpstan` (Level 8), `make phpcs` (PSR-12), `make validate-skills`, `make generate-catalog-check`, `make check-public-text`. All must be green. Before a release tag: `make check-changelog-top VERSION=<x.y.z>`.
+- **Skill authoring:** Every bundled `SKILL.md` follows `docs/SKILL-FORMAT.md` v6 — frontmatter `name`/`description`/`zone`/`persona`/`profile`/`prerequisites`/`next`, single-line description (≤175 words hard limit, new skills ≤45), topical numbered body sections (`### 1. …`), per-zone line budget (`crosscut` 225, `pre`/`post-reference` 250, `process` 250, `discovery` 150, `post-active` 700). Long working artefacts live in a sibling `skills/<name>/examples/` directory and do not count against the body budget.
 
 ## Don'ts
 
-- Do not introduce a new top-level skill prefix without updating `RemoveJardisSkills::MANAGED_PREFIXES` and `docs/SKILL-FORMAT.md` §2.
+- Do not add, rename or remove a bundle skill without updating `src/Data/BundleSkills.php` (and `src/Data/RenamedSkills.php` for a rename). Do not introduce a new area prefix without updating `docs/SKILL-FORMAT.md` §2.
 - Do not edit a generated AGENTS.md block in a consumer project — the plugin overwrites it on next install.
 - Do not bypass `TempProject` in tests with raw `tempnam()` / hardcoded paths.
-- Do not duplicate content across bundle skills. Patterns live only in `rules-patterns`, architecture only in `rules-architecture`, frontend review rules only in `rules-frontend`, test rules only in `rules-testing`, generated-code layout only in `platform-implementation` §1, transport wiring only in `platform-usage`. Designer YAML vocabulary (Aggregate / Source / FieldMap / Lists / Flow) lives in `tools-builder-engine` in the Builder repo — outside this bundle. Other skills link.
+- Do not duplicate content across bundle skills. Patterns live only in `foundation-patterns`, architecture only in `foundation-architecture`, frontend review rules only in `foundation-frontend-review`, test rules only in `foundation-testing`, generated-code layout only in `generated-code-extend` §1, transport wiring only in `generated-code-wire-transport`. Other skills link.
+- Do not let the commit-msg hook or any other dev-skills tool block a commit: they warn and exit 0.
 
 ## Pointers
 
 - README (consumer-facing): `README.md`
 - Skill format spec: `docs/SKILL-FORMAT.md`
 - Skill format validator: `bin/validate-skills.php` (run via `make validate-skills`)
-- Bundle overhaul rationale: `docs/PRD-skill-overhaul.md`, `docs/PLAN-skill-overhaul.md`
+- Router text of the managed block: `router/AGENTS-router.md`
+- Package catalog source: `catalog/manifest.json`
+- Release notes: `CHANGELOG.md`
+
+<!-- source: jardiscore/app -->
+# jardiscore/app
+
+HTTP-delivery layer for Jardis-generated domains: FastRoute behind an own `Contract\RouterInterface`, a PSR-15 middleware pipeline, one canonical `DomainResponse` → PSR-7 mapper (`{status, data, errors, meta}` envelope), and a thin bootstrap bridge around the DomainKernel (`BuildDomainKernelFromEnv`). No Jardis domain ever imports this package (Wall Freedom) — a third-party framework can answer the same envelope contract without it.
+
+## Usage essentials
+
+- **Main classes (`JardisCore\App`):** `Routes` (registration: `get/post/put/patch/delete`, `middleware()`, `health()`), `Router` (dispatch, FastRoute never leaks past it), `App` (orchestrator: pure `handle(ServerRequestInterface)`, impure `run()`), `Config\AppConfig` (`debug` flag, injected by the bootstrap — never reads ENV itself).
+- **Bootstrap recipe:** `BuildDomainKernelFromEnv` → `DomainKernel` → generated domain(s) `new {Domain}($kernel)` (not part of this package) → `Routes` + handlers → `App` → `run()`. Full runnable `public/index.php`: `docs/getting-started.md`.
+- **Handlers return `DomainResponseInterface` or a PSR-7 `ResponseInterface`** — anything else throws `UnresolvableHandlerResult` and ends in the generic 500.
+- **One envelope for every answer:** `MapDomainResponse` maps each `DomainResponseInterface` (`ResponseStatus` 1:1 to the HTTP code, e.g. `RuleViolation` = 422); 204 has no body; `BuildErrorResponse` is the only place assembling the envelope, also for 404 / 405 (with `Allow` header) / 500. `getEvents()` is never part of the client-facing envelope.
+- **Errors:** `HandleThrowable` is the outermost boundary — `InvalidJsonBody` → 400, any other `Throwable` → generic 500 (details only with `AppConfig::$debug === true`), the full exception always goes to the PSR-3 logger.
+- **Request body:** read from `php://input` exactly once into a seekable stream; `ParseJsonBody` is lazy and leaves `getBody()` byte-identical (webhook-HMAC case).
+- **Don't:** read ENV inside `AppConfig`/handlers (inject `debug` from the bootstrap); hardwire PSR-17 factories inside handler/business code (receive the interfaces; `Nyholm\Psr7\Factory\Psr17Factory` is only `App`'s injectable default); expect this package to solve body-size limits, Trusted-Proxy/`X-Forwarded-*` or `display_errors=Off` (webserver/FPM/proxy responsibility); expect OPTIONS to be added automatically; import this package from a domain.
+- **Skill:** `core-app` (`.claude/skills/core-app/SKILL.md`) — consult it before using the API.
+
+## Full reference
+
+https://docs.jardis.io/en/core/app
 
 <!-- source: jardiscore/kernel -->
 # jardiscore/kernel
@@ -90,6 +116,25 @@ Versioned classes via Namespace-Injection and/or Proxy-Registry. Entry point: `$
 ## Full reference
 
 https://docs.jardis.io/en/support/classversion
+
+<!-- source: jardissupport/contracts -->
+# jardissupport/contracts
+
+All Jardis interface contracts in one package — ports for Auth, ClassVersion, Connection, Data, DbConnection, DbQuery, DotEnv, EventListener, Filesystem, Kernel, Mailer, Messaging, Repository, Scheduling, Secret, Validation and Workflow (86 contracts across 17 namespaces). Interfaces, enums, `final readonly` value objects and exception classes only — no implementation code.
+
+## Usage essentials
+
+- **Package name vs. namespace:** Composer package `jardissupport/contracts` (**plural**), namespace `JardisSupport\Contract\*` (**singular**) — package name ≠ namespace, that is not a contradiction. `jardissupport/contract` (singular) is the superseded predecessor; always `composer require jardissupport/contracts`.
+- **Type-hint against the contract, never the implementation** — a domain/adapter package declares the port here and implements it in its own package; the dependency arrow points inward to the contract.
+- **Enums you will import:** `Kernel\ResponseStatus` (int-backed, `Success` 200 … `RuleViolation` 422, `InternalError` 500), `Kernel\EventScope` (`Internal`/`Domain`), `Repository\PrimaryKey\PkStrategy`, `Auth\CredentialType`, `Auth\TokenType`.
+- **Kernel contracts for generated code:** `DomainKernelInterface` (12 accessors incl. `eventListenerRegistry()` and `messaging()`; `projectRoot()` was renamed from `domainRoot()` in v2.0.0), `GeneratedContextInterface` (deliberately empty marker implemented by every generated `{Domain}Context`), `DomainResponseInterface`, `ContextResponseInterface`. Generated domains import these from here, not from `jardiscore/kernel`.
+- **PSR boundary:** PSR interfaces (PSR-3, 11, 14, 16, 18) are not re-declared here; Jardis declares its own contract only where no PSR exists.
+- **Don't:** add a method to a published interface casually — it is a breaking change for every implementor (coordinated fleet release); put implementation code or tests into this package; require the singular `jardissupport/contract`.
+- **Skill:** `support-contracts` (`.claude/skills/support-contracts/SKILL.md`) — consult it before using the API.
+
+## Full reference
+
+https://docs.jardis.io/en/support/contracts
 
 <!-- source: jardissupport/data -->
 # jardissupport/data
@@ -226,7 +271,7 @@ Multi-step orchestration: Handler chains via `WorkflowConfig`, status and named 
 ## Usage essentials
 
 - **Two-class execution:** `$workflow = new Workflow();` or `new Workflow(fn(string $class, mixed $data) => $container->get($class))` (Factory for DI); call `$workflow($config, $data = null)` returns a `WorkflowContextInterface` carrying every handler invocation as a flat handler-stamped entry. Always starts at the first `addNode()` entry — the order of node registration determines the entry point. The engine is stateless and single-shot: iteration over inputs and aggregation across multiple runs are the caller's job.
-- **Handler contract is fixed:** Every handler has `__invoke(WorkflowContextInterface $context): WorkflowResult` and MUST return `WorkflowResult` (otherwise `InvalidArgumentException`). Per-run input arrives via the handler factory — typically the factory wires `$data` into the handler's constructor or spawns a fresh BoundedContext with `$data` as payload so the handler can read it via `$this->payload()`. The handler reaches its predecessor's result via `$context->getPrevious()`, any handler's most recent result via `$context->getLatest(SomeHandler::class)`, or all invocations of a handler via `$context->getAll(SomeHandler::class)`. Mantle slots: `$context->reference()` / `setReference()` (pre-loaded data set by the flow's entry companion), `$context->response()` / `setResponse()` (final answer built by the final companion), `$context->getException()` / `setException()` (captured by the orchestrator before re-throw).
+- **Handler contract is fixed:** Every handler has `__invoke(WorkflowContextInterface $context): WorkflowResult` and MUST return `WorkflowResult` (otherwise `InvalidArgumentException`). Per-run input arrives via the handler factory — typically the factory wires `$data` into the handler's constructor. The handler reaches its predecessor's result via `$context->getPrevious()`, any handler's most recent result via `$context->getLatest(SomeHandler::class)`, or all invocations of a handler via `$context->getAll(SomeHandler::class)`. Mantle slots: `$context->reference()` / `setReference()` (pre-loaded data set by the flow's entry companion), `$context->response()` / `setResponse()` (final answer built by the final companion), `$context->getException()` / `setException()` (captured by the orchestrator before re-throw).
 - **Transition resolution is a direct status lookup:** `determineNextHandler()` reads `config->getTransitions($currentHandler)`, looks up `transitions[$result->getStatus()]`, and returns it only if that target is itself a registered node (R5 routing-safety — prevents dispatch to a handler whose signature/role does not match the pipeline). No transitions configured, no entry for the status, or an unregistered target → the engine returns control to the caller. No status fallback chain. **Opt-in strict routing** (`new WorkflowConfig(strictRouting: true)`, default `false`) tightens the "no entry for the status" case: `'STATUS' => null` stays a legitimate, silent, declared terminal end, but a status with no transition key at all now raises `JardisSupport\Workflow\Exception\UnroutedStatusException` (`getNode()`/`getStatus()`) instead of silently stopping. The R5 hand-off case is unaffected by the flag either way; default `false` is byte-identical to pre-strict-routing behaviour.
 - **`WorkflowResult` as routing VO:** `new WorkflowResult(WorkflowResult::ON_SUCCESS, $data)` or `WorkflowResult::ON_FAIL, $errors`. Constants (all seven, no others): `ON_SUCCESS`/`ON_FAIL`/`ON_TIMEOUT`/`ON_SKIP`/`ON_CANCEL`/`ON_EVENT`/`ON_EXIT`. Accessors: `getStatus()`, `getData()`, `getHandlerFqcn()` (stamped by the engine via `withHandler()` during `append()`).
 - **`WorkflowContext` as flat execution log:** Mutable DTO. `append($fqcn, $result)` stamps the result via `withHandler()` and pushes it to the chain — re-invocations of the same handler (retry loops, cross-branch revisits) **never overwrite earlier entries**, so history is lossless. `getPrevious()` = immediate predecessor (null on first call); `getLatest($fqcn)` = most recent invocation of that handler; `getAll($fqcn)` = every invocation of that handler in execution order; `getChain()` = full ordered `list<WorkflowResultInterface>` where every result knows its producing handler. `WorkflowState<TPayload>` is the recommended typed alternative for process orchestrators — implements `WorkflowContextInterface` by delegating to an internal `WorkflowContext`, adding a typed `payload`/`original`/`modified` three-step; pass it as `$workflow($config, $data, $state)`.
