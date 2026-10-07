@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "61161f7fb30ad3ecdbdbdb020fc6e162",
+    "content-hash": "a2675f90c779d26a51578c865a554ded",
     "packages": [
         {
             "name": "jardiscore/app",
@@ -241,16 +241,16 @@
         },
         {
             "name": "jardissupport/contracts",
-            "version": "v2.2.0",
+            "version": "v2.3.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/jardisSupport/contracts.git",
-                "reference": "99bc3145925ba90e79d4371a1b1db18e167b0ac2"
+                "reference": "6d0d56f8ac170f8c50ce55bb65c6a35a778ac780"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/jardisSupport/contracts/zipball/99bc3145925ba90e79d4371a1b1db18e167b0ac2",
-                "reference": "99bc3145925ba90e79d4371a1b1db18e167b0ac2",
+                "url": "https://api.github.com/repos/jardisSupport/contracts/zipball/6d0d56f8ac170f8c50ce55bb65c6a35a778ac780",
+                "reference": "6d0d56f8ac170f8c50ce55bb65c6a35a778ac780",
                 "shasum": ""
             },
             "require": {
@@ -299,9 +299,9 @@
                 "docs": "https://docs.jardis.io/en/support/contracts",
                 "email": "jardisDev@headgent.com",
                 "issues": "https://github.com/jardisSupport/contracts/issues",
-                "source": "https://github.com/jardisSupport/contracts/tree/v2.2.0"
+                "source": "https://github.com/jardisSupport/contracts/tree/v2.3.0"
             },
-            "time": "2026-10-07T11:29:10+00:00"
+            "time": "2026-10-07T16:19:10+00:00"
         },
         {
             "name": "jardissupport/data",
@@ -697,20 +697,20 @@
         },
         {
             "name": "jardissupport/validation",
-            "version": "v1.1.5",
+            "version": "v1.2.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/jardisSupport/validation.git",
-                "reference": "beb1539ffad90e7be85adcc879933328c3918e84"
+                "reference": "6e8a78897e01f1054f9a705e2e93687498545d54"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/jardisSupport/validation/zipball/beb1539ffad90e7be85adcc879933328c3918e84",
-                "reference": "beb1539ffad90e7be85adcc879933328c3918e84",
+                "url": "https://api.github.com/repos/jardisSupport/validation/zipball/6e8a78897e01f1054f9a705e2e93687498545d54",
+                "reference": "6e8a78897e01f1054f9a705e2e93687498545d54",
                 "shasum": ""
             },
             "require": {
-                "jardissupport/contracts": "^1.0 || ^2.0",
+                "jardissupport/contracts": "^2.3",
                 "php": ">=8.2"
             },
             "require-dev": {
@@ -749,9 +749,9 @@
                 "docs": "https://docs.jardis.io/en/support/validation",
                 "email": "jardisDev@headgent.com",
                 "issues": "https://github.com/jardisSupport/validation/issues",
-                "source": "https://github.com/jardisSupport/validation/tree/v1.1.5"
+                "source": "https://github.com/jardisSupport/validation/tree/v1.2.0"
             },
-            "time": "2026-10-01T14:38:51+00:00"
+            "time": "2026-10-07T16:29:47+00:00"
         },
         {
             "name": "jardissupport/workflow",
