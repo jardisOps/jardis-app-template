@@ -11,3 +11,73 @@ parameters:
         - bin
         - src
         - tests
+
+    # SCHULD (Jardis Bescheid E6, 2026-10-07): Toleranz für generierten Code,
+    # wird mit dem Vorhaben Generat-Typsauberkeit entfernt; Quelle der Liste:
+    # Builder phpstan-realworkspace.neon. Nur die generierten Pfade sind
+    # toleriert — handgeschriebener Code (src/App/Console, bin/, public/)
+    # läuft ungelockert auf Level 8.
+    ignoreErrors:
+        -
+            identifier: function.alreadyNarrowedType
+            paths:
+                - src/*/*/Model/*
+                - src/*/*/Process/*/Command*
+                - src/*/*/Process/*/Event
+            reportUnmatched: false
+        -
+            identifier: notIdentical.alwaysTrue
+            paths:
+                - src/*/*/Model/*
+                - src/*/*/Process/*/Command*
+                - src/*/*/Process/*/Event
+            reportUnmatched: false
+        -
+            identifier: nullsafe.neverNull
+            paths:
+                - src/*/*/Model/*
+                - src/*/*/Process/*/Command*
+                - src/*/*/Process/*/Event
+            reportUnmatched: false
+        -
+            identifier: missingType.iterableValue
+            paths:
+                - src/*/*/Model/*
+                - src/*/*/Process/*/Command*
+                - src/*/*/Process/*/Event
+            reportUnmatched: false
+        -
+            message: '#^Cannot call method [a-zA-Z0-9_]+\(\) on [A-Za-z0-9_\\<>, ]+\|null\.$#'
+            paths:
+                - src/*/*/Model/*
+                - src/*/*/Process/*/Command*
+                - src/*/*/Process/*/Event
+            reportUnmatched: false
+        -
+            message: '#^Parameter \#\d+ \$[a-zA-Z0-9_]+ of (static method|method|function|callable) [A-Za-z0-9_\\:]+(\(\))? expects [^,]+, [A-Za-z0-9_\\<>, |]+\|null given\.$#'
+            paths:
+                - src/*/*/Model/*
+                - src/*/*/Process/*/Command*
+                - src/*/*/Process/*/Event
+            reportUnmatched: false
+        -
+            message: '#^(Method [A-Za-z0-9_\\:]+\(\) should return JardisSupport\\Contract\\DbQuery\\DbQueryBuilderInterface but returns JardisSupport\\Contract\\DbQuery\\DbDeleteBuilderInterface\|JardisSupport\\Contract\\DbQuery\\DbQueryBuilderInterface\|JardisSupport\\Contract\\DbQuery\\DbUpdateBuilderInterface\.|Parameter \#1 \$query of method JardisSupport\\Repository\\Repository::findByQuery\(\) expects JardisSupport\\Contract\\DbQuery\\DbQueryBuilderInterface, JardisSupport\\Contract\\DbQuery\\DbDeleteBuilderInterface\|JardisSupport\\Contract\\DbQuery\\DbQueryBuilderInterface\|JardisSupport\\Contract\\DbQuery\\DbUpdateBuilderInterface given\.)$#'
+            paths:
+                - src/*/*/Model/*
+                - src/*/*/Process/*/Command*
+                - src/*/*/Process/*/Event
+            reportUnmatched: false
+        -
+            message: '#^Call to an undefined method object::[a-zA-Z0-9_]+\(\)\.$#'
+            paths:
+                - src/*/*/Model/*
+                - src/*/*/Process/*/Command*
+                - src/*/*/Process/*/Event
+            reportUnmatched: false
+        -
+            message: '#^Access to undefined constant object::[A-Z_]+\.$#'
+            paths:
+                - src/*/*/Model/*
+                - src/*/*/Process/*/Command*
+                - src/*/*/Process/*/Event
+            reportUnmatched: false

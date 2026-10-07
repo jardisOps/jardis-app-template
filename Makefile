@@ -23,6 +23,7 @@ include .env
 
 include support/makefile/stack.mk
 include support/makefile/composer.mk
+include support/makefile/db.mk
 include support/makefile/qa-stack.mk
 include support/makefile/docker.mk
 include support/makefile/secret.mk
