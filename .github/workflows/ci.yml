@@ -162,6 +162,17 @@ jobs:
       - name: Install dependencies
         run: make install
 
+      - name: db-import smoke
+        run: |
+          # Without the stack: SQLite default, one-off phpcli containers.
+          make help | grep -q '^ *db-import '
+          if make db-import; then echo "db-import without SCHEMA must fail"; exit 1; fi
+          rm -f /tmp/pwned
+          if make db-import SCHEMA='x; touch /tmp/pwned'; then echo "must fail"; exit 1; fi
+          test ! -e /tmp/pwned
+          make db-import SCHEMA=support/tests/db-import-smoke.sql
+          make db-import SCHEMA=support/tests/db-import-smoke.sql
+
       - name: Start the delivery stack
         run: make start
 

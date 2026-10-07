@@ -10,6 +10,7 @@
 
 declare(strict_types=1);
 
+use App\Console\DbImport;
 use JardisCore\Kernel\Bootstrap\BuildDomainKernelFromEnv;
 
 require dirname(__DIR__) . '/vendor/autoload.php';
@@ -29,6 +30,7 @@ switch ($command) {
         echo "Available commands:\n";
         echo "  list      this overview\n";
         echo "  kernel    which services the kernel resolved\n";
+        echo "  db:import <file>   run a SQL schema file (path relative to the project root)\n";
         exit(0);
 
     case 'kernel':
@@ -40,6 +42,16 @@ switch ($command) {
             printf("  %-12s %s\n", $service, $resolved);
         }
         exit(0);
+
+    case 'db:import':
+        // Schema over the kernel's own connection — no DB client binary, no
+        // second connection config. Logic and exit codes: App\Console\DbImport.
+        $file = $argv[2] ?? '';
+        if ($file === '') {
+            fwrite(STDERR, "Usage: db:import <file>\n");
+            exit(1);
+        }
+        exit((new DbImport())($root, $file, $kernel->dbConnection()));
 
     default:
         fwrite(STDERR, sprintf("Unknown command '%s'. Try 'list'.\n", $command));

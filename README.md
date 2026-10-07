@@ -82,19 +82,52 @@ because the two db profiles share the network alias `db`. The worker probe
 runs the real `WORKER_COMMAND` once and therefore needs a prior
 `make install`.
 
-### Database queue schema
+### Schema einspielen
 
-Choosing `MESSAGING_TRANSPORT=database` needs the event tables in place
-first — the kernel wires publisher and consumer, it does not create schema
-(Säule 1). Table creation is a migration, same as any other table your
-domain needs:
+Table creation is not done by the kernel (Säule 1) — you import a SQL file
+over the project's own DB connection (`DB_*` from `.env`, no DB client binary
+needed):
 
-- **MySQL/MariaDB** — run the delivered reference schema,
-  `support/sql/domain_events.sql` (also ships in
-  `jardisadapter/messaging:src/Schema/domain_events.sql`).
-- **SQLite** — run this DDL (same shape, SQLite dialect):
+1. Export in the Builder (MCP `export_schema_sql_files`, or the UI). It writes
+   `.jardis/<Domain>/<Subdomain>/<BC>/Schema.<dialect>.sql`.
+2. Import it:
+   ```sh
+   make db-import SCHEMA=.jardis/<Domain>/<Subdomain>/<BC>/Schema.mariadb.sql
+   ```
+   or per MCP `run_make_target {target: "db-import", params: {SCHEMA: "…"}}`
+   (`run_make_target` has a 10-minute limit). `SCHEMA` is relative to the
+   project root and must stay inside it. Underneath it is
+   `bin/console db:import <file>`; the first failing statement stops the
+   import and is reported by number.
+
+| `DB_DRIVER` | File |
+|---|---|
+| `mysql` | `Schema.mariadb.sql` or `Schema.mysql.sql` |
+| `pgsql` | `Schema.postgres.sql` |
+| `sqlite` | `Schema.sqlite.sql` |
+
+A `Schema.<dialect>.sql` that does not match the connection's driver is
+refused. Notes:
+
+- The MySQL/MariaDB file creates the database from the export
+  (`CREATE DATABASE IF NOT EXISTS` + `USE`): `DB_DATABASE` must match that
+  name and `DB_USER` needs the right to create it.
+- PostgreSQL expects `DB_DATABASE` to exist already.
+- A second run is idempotent (`CREATE … IF NOT EXISTS`). There is no
+  migration and no DROP behaviour.
+
+#### Database queue schema
+
+`MESSAGING_TRANSPORT=database` needs the event tables in place first — the
+kernel wires publisher and consumer, it does not create schema. They go the
+same way:
+
+- **MySQL/MariaDB** — `make db-import SCHEMA=support/sql/domain_events.sql`
+  (also ships in `jardisadapter/messaging:src/Schema/domain_events.sql`).
+- **SQLite** — save this DDL as a file in the project and import it the same
+  way:
   ```sql
-  CREATE TABLE domain_events (
+  CREATE TABLE IF NOT EXISTS domain_events (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       topic VARCHAR(255) NOT NULL,
       payload TEXT NOT NULL,
