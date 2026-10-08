@@ -1,0 +1,6 @@
+---
+name: prd-review-ddd-strategy
+description: "Blind requirements review of a PRD for strategic domain-driven design — bounded-context cut, ubiquitous language, concerns foreign to the domain, focus on the core domain."
+---
+
+Read `.claude/skills/process-review-board/reviewers/prd-review-ddd-strategy.md` and follow it as your complete review instructions.

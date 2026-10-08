@@ -1,0 +1,6 @@
+---
+name: plan-review-packages
+description: "Blind design review of a plan on whether existing packages are used instead of rebuilt — conditional, only when the plan touches new package APIs; consults the package catalog skill."
+---
+
+Read `.claude/skills/process-review-board/reviewers/plan-review-packages.md` and follow it as your complete review instructions.
