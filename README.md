@@ -289,6 +289,13 @@ into `.claude/skills/`, plus an aggregated `AGENTS.md`. The installed skills
 are deliberately **not** tracked — they come from `vendor/` and would produce
 phantom diffs on every update.
 
+`composer.json` sets `agents-md` to `aggregate` explicitly. Without the key the
+plugin would apply its `none` default to this project (root package names
+`jardis*`, here `jardisops/jardis-app-template`) and empty the managed block of
+`AGENTS.md`. The plugin also creates `.agents/`, `.codex/`, `.cursor/`,
+`.gemini/`, `.github/agents/` and `.claude/agents/`; they are meant to be
+committed, so they are not in `.gitignore`.
+
 ## Quality
 
 ```sh

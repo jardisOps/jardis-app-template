@@ -1,0 +1,6 @@
+---
+name: open-question-gate
+description: "Gate before any question goes to the human — derive the answer from the target artefact, the requirement, the project rules and the code with the place found, never guess; returns DECIDED or UNDECIDABLE."
+---
+
+Read `.claude/skills/process-review-board/reviewers/open-question-gate.md` and follow it as your complete review instructions.

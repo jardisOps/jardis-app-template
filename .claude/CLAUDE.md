@@ -1,114 +1,55 @@
-# jardis-app-template — Arbeitsanweisung
+# Working in this project
 
-Dieses Repo ist die Docker-Laufzeitumgebung für Jardis-Domains: nginx +
-php-fpm, ein CLI-Container, zuschaltbare Dienste. Es wird geklont und
-abgeleitet — was hier liegt, landet in echten Projekten. Bedienung steht in der
-`README.md`.
+Derived from jardis-app-template (see `git log` of the initial commit for the
+version). These are the rules for working in THIS project; usage is in
+`README.md`. Artefacts (code, comments, docs, messages) are written in English.
 
-## Sprache
+## Images
 
-**Dialog mit dem User: Deutsch. Alle Artefakte im Repo: Englisch** — Kommentare,
-Doku, Meldungen, README. Kommentare knapp: höchstens zwei bis drei Sätze je
-Block, der Grund statt der Entstehungsgeschichte.
+Images come from `headgent/phpcli` and `headgent/phpfpm` (Docker Hub); there is
+no Dockerfile here. A missing runtime capability is solved in the image
+source, not worked around in this repo.
 
-## Was dieses Repo nicht tut
+## Opt-in services via compose profiles
 
-**Es baut keine Images.** `headgent/phpcli` und `headgent/phpfpm` kommen aus
-`devops/php-image-builder` über Docker Hub. Ein `Dockerfile` gehört hier
-nicht hinein — wenn ein Laufzeit-Bedürfnis nicht erfüllt ist, wird es dort
-gelöst, nicht hier umgangen.
+Every service beyond `web` + `app` carries a `profiles:` label and is switched
+by ONE line: `COMPOSE_PROFILES` in the root `.env` (the machine-writable
+interface for Jardis; never edit the YAML). Profiles: `db-mariadb` /
+`db-postgres` (alternatives, both on network alias `db` -- never enable both),
+`cache`, `rabbitmq`, `kafka`, `mail`, `worker`, `cli`. `stop`/`status` use
+`--profile "*"` so no profile is ever missed. The application side is switched
+by commented switch-point lines in the service blocks of `.env`.
 
-**Es enthält keine Fachlogik.** Der Auslieferungszustand ist ein leeres,
-lauffähiges Gerüst.
+## One configuration layer, one file
 
-## Herkunft der Konventionen
+Every configuration value lives exactly once, in the `.env` in the project
+root (the Jardis project-layout convention). Three readers share the file and
+each reads only the keys it knows:
 
-Die Bausteine stammen aus `devops/provisioning` und sind dort mit
-`devops/orchestration` byte-identisch — das ist die Hauslinie, nicht Zufall.
-Unverändert übernommen: `Makefile`, `support/makefile/{composer,docker,hooks,
-qa-stack,ssh}.mk`, `pre-commit-hook.sh`, `phpstan.neon` (Level 8), `phpcs.xml`
-(PSR-12 + strict types), `phpunit.xml`, `tests/bootstrap.php`.
+- **docker compose** interpolates `${...}` in `support/docker-compose.yml` and
+  passes each service exactly its keys via `environment:`. Never
+  `env_file: ../.env` on a service (nginx would receive the DB passwords).
+- **make** does `include .env`; the rule `.env: .env.example` creates it.
+- **The kernel** runs `DotEnv::loadPrivate(<projectRoot>)` inside the
+  container. The process environment always wins (12-factor III).
 
-Bewusst abweichend, jeweils mit Grund:
+The file is divided into blocks (`# === <name> ===`): `stack` and `nginx`
+belong to the template, the other eight to the kernel contract. Whoever reads
+a key names it; the template mirrors it and invents no names. There is no
+cascade: no `.env.local`, no `.env.{APP_ENV}`; the guardrail rejects them.
 
-| Abweichung | Grund |
+## Ownership of generated code
+
+`src/` is the builder's OutputDir and is NOT in `.gitignore`: ownership is mixed.
+
+| Path | Owner |
 |---|---|
-| `.env.example` ist versioniert, `.env` nicht | Ein Template muss nach dem Klonen laufen: die erste `make`-Ausführung erzeugt `.env` aus `.env.example` (GNU make baut das fehlende Include nach und startet neu). Werte werden danach direkt in `.env` geändert — es gibt keine Overlay-Datei, der Guardrail weist sie ab. |
-| `type: "project"` statt `"library"` | Es ist ein Anwendungsgerüst, keine Bibliothek. |
-| `stack.mk` neu geschrieben | Die Vorlage rief `bin/provision` auf. `orchestration` hat sie ungeprüft kopiert und trägt seither tote Targets. |
-| kein Xdebug-Port-Mapping | Xdebug verbindet sich ausgehend zur IDE, es lauscht nicht im Container. |
-| mehrere Services statt einem | Kern: Request (fpm), Web (nginx), Werkzeug (cli); dazu Opt-in-Profile (s. u.). |
-| `qa-stack.mk`: ein Hilfetext | `integration-test` nannte `tests/fixtures/<provider>/` — hier nicht vorhanden. Im Modulkopf vermerkt. Sonst byte-identisch. |
-| `secret.mk` aus `jardissupport/secret` übernommen | Meldungen auf Englisch (Repo-Regel); der PHP-Aufruf via `docker compose run --rm --no-deps phpcli` entspricht bereits der hiesigen Form. Sonst byte-identisch, KEY_FILE-Default `support/secret.key`. |
-| `pre-commit-hook.sh`: Secret-Guardrail-Aufruf | Weil `.env.example` versioniert ist, prüft `support/check-env-secrets.sh` gestagte env-Zeilen auf echte Secrets (Token-Formate, lange Klartext-Werte zu `*_PASSWORD/_SECRET/_TOKEN/_KEY`), auf `secret(...)` an einem compose-gelesenen Key (compose kann nicht entschlüsseln) und auf Overlay-Dateien neben `.env` — Ausweg: `secret(...)` an einem reinen Kernel-Key, Prozess-Umgebung oder `JARDIS_ALLOW_ENV_SECRET=1`. CI fährt denselben Check (`--tree`). Sonst byte-identisch. |
+| `.env` | you, from the first `make` -- the `COMPOSE_PROFILES` line stays machine-writable |
+| `.env.example` | the template -- the delivered original every clone starts from |
+| `src/{BC}/Model/` | generator, hermetic -- overwritten on every build |
+| `src/App/bootstrap.php` | written once, then yours (ForceOverwrite:false) |
+| `src/{BC}/Closure/`, parts of `Process/` | yours |
+| `public/index.php`, `bin/console` | yours, never generated |
 
-Der Service heißt weiterhin `phpcli`: `docker.mk` und `qa-stack.mk` sprechen
-ihn namentlich an. Umbenennen hieße, beide Module zu forken.
-
-## Opt-in-Dienste über Compose-Profile
-
-Jeder Dienst jenseits von `web` + `app` trägt ein `profiles:`-Etikett und
-wird über **eine Zeile** geschaltet: `COMPOSE_PROFILES` in der Root-`.env` —
-die maschinenschreibbare Schnittstelle für Jardis, niemals YAML editieren.
-Profile: `db-mariadb`/`db-postgres` (Alternativen, beide auf Netzwerk-Alias
-`db` — nie beide aktivieren, sonst löst der Alias auf beide IPs auf),
-`cache`, `rabbitmq`, `kafka`, `mail`, `worker`, `cli`. `stop`/`status`
-nutzen `--profile "*"`, damit nie ein Profil in einer Aufzählung fehlt.
-Die Anwendungsseite wird getrennt geschaltet: auskommentierte
-Schaltpunkt-Zeilen in den Dienst-Blöcken der `.env`.
-
-## Eine Konfigurationsschicht, eine Datei
-
-Jeder Konfigurationswert des Projekts lebt genau einmal, in der `.env` im
-Projekt-Root — das ist die projektübergreifende Projekt-Layout-Konvention von
-Jardis; dieses Repo implementiert sie. Drei
-Leser teilen sich dieselbe Datei, jeder liest nur die Schlüssel, die er kennt:
-
-- **`docker compose`** — interpoliert `${…}` in `support/docker-compose.yml`
-  und reicht jedem Dienst genau seine Schlüssel per `environment:` herein.
-  **Nie `env_file: ../.env`** an einem Dienst: das gäbe z. B. dem
-  nginx-Container die Datenbank-Passwörter.
-- **`make`** — `include .env`; die Regel `.env: .env.example` erzeugt die
-  Datei beim ersten Bedarf.
-- **Der Kernel** — `DotEnv::loadPrivate(<projectRoot>)` *im Container*. Die
-  Prozess-Umgebung gewinnt immer (12-Factor III), also läuft ein Container
-  auch ganz ohne Datei.
-
-Die Datei ist in Blöcke (`# === <name> ===`) gegliedert: `stack` und `nginx`
-gehören dem Template, die acht übrigen dem Kernel-Vertrag. Wer den Schlüssel
-liest, benennt ihn — das Template kopiert ihn spiegelgleich und erfindet
-keinen eigenen Namen. Es gibt **keine** Kaskade: keine `.env.local`, keine
-`.env.{APP_ENV}`; der Guardrail weist solche Dateien ab.
-
-## Der Auslieferungszustand muss ohne Konfiguration laufen
-
-`make start` startet nur `web` und `app`, die Anwendung läuft auf SQLite. Das
-geht, weil der Kernel jeden nicht konfigurierten Adapter zu `null` degradiert
-statt zu scheitern. Diese Eigenschaft ist der Grund, warum das Template klein
-sein darf — sie darf nicht durch einen Pflichtdienst aufgegeben werden.
-
-## Eigentum am generierten Code
-
-`src/` ist das OutputDir des Builders und gehört **nicht** in die `.gitignore`:
-dort liegt gemischtes Eigentum.
-
-| Pfad | Wem |
-|---|---|
-| `.env` | dir, ab dem ersten `make` — Ausnahme: die `COMPOSE_PROFILES`-Zeile bleibt dauerhaft maschinenschreibbar |
-| `.env.example` | dem Template — die ausgelieferte Vorlage, aus der jeder Klon startet |
-| `src/{BC}/Model/` | Generator, hermetisch — wird bei jedem Build überschrieben |
-| `src/App/bootstrap.php` | einmal geschrieben, danach dir (ForceOverwrite:false) |
-| `src/{BC}/Closure/`, Teile von `Process/` | dir |
-| `public/index.php`, `bin/console` | dir, wird nie generiert |
-
-Eine zweite Domain erscheint **nicht** von selbst in `bootstrap.php` — die
-Datei wird nicht neu geschrieben. Die Facade-Zeile ist von Hand nachzutragen.
-
-## Arbeitsweise
-
-- **Keine Annahmen.** Jeder Befund wird belegt — an der Datei, an der Messung.
-  Das gilt besonders hier: kein anderes Headgent-Projekt verdrahtet bisher
-  `jardiscore/kernel` und `phpfpm`, es gibt also nichts zum Abschauen.
-- **Nicht überkonstruieren.** Was ein Zielprojekt selbst entscheiden soll,
-  entscheidet das Template nicht vor.
-- **Code Review nach jeder Codierung**, kein Commit ohne.
+A second domain does not appear in `bootstrap.php` by itself: add its facade
+line by hand.

@@ -1,0 +1,6 @@
+---
+name: failure-diagnosis
+description: "Read-only root-cause analysis for a red stage that the report itself does not explain — finds the cause, classifies it and writes the retry assignment, so the main session never debugs."
+---
+
+Read `.claude/skills/process-review-board/reviewers/failure-diagnosis.md` and follow it as your complete review instructions.
