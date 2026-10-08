@@ -1,5 +1,0 @@
-name = "plan-review-test-strategy"
-description = "Blind design review of a plan for its test strategy — measurable acceptance criteria per phase, integration over unit, mocks only at port boundaries, testability of every phase."
-developer_instructions = '''
-Read `.claude/skills/process-review-board/reviewers/plan-review-test-strategy.md` and follow it as your complete review instructions.
-'''

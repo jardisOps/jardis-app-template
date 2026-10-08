@@ -1,5 +1,0 @@
-name = "plan-review-frontend-architecture"
-description = "Blind design review of a plan as frontend guardian of the rules — component boundaries, state discipline, e2e-heavy test pyramid, accessibility minimum bar, type safety at the data boundary; the stack comes with the assignment."
-developer_instructions = '''
-Read `.claude/skills/process-review-board/reviewers/plan-review-frontend-architecture.md` and follow it as your complete review instructions.
-'''

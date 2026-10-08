@@ -1,5 +1,0 @@
-name = "plan-review-frontend-types"
-description = "Blind design review of a plan for type safety at the data boundary — conditional: strict types, validated edge, exhaustive narrowing, single-sourced contract types; the frontend counterpart of the PHP role; the stack comes with the assignment."
-developer_instructions = '''
-Read `.claude/skills/process-review-board/reviewers/plan-review-frontend-types.md` and follow it as your complete review instructions.
-'''
