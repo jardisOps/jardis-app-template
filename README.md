@@ -292,9 +292,12 @@ phantom diffs on every update.
 `composer.json` sets `agents-md` to `aggregate` explicitly. Without the key the
 plugin would apply its `none` default to this project (root package names
 `jardis*`, here `jardisops/jardis-app-template`) and empty the managed block of
-`AGENTS.md`. The plugin also creates `.agents/`, `.codex/`, `.cursor/`,
-`.gemini/`, `.github/agents/` and `.claude/agents/`; they are meant to be
-committed, so they are not in `.gitignore`.
+`AGENTS.md`. The plugin also creates `.agents/` and `.claude/agents/`; they are
+meant to be committed, so they are not in `.gitignore`. Agent files for the
+other tools (`.codex/`, `.cursor/`, `.gemini/`, `.github/agents/`) are written
+only for the hosts listed under `hosts` in `extra."jardis/dev-skills"`; this
+template sets no `hosts` key, so the default `claude` applies and a project
+adds the tools it actually uses.
 
 ## Quality
 
