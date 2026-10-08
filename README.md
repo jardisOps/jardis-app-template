@@ -299,6 +299,10 @@ only for the hosts listed under `hosts` in `extra."jardis/dev-skills"`; this
 template sets no `hosts` key, so the default `claude` applies and a project
 adds the tools it actually uses.
 
+After every install or require of a Jardis package (adapters too, for example
+after `set_stack_selection`), `AGENTS.md` and `.agents/skills/<package>/` change;
+commit them together with `composer.lock` (see the `jardis/dev-skills` README).
+
 ## Quality
 
 ```sh
