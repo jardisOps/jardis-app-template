@@ -1,0 +1,6 @@
+---
+name: prd-review-domain-expert
+description: "Blind requirements review of a PRD as domain expert — the domain comes with the assignment; generates questions on completeness: missing domain rules, exceptions, terms, actors, events and processes."
+---
+
+Read `.claude/skills/process-review-board/reviewers/prd-review-domain-expert.md` and follow it as your complete review instructions.

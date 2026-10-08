@@ -36,6 +36,7 @@
     "extra": {
         "jardis/dev-skills": {
             "bundled-skills": true,
+            "agents-md": "aggregate",
             "git-rules": "delegated"
         }
     },

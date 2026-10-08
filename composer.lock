@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "3373af6e154520c2c3e42ec32db67223",
+    "content-hash": "5b7ecba9e846130ba2847dc970f53ac4",
     "packages": [
         {
             "name": "jardiscore/app",
