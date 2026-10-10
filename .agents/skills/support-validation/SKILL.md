@@ -111,6 +111,18 @@ $validator = new ObjectValidator($registry);
 $result = $validator->validate($order);  // recursively validates graph
 ```
 
+## LIST INDEX IN THE ERROR PATH (opt-in, `^1.4`)
+Default: objects in lists are keyed `{shortName}` and siblings merged (index lost). Opt in via the third
+constructor argument:
+```php
+$validator = new ObjectValidator($registry, indexedLists: true);   // new ObjectValidator($registry, $ctx, true)
+$validator->validate($order)->getErrors();
+// ['order' => ['orderLine[1]' => ['quantity' => ['Must be at least 1']]]]
+```
+- Key = `{shortName}[{arrayKey}]`; nested lists nest (`'item[2]' => ['part[0]' => ...]`), list-in-list appends (`item[0][1]`).
+- `getKinds()` carries the same keys as `getErrors()`; object properties outside lists keep plain `{shortName}`.
+- Siblings are never merged. Default `false` = result identical to 1.3.
+
 ## LAYER
 - **Application:** validate Commands/DTOs before Domain
 - **Domain:** NEVER imports Validation
