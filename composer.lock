@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "5b7ecba9e846130ba2847dc970f53ac4",
+    "content-hash": "0205b8b987a197a64ccda3a5a7fbb6c7",
     "packages": [
         {
             "name": "jardiscore/app",
@@ -697,16 +697,16 @@
         },
         {
             "name": "jardissupport/validation",
-            "version": "v1.3.0",
+            "version": "v1.4.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/jardisSupport/validation.git",
-                "reference": "53e9c5dff92e40286a7060a4b2ec22b2c815030d"
+                "reference": "09e5a3f696e8611ee1d35ce55841a7cb8c4c542f"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/jardisSupport/validation/zipball/53e9c5dff92e40286a7060a4b2ec22b2c815030d",
-                "reference": "53e9c5dff92e40286a7060a4b2ec22b2c815030d",
+                "url": "https://api.github.com/repos/jardisSupport/validation/zipball/09e5a3f696e8611ee1d35ce55841a7cb8c4c542f",
+                "reference": "09e5a3f696e8611ee1d35ce55841a7cb8c4c542f",
                 "shasum": ""
             },
             "require": {
@@ -749,9 +749,9 @@
                 "docs": "https://docs.jardis.io/en/support/validation",
                 "email": "jardisDev@headgent.com",
                 "issues": "https://github.com/jardisSupport/validation/issues",
-                "source": "https://github.com/jardisSupport/validation/tree/v1.3.0"
+                "source": "https://github.com/jardisSupport/validation/tree/v1.4.0"
             },
-            "time": "2026-10-07T18:44:17+00:00"
+            "time": "2026-10-10T10:02:31+00:00"
         },
         {
             "name": "jardissupport/workflow",
