@@ -8,16 +8,16 @@
     "packages": [
         {
             "name": "jardiscore/app",
-            "version": "v1.1.10",
+            "version": "v1.1.11",
             "source": {
                 "type": "git",
                 "url": "https://github.com/jardisCore/app.git",
-                "reference": "0ee7aef571e926afb9588e49348d19178f072b0a"
+                "reference": "4d90ff107a39d1fe60b8920dd3f0e015393befb7"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/jardisCore/app/zipball/0ee7aef571e926afb9588e49348d19178f072b0a",
-                "reference": "0ee7aef571e926afb9588e49348d19178f072b0a",
+                "url": "https://api.github.com/repos/jardisCore/app/zipball/4d90ff107a39d1fe60b8920dd3f0e015393befb7",
+                "reference": "4d90ff107a39d1fe60b8920dd3f0e015393befb7",
                 "shasum": ""
             },
             "require": {
@@ -75,9 +75,9 @@
                 "docs": "https://docs.jardis.io/en/core/app",
                 "email": "jardisDev@headgent.com",
                 "issues": "https://github.com/jardisCore/app/issues",
-                "source": "https://github.com/jardisCore/app/tree/v1.1.10"
+                "source": "https://github.com/jardisCore/app/tree/v1.1.11"
             },
-            "time": "2026-10-03T16:23:26+00:00"
+            "time": "2026-10-11T10:52:15+00:00"
         },
         {
             "name": "jardiscore/kernel",
