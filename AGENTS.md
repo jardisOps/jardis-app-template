@@ -166,3 +166,14 @@ Multi-step business process orchestration with sequential step execution and pro
   Full reference: https://docs.jardis.io/en/support/workflow
 
 <!-- END jardis/dev-skills -->
+
+## Code style
+
+Maßgeblich ist `phpcs.xml`; dieser Abschnitt fasst nur zusammen.
+
+- PSR-12; lines at most 120 characters.
+- PascalCase for classes, process nodes and events.
+- `declare(strict_types=1);` in every PHP file.
+- Every class carries a class docblock (a description, no tags); a `@todo` belongs in the method docblock.
+- Decimal values are `numeric-string` in the docblock; the native type stays `string`. Needs `ext-bcmath`.
+- Run `make phpcbf` before committing; the pre-commit hook runs `phpcs` and `phpstan`.
