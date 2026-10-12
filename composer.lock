@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "0205b8b987a197a64ccda3a5a7fbb6c7",
+    "content-hash": "75ac6bf594274d6c1c900f581cf68748",
     "packages": [
         {
             "name": "jardiscore/app",
@@ -3362,6 +3362,7 @@
     "prefer-lowest": false,
     "platform": {
         "php": ">=8.3",
+        "ext-bcmath": "*",
         "ext-json": "*"
     },
     "platform-dev": {},

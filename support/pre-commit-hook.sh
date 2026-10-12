@@ -42,4 +42,14 @@ if [[ -n "$files" ]]; then
     fi
 fi
 
+# PHPStan over the whole phpstan.neon scope (no path argument, so the paths
+# maintained there apply) — a type error elsewhere can come from a staged file.
+if [[ -n "$files" ]]; then
+    echo "Processing phpstan:"
+    $DOCKER_COMPOSE run --rm --no-deps phpcli vendor/bin/phpstan analyse -c phpstan.neon
+    if [[ "$?" != 0 ]]; then
+        exit 1
+    fi
+fi
+
 exit 0;

@@ -309,7 +309,14 @@ commit them together with `composer.lock` (see the `jardis/dev-skills` README).
 make phpunit     # tests
 make phpstan     # level 8
 make phpcs       # PSR-12 + strict types
+make phpcbf      # fix what phpcs can repair automatically
 ```
+
+The pre-commit hook runs `phpcs` on the staged `*.php` files and `phpstan` over
+the whole `phpstan.neon` scope; either failing blocks the commit. Run
+`make phpcbf` before committing. The style rules a generated project is held to
+are summarised in `AGENTS.md` (below the managed block); `phpcs.xml` is
+authoritative. `ext-bcmath` is required for decimal values.
 
 The same three gates run as GitHub Actions on every PR
 (`.github/workflows/ci.yml`, house-line copy of the package repos' CI).
