@@ -35,3 +35,9 @@ phpstan: ## Run PHPStan analysis
 phpcs: ## Run coding standards
 	$(DOCKER_COMPOSE) run --rm --no-deps phpcli vendor/bin/phpcs /app/src /app/public
 .PHONY: phpcs
+
+# Same paths as phpcs. Fixes what phpcs reports and can repair automatically;
+# run it before committing, then re-run phpcs for the rest.
+phpcbf: ## Fix coding standards automatically
+	$(DOCKER_COMPOSE) run --rm --no-deps phpcli vendor/bin/phpcbf /app/src /app/public
+.PHONY: phpcbf

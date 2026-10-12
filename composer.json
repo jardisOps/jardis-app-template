@@ -5,6 +5,7 @@
     "license": "proprietary",
     "require": {
         "php": ">=8.3",
+        "ext-bcmath": "*",
         "ext-json": "*",
         "jardiscore/app": "^1.0",
         "jardiscore/kernel": "^2.4",
