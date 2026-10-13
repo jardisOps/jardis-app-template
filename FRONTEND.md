@@ -28,9 +28,12 @@ project — the template itself doesn't ship one.
 ## 2. Envelope fetch helper
 
 Every response from the front door carries the same envelope `{status, data, errors, meta}`
-(success and error alike; `400` = field validation, `422` = rule rejection, `5xx` = technical).
-The following helper pulls query, body, and response types from the generated `.d.ts` —
-autocomplete and compile errors on contract breakage, without a generator:
+(success and error alike; `400` = field validation, `404` = not found, `409` = conflict,
+`422` = rule rejection, `5xx` = technical).
+The helper pulls query, body, and response types from the generated `.d.ts` —
+compile errors on contract breakage, without a generator. It returns the **union of all
+answers the operation declares** (narrow on `status`) plus `Offline` (`status: 0`), the one
+answer the contract cannot declare (network failure or non-JSON body):
 
 ```ts
 // frontend/src/api/jardisFetch.ts — copy once, then dev ownership
@@ -39,31 +42,37 @@ import type { paths } from './ecommerce';
 type Op<P extends keyof paths, M> = M extends keyof paths[P] ? paths[P][M] : never;
 type QueryOf<O> = O extends { parameters: { query?: infer Q } } ? Q : never;
 type BodyOf<O> = O extends { requestBody?: { content: { 'application/json': infer B } } } ? B : never;
-type OkOf<O> = O extends { responses: { 200: { content: { 'application/json': infer R } } } } ? R : never;
+type ResultOf<O> = O extends { responses: infer R }
+    ? { [K in keyof R]: R[K] extends { content: { 'application/json': infer J } } ? J : never }[keyof R] : never;
+
+/** Network failure or non-JSON answer: the only answer not from the contract. */
+export type Offline = { status: 0; data: null; errors: Record<string, string[]> };
 
 export async function jardisFetch<P extends keyof paths & string, M extends 'get' | 'post' | 'put' | 'delete'>(
     path: P,
     method: M,
     init: { params?: Record<string, string | number>; query?: QueryOf<Op<P, M>>; body?: BodyOf<Op<P, M>> } = {},
-): Promise<OkOf<Op<P, M>>> {
+): Promise<ResultOf<Op<P, M>> | Offline> {
     const url = path.replace(/\{(\w+)\}/g, (_, key: string) => encodeURIComponent(String(init.params?.[key] ?? '')));
     const query = init.query
         ? '?' + new URLSearchParams(Object.entries(init.query).flatMap(([k, v]) => (v == null ? [] : [[k, String(v)]])))
         : '';
 
-    const response = await fetch(url + query, {
-        method: method.toUpperCase(),
-        headers: { 'content-type': 'application/json' },
-        body: init.body === undefined ? undefined : JSON.stringify(init.body),
-    });
-
-    return (await response.json()) as OkOf<Op<P, M>>;
+    try {
+        const response = await fetch(url + query, {
+            method: method.toUpperCase(),
+            headers: { 'content-type': 'application/json' },
+            body: init.body === undefined ? undefined : JSON.stringify(init.body),
+        });
+        return (await response.json()) as ResultOf<Op<P, M>>;
+    } catch {
+        return { status: 0, data: null, errors: { network: ['unreachable'] } };
+    }
 }
 ```
 
 Verified: compiles with `tsc --strict` against the types generated from a real
-build artifact (`Ecommerce` spec, 27 routes); missing required fields and
-wrong field types in the body are compile errors.
+build artifact; wrong or missing body fields are compile errors.
 
 ### Usage
 
@@ -79,7 +88,7 @@ const result = await jardisFetch('/accounting/customerInvoices/{invoiceNumber}/d
     params: { invoiceNumber: 'RE-2026-001' },
     body: { dunningLevel: 1, dunningDate: '2026-08-27', /* … all required fields */ },
 });
-if (result.status !== 200) { /* evaluate errors: 400 field validation, 422 rule */ }
+if (result.status !== 200) { /* 0 offline, 400 fields, 404, 409, 422 — see "Failure cases per door" */ }
 ```
 
 Notes on the contract:
@@ -87,8 +96,7 @@ Notes on the contract:
 - **Write responses carry references** (business identifier of the root plus
   child references), never state copies — use the read routes to reload
   (list → keys → `queries/by{Key}s`).
-- **Non-200 responses** arrive in the same envelope; the helper types the
-  200 path, `status`/`errors` are present in every response at runtime.
+- **Non-200 responses** arrive in the same envelope and are part of the helper's return type.
 - **`409` carries the hit fields.** A `409` with `reason: "duplicate"` (a unique key was
   already taken) answers `data.violated`: the list of outer field names that collided
   (a child field as `<kindProperty>.<field>`) — mark exactly those form fields with a hint
@@ -99,7 +107,27 @@ Notes on the contract:
   `500`: repeat the whole request, it runs in a new transaction.
 - `POST` is not idempotent, `PUT`/`DELETE` are (also stated in the spec description).
 
-## 3. Serve the spec (optional)
+## 3. Failure cases per door
+
+Error answers are declared per status code in each operation's `responses`; `data` carries `@type`:
+
+| Status | `@type` | Schema | Fields |
+|---|---|---|---|
+| `400` | `validation` | `ValidationError` | `fields[]` of `{field, reason, message, messageKey}`; `reason` is `missing` / `invalid` / `type` / `unknown` |
+| `404` | `notFound` | `NotFound` | `context` (the path parameters of the lookup) |
+| `409` | `concurrencyConflict` | `ConcurrencyConflict` | `reason`, `aggregate`, `context`, `violated` (see notes above) |
+| `422` | `ruleViolation` | `RuleViolation` | `rule`, `messageKey`, `context` |
+
+**422 keys are closed per door.** Where a door knows its rules, its 422 narrows
+`messageKey` to an `enum` of exactly the keys that can occur there
+(`allOf: [RuleViolation, {messageKey: enum}]`). Read the keys from the generated
+type of that operation's 422 response and write one message text per key — texts
+are the frontend's business, never guess a key. A bare `RuleViolation` 422 (a rule
+without a declared key, or a hand-written node body) means an **open** key space: `messageKey` is a plain
+`string`, keep a generic fallback text. Process doors may also
+declare exit keys on `404` / `409` (`anyOf` of the base shape and a `messageKey` enum) — narrow on `@type` first.
+
+## 4. Serve the spec (optional)
 
 If the frontend (or Swagger UI) should load the spec at runtime, a single
 route in `public/index.php` next to the mount is enough:
