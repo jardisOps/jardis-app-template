@@ -247,6 +247,8 @@ yours from the start:
    `src/Api/{Domain}/{openapi.yaml,routes.php}`, and `public/index.php`
    mounts each `routes.php` automatically with the matching facade from the
    `bootstrap.php` array. Hand-written routes still go next to that loop.
+   The same loop-style mount collects `src/Api/*/versions.php` for the
+   [versioned front door](#versioned-front-door).
 5. For typed frontend access to the emitted `openapi.yaml` contract, follow
    the recipe in [`FRONTEND.md`](FRONTEND.md).
 
@@ -280,6 +282,32 @@ correct. It is accepted here on purpose: a template cannot know the domain
 names in advance, and a freshly generated class has to load without anyone
 remembering to dump the autoloader. For deployment, `composer install
 --optimize-autoloader` turns it into a classmap and the cost disappears.
+
+## Versioned front door
+
+A domain can serve more than one class version at its front door. Which
+versions exist is declared where the domain is modelled — the `versions` list
+in the domain manifest — never in this project.
+
+- **Header:** a client selects a version with `X-Jardis-Version: v2`. Without
+  the header the request is served by the baseline (the generated classes
+  themselves).
+- **`src/Api/{Domain}/versions.php`:** the Builder writes it on every build
+  next to `routes.php` and returns the declared list, e.g. `return ['v2'];`
+  (an empty list is valid). It is generated — do not edit it.
+- **Wiring:** `public/index.php` collects every `src/Api/*/versions.php`, unites
+  the lists (unique, stable order) and passes them to `jardiscore/app` as
+  `AppConfig(knownVersions: …)`. The package reads and checks the header and
+  exposes the result to handlers as the request attribute `jardisVersion`
+  (`''` = baseline). Before the first build no file exists: the list is empty
+  and the app runs unchanged.
+- **Unknown version:** a value that is not in the list, an empty value or a
+  repeated header is answered with `400` (validation form, field
+  `X-Jardis-Version`, `messageKey` `request.versionUnknown`) before any
+  middleware or handler runs. 404/405 are unaffected.
+- **Broken file:** a `versions.php` that does not return a list of strings is a
+  startup error — the bootstrap boundary answers `500` without details and
+  logs the file name.
 
 ## Skills for AI assistance
 
