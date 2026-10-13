@@ -94,6 +94,9 @@ Notes on the contract:
   (a child field as `<kindProperty>.<field>`) — mark exactly those form fields with a hint
   such as "already taken". `violated` is `[]` when the fields are unknown and on every
   `stale_write` / `stale_delete` conflict (the record changed meanwhile: reload and retry).
+  A transient database conflict under concurrent writes (snapshot or serialization failure,
+  deadlock) answers the same `409` `stale_write` / `stale_delete` with `violated: []`, not a
+  `500`: repeat the whole request, it runs in a new transaction.
 - `POST` is not idempotent, `PUT`/`DELETE` are (also stated in the spec description).
 
 ## 3. Serve the spec (optional)
