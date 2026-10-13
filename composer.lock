@@ -241,16 +241,16 @@
         },
         {
             "name": "jardissupport/contracts",
-            "version": "v2.6.0",
+            "version": "v2.7.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/jardisSupport/contracts.git",
-                "reference": "dd03296a5430d390ca19978bb0fd3175f287e87b"
+                "reference": "db7cd86be5181ae8b0b750b37324cdff489ae5ed"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/jardisSupport/contracts/zipball/dd03296a5430d390ca19978bb0fd3175f287e87b",
-                "reference": "dd03296a5430d390ca19978bb0fd3175f287e87b",
+                "url": "https://api.github.com/repos/jardisSupport/contracts/zipball/db7cd86be5181ae8b0b750b37324cdff489ae5ed",
+                "reference": "db7cd86be5181ae8b0b750b37324cdff489ae5ed",
                 "shasum": ""
             },
             "require": {
@@ -299,9 +299,9 @@
                 "docs": "https://docs.jardis.io/en/support/contracts",
                 "email": "jardisDev@headgent.com",
                 "issues": "https://github.com/jardisSupport/contracts/issues",
-                "source": "https://github.com/jardisSupport/contracts/tree/v2.6.0"
+                "source": "https://github.com/jardisSupport/contracts/tree/v2.7.0"
             },
-            "time": "2026-10-13T12:53:51+00:00"
+            "time": "2026-10-13T14:30:04+00:00"
         },
         {
             "name": "jardissupport/data",
