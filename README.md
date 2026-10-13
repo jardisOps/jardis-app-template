@@ -320,6 +320,10 @@ know. They come from the Builder, not from this project — nothing to configure
   then carries no domain event. Domain events enter the answer only after the
   commit; the caller publishes them. A process that opts out with
   `runInTransaction: false` in its definition has no bracket (the Builder warns).
+- **409 `duplicate` names the hit fields:** the answer's `data.violated` lists the outer
+  field names of the unique columns that collided (a child field as
+  `<kindProperty>.<field>`); it is `[]` when they are unknown and on every
+  `stale_write` / `stale_delete`.
 - **Computed fields:** a column marked `computed` in the aggregate is not part of
   any create/update request. A request body that names it is answered with `400`
   (`fields[]` reason `unknown`); reads, lists and the aggregate record still
