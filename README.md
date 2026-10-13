@@ -324,6 +324,9 @@ know. They come from the Builder, not from this project — nothing to configure
   field names of the unique columns that collided (a child field as
   `<kindProperty>.<field>`); it is `[]` when they are unknown and on every
   `stale_write` / `stale_delete`.
+- **Concurrent losers answer 409, also on a transient database conflict:** a snapshot or
+  serialization conflict or a deadlock is a `409` `stale_write` / `stale_delete` with
+  `violated: []`, not a `500`; the client repeats the request (a new transaction).
 - **Computed fields:** a column marked `computed` in the aggregate is not part of
   any create/update request. A request body that names it is answered with `400`
   (`fields[]` reason `unknown`); reads, lists and the aggregate record still

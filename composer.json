@@ -12,7 +12,7 @@
         "jardissupport/data": "^1.2",
         "jardissupport/dbquery": "^1.1",
         "jardissupport/dotenv": "^1.0",
-        "jardissupport/repository": "^1.5",
+        "jardissupport/repository": "^1.6",
         "jardissupport/secret": "^1.0",
         "jardissupport/validation": "^1.5",
         "jardissupport/workflow": "^1.0",
