@@ -97,6 +97,10 @@ try {
 $routes = new Routes(new Psr17Factory());
 $routes->health('/health');
 
+// Seam for global middleware, e.g. the token session (README "Sessions"):
+// `$routes->middleware(new RequireSession(...))` goes here, before the route
+// mount below. Off by default — the delivered template stays open.
+
 /**
  * Generic mount for Builder-emitted domain routes. Every build writes
  * src/Api/{Domain}/routes.php (contract: `return function (Routes $routes,

@@ -52,6 +52,7 @@ services:
     environment: *php-env
     volumes:
       - ../:/app
+      - ./php/60-upload.ini:/usr/local/etc/php/conf.d/60-upload.ini:ro
 
   # --- web ------------------------------------------------------------------
   # The official nginx image, unmodified. The template only supplies the
@@ -99,6 +100,7 @@ services:
     environment: *php-env
     volumes:
       - ../:/app
+      - ./php/60-upload.ini:/usr/local/etc/php/conf.d/60-upload.ini:ro
 
   # --- opt-in: long-running worker ------------------------------------------
   # A supervised consumer/worker process on the cli image. Only useful once
@@ -114,6 +116,7 @@ services:
     restart: unless-stopped
     volumes:
       - ../:/app
+      - ./php/60-upload.ini:/usr/local/etc/php/conf.d/60-upload.ini:ro
 
   # --- opt-in: database (pick ONE profile — both answer on alias "db") ------
   db-mariadb:
