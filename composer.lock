@@ -1489,16 +1489,16 @@
     "packages-dev": [
         {
             "name": "jardis/dev-skills",
-            "version": "v1.19.14",
+            "version": "v1.20.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/jardisTools/dev-skills.git",
-                "reference": "d03b4d34a19dff2d0ab60a3846e31fe67de3662c"
+                "reference": "9ddccb2014ab8351c2e818cfff3b7667cc166daf"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/jardisTools/dev-skills/zipball/d03b4d34a19dff2d0ab60a3846e31fe67de3662c",
-                "reference": "d03b4d34a19dff2d0ab60a3846e31fe67de3662c",
+                "url": "https://api.github.com/repos/jardisTools/dev-skills/zipball/9ddccb2014ab8351c2e818cfff3b7667cc166daf",
+                "reference": "9ddccb2014ab8351c2e818cfff3b7667cc166daf",
                 "shasum": ""
             },
             "require": {
@@ -1555,9 +1555,9 @@
                 "docs": "https://docs.jardis.io/en/skills",
                 "email": "jardisDev@headgent.com",
                 "issues": "https://github.com/jardisTools/dev-skills/issues",
-                "source": "https://github.com/jardisTools/dev-skills/tree/v1.19.14"
+                "source": "https://github.com/jardisTools/dev-skills/tree/v1.20.0"
             },
-            "time": "2026-10-13T00:15:28+00:00"
+            "time": "2026-10-13T07:53:16+00:00"
         },
         {
             "name": "myclabs/deep-copy",

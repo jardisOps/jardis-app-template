@@ -309,6 +309,28 @@ in the domain manifest — never in this project.
   startup error — the bootstrap boundary answers `500` without details and
   logs the file name.
 
+## What the generated domain does at the door
+
+Three behaviours of generated code that a client or a hand-written route has to
+know. They come from the Builder, not from this project — nothing to configure.
+
+- **Transaction bracket:** every generated process runs in **one** transaction.
+  A run that ends with a 4xx status (validation, not found, conflict, rule
+  violation) is rolled back as a whole and still answers that 4xx — the answer
+  then carries no domain event. Domain events enter the answer only after the
+  commit; the caller publishes them. A process that opts out with
+  `runInTransaction: false` in its definition has no bracket (the Builder warns).
+- **Computed fields:** a column marked `computed` in the aggregate is not part of
+  any create/update request. A request body that names it is answered with `400`
+  (`fields[]` reason `unknown`); reads, lists and the aggregate record still
+  carry it. It is written only from inside the domain, by a process node
+  through the family-internal `Set{Entity}Computed` command.
+- **Strict date forms:** `date` is `Y-m-d` and must be a real calendar day,
+  `datetime` is RFC 3339 (offsets and `Z` are accepted and normalised to UTC),
+  `time` is `H:i:s`. Anything else, also a calendar-invalid value, is answered
+  with `400` (`fields[]` reason `type`) before the handler runs. The same gate
+  applies to process inputs.
+
 ## Skills for AI assistance
 
 `jardis/dev-skills` is a Composer plugin in `require-dev`. On every
