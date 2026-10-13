@@ -48,6 +48,37 @@ try {
             $bootstrap
         ));
     }
+
+    /**
+     * Versioned front door: every build writes src/Api/{Domain}/versions.php
+     * (contract: returns `list<string>`, e.g. ['v2'], empty is allowed). The
+     * union of all lists is what the gate accepts in `X-Jardis-Version`; the
+     * header itself is read and checked by jardiscore/app, not here. Before
+     * the first build no file exists and the list stays empty — only the
+     * baseline (no header) is reachable then. A file that does not return a
+     * list of strings is a startup error, answered by the boundary below.
+     *
+     * @var list<string> $knownVersions
+     */
+    $knownVersions = [];
+
+    foreach (glob($root . '/src/Api/*/versions.php') ?: [] as $versionsFile) {
+        $versions = require $versionsFile;
+
+        if (!is_array($versions) || !array_is_list($versions)) {
+            throw new RuntimeException(sprintf('%s must return a list of version strings.', $versionsFile));
+        }
+
+        foreach ($versions as $version) {
+            if (!is_string($version)) {
+                throw new RuntimeException(sprintf('%s must return a list of version strings.', $versionsFile));
+            }
+
+            if (!in_array($version, $knownVersions, true)) {
+                $knownVersions[] = $version;
+            }
+        }
+    }
 } catch (Throwable $e) {
     error_log('[bootstrap] ' . $e->getMessage());
 
@@ -89,4 +120,9 @@ foreach (glob($root . '/src/Api/*/routes.php') ?: [] as $routesFile) {
     }
 }
 
-(new App($routes, $kernel, new AppConfig(debug: (bool) $kernel->env('app_debug'))))->run();
+$config = new AppConfig(
+    debug: (bool) $kernel->env('app_debug'),
+    knownVersions: $knownVersions,
+);
+
+(new App($routes, $kernel, $config))->run();
