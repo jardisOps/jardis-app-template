@@ -66,6 +66,27 @@ above the key and stays silent; an unmarked extra is reported
 convention: every configuration value lives exactly once, in the `.env` in the
 project root.
 
+## Sessions and upload limits
+
+Preinstalled, inert until wired: `jardiscore/app` >= 1.3 (`RequireSession`),
+`jardissupport/contracts` >= 2.8, `jardissupport/auth` >= 1.2 and the adapters
+`jardisadapter/dbconnection` (the `DbConnectionInterface` `DbTokenStore`
+needs), `http`, `filesystem`. The session door is **not** active by default
+(`public/index.php` stays open; it only marks the middleware seam). Recipe
+(README "Sessions"): create the token table once with `make db-import
+SCHEMA=vendor/jardissupport/auth/resources/sql/<mysql|pgsql|sqlite>.sql`, then
+`$routes->middleware(new RequireSession(new TokenAuthenticator(new
+DbTokenStore($connection)), Credential::token(...), $psr17, $psr17,
+['/auth/login', ...]))` — `$connection` is the pool's `getWriter()` or
+`ConnectionFactory::fromPdo($pdo)` of `$kernel->dbConnection()`. Handlers read
+`RequestAttribute::SUBJECT` / `::TENANT` (tenant absent, never null, when the
+token has none). Tests: `tests/Unit/Session/`.
+
+Upload limits are 12M (`upload_max_filesize`, `post_max_size`), set by
+`support/php/60-upload.ini` mounted into `conf.d` of the fpm, cli and worker
+containers — the images have no ENV key for them. The lock tracks the latest
+released Minor/Patch of every `jardis*` package at release time.
+
 ## Secrets
 
 The guardrail (pre-commit + CI) blocks plaintext credentials in the versioned

@@ -59,6 +59,33 @@ Before hand-building a reusable building block, consult the `packages-find-exist
 
 Composer plugin that distributes Jardis skills (into `.claude/skills` and `.agents/skills` of the consumer project) and aggregates `AGENTS.md` from Jardis vendor packages into the consumer project.
 
+<!-- source: jardisadapter/dbconnection -->
+# jardisadapter/dbconnection
+
+Database connection pooling with read/write splitting for MySQL, PostgreSQL, and SQLite.
+
+- **Use when:** you need managed database connections, a connection pool, or read/write endpoint splitting
+- **How:** load skill `adapter-dbconnection` before touching the API — it carries the usage essentials and pitfalls.
+  Full reference: https://docs.jardis.io/en/adapter/dbconnection
+
+<!-- source: jardisadapter/filesystem -->
+# jardisadapter/filesystem
+
+Unified filesystem abstraction for local and S3 storage with stream support and visibility control.
+
+- **Use when:** you need to read, write, delete, or stream files across local or cloud storage backends
+- **How:** load skill `adapter-filesystem` before touching the API — it carries the usage essentials and pitfalls.
+  Full reference: https://docs.jardis.io/en/adapter/filesystem
+
+<!-- source: jardisadapter/http -->
+# jardisadapter/http
+
+Outbound HTTP client with a composable middleware pipeline, automatic retry, and cURL transport.
+
+- **Use when:** you need to make outbound HTTP requests with configurable middleware, retry logic, or a custom transport
+- **How:** load skill `adapter-http` before touching the API — it carries the usage essentials and pitfalls.
+  Full reference: https://docs.jardis.io/en/adapter/http
+
 <!-- source: jardiscore/app -->
 # jardiscore/app
 
@@ -75,6 +102,15 @@ Immutable infrastructure holder (the DomainKernel) for Jardis-generated domains,
 - **Use when:** you need to assemble and inject the infrastructure (db connection, cache, logger, events, HTTP client, mailer, filesystem) that a generated {Domain} facade takes via constructor injection
 - **How:** load skill `core-kernel` before touching the API — it carries the usage essentials and pitfalls.
   Full reference: https://docs.jardis.io/en/core/kernel
+
+<!-- source: jardissupport/auth -->
+# jardissupport/auth
+
+Session management, password hashing and authentication, and role-based access control with domain events.
+
+- **Use when:** you need user login, session lifecycle management, password verification, or role-based permission checks
+- **How:** load skill `support-auth` before touching the API — it carries the usage essentials and pitfalls.
+  Full reference: https://docs.jardis.io/en/support/auth
 
 <!-- source: jardissupport/classversion -->
 # jardissupport/classversion
