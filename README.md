@@ -254,13 +254,19 @@ yours from the start:
 
 The runtime packages generated code imports (`jardissupport/data`, `dbquery`,
 `repository`, `validation`, `workflow`) ship preinstalled — a fresh build
-runs without any `composer require`.
+runs without any `composer require`. So do the packages of the
+[session door](#sessions) (`jardiscore/app` with `RequireSession`,
+`jardissupport/contracts`, `jardissupport/auth`) and the three adapters it
+and the generated front door lean on: `jardisadapter/dbconnection` (the
+`DbConnectionInterface` that `DbTokenStore` needs), `jardisadapter/http` and
+`jardisadapter/filesystem`. They stay inert until configured — the kernel
+still degrades an unconfigured adapter to `null`.
 
-The `jardisadapter/*` packages (`cache`, `dbconnection`, `eventdispatcher`,
-`filesystem`, `http`, `logger`, `mailer`, `messaging`) are the exception —
-they are optional and NOT preinstalled, matching "every adapter degrades to
-`null` when unconfigured" above. When a stack selection needs one, install it
-in the phpcli container — works even with the stack stopped:
+The other `jardisadapter/*` packages (`cache`, `eventdispatcher`, `logger`,
+`mailer`, `messaging`) are optional and NOT preinstalled, matching "every
+adapter degrades to `null` when unconfigured" above. When a stack selection
+needs one, install it in the phpcli container — works even with the stack
+stopped:
 
 ```sh
 make composer-require PACKAGE=jardisadapter/cache
@@ -308,6 +314,81 @@ in the domain manifest — never in this project.
 - **Broken file:** a `versions.php` that does not return a list of strings is a
   startup error — the bootstrap boundary answers `500` without details and
   logs the file name.
+
+## Sessions
+
+The template ships the packages for a token session but does **not** switch it
+on — `public/index.php` stays open until you wire it. The parts, all from
+Jardis packages (nothing is built here):
+
+| Part | Package |
+|---|---|
+| `RequireSession` PSR-15 middleware (401 envelope, request attributes) | `jardiscore/app` >= 1.3 |
+| `TokenAuthenticator`, `SessionManager`, `DbTokenStore`, `Credential` | `jardissupport/auth` >= 1.2 |
+| `DbConnectionInterface` for the store | `jardisadapter/dbconnection` |
+| `RequestAttribute::SUBJECT` / `::TENANT` | `jardissupport/contracts` >= 2.8 |
+
+**1. Create the token table once** (pick the file of your `DB_DRIVER`: `mysql.sql`,
+`pgsql.sql` or `sqlite.sql`):
+
+```sh
+make db-import SCHEMA=vendor/jardissupport/auth/resources/sql/mysql.sql
+```
+
+The DDL is `CREATE … IF NOT EXISTS` (default table `auth_tokens`), so a second
+run changes nothing. Only the SHA-256 hash of a token is stored.
+
+**2. Register the middleware globally** in `public/index.php`, directly after
+`$routes = new Routes(…)` and before the route mount loop. `health()` is
+anonymous on its own; list further anonymous paths (exact, or a prefix ending in
+`*`):
+
+```php
+use JardisAdapter\DbConnection\Factory\ConnectionFactory;
+use JardisCore\App\Middleware\RequireSession;
+use JardisSupport\Auth\Data\Credential;
+use JardisSupport\Auth\DbTokenStore;
+use JardisSupport\Auth\TokenAuthenticator;
+use JardisSupport\Contract\DbConnection\ConnectionPoolInterface;
+
+$db = $kernel->dbConnection(); // pool (read replicas) or plain PDO, null without DB_*
+$connection = $db instanceof ConnectionPoolInterface
+    ? $db->getWriter()
+    : (new ConnectionFactory())->fromPdo($db);
+$psr17 = new Psr17Factory();
+
+$routes->middleware(new RequireSession(
+    new TokenAuthenticator(new DbTokenStore($connection)),
+    Credential::token(...),
+    $psr17,
+    $psr17,
+    ['/auth/login', '/auth/refresh'],
+));
+```
+
+(Guard `$db === null` first if the stack may run without a database.) The
+middleware runs only on a matched route: unknown paths stay 404, wrong methods
+405. A missing, malformed, unknown, expired or revoked token is answered
+identically with `401` (`WWW-Authenticate: Bearer`); the handler is not called.
+
+**3. Read the session** in a handler from the request attributes
+`RequestAttribute::SUBJECT` (`jardisSubject`, e.g. `user:42`) and
+`RequestAttribute::TENANT` (`jardisTenant`). The tenant attribute is absent —
+never `null` — when the token carries none; the token's `tenant` claim is set at
+login: `$sessionManager->create(Subject::from('42'), ['tenant' => 'acme'])`
+(`SessionManager` over the same `DbTokenStore`; login itself is yours to build).
+
+`tests/Unit/Session/SessionRecipeTest.php` runs exactly this wiring against
+SQLite in memory.
+
+## Upload limits
+
+`upload_max_filesize` and `post_max_size` are `12M` in every PHP container of
+the stack (fpm, cli, worker). The php-image-builder images expose no ENV key
+for them, so `support/php/60-upload.ini` is mounted into `conf.d` by
+`support/docker-compose.yml`. Change both values there (keep `post_max_size`
+>= `upload_max_filesize`); `NGINX_CLIENT_MAX_BODY_SIZE` in the root `.env`
+is a separate, larger door limit and PHP stays the binding one.
 
 ## What the generated domain does at the door
 
