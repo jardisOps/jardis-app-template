@@ -89,6 +89,11 @@ Notes on the contract:
   (list → keys → `queries/by{Key}s`).
 - **Non-200 responses** arrive in the same envelope; the helper types the
   200 path, `status`/`errors` are present in every response at runtime.
+- **`409` carries the hit fields.** A `409` with `reason: "duplicate"` (a unique key was
+  already taken) answers `data.violated`: the list of outer field names that collided
+  (a child field as `<kindProperty>.<field>`) — mark exactly those form fields with a hint
+  such as "already taken". `violated` is `[]` when the fields are unknown and on every
+  `stale_write` / `stale_delete` conflict (the record changed meanwhile: reload and retry).
 - `POST` is not idempotent, `PUT`/`DELETE` are (also stated in the spec description).
 
 ## 3. Serve the spec (optional)
