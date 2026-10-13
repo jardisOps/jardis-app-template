@@ -60,7 +60,7 @@ $result->getErrors();  // ['order' => ['customer' => ['email' => ['Invalid email
 | `CreditCard` | `visa()`, `mastercard()`, `amex()`, `discover()`, `diners()`, `jcb()` |
 | `Ip` | `v4()`, `v6()`, `noPrivate()`, `publicV4()` |
 | `Json` | `object()`, `array()`, `maxDepth()` |
-| `DateTime` | `iso8601()`, `between()`, `dateOnly()` |
+| `DateTime` | `iso8601()`, `between()`, `dateOnly()` (calendar-strict), `rfc3339()` (`^1.5`: `Z`/`±HH:MM`, fractions, calendar-strict, offset mandatory) |
 | `Contain` | `oneOf()` |
 | `Equals` | `value(mixed)`, `strict(mixed)`, `loose(mixed)` |
 | `Positive` | `allowZero()`, `strict()` |
