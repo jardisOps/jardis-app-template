@@ -177,3 +177,23 @@ Maßgeblich ist `phpcs.xml`; dieser Abschnitt fasst nur zusammen.
 - Every class carries a class docblock (a description, no tags); a `@todo` belongs in the method docblock.
 - Decimal values are `numeric-string` in the docblock; the native type stays `string`. Needs `ext-bcmath`.
 - Run `make phpcbf` before committing; the pre-commit hook runs `phpcs` and `phpstan`.
+
+## Rules at the generated front door
+
+For AI agents working in a customer project built on this template. Each rule only
+points at the place that carries the detail — do not restate it elsewhere.
+
+- **Version:** a client selects a class version with the header `X-Jardis-Version`; an
+  unknown, empty or repeated value is answered `400`, without the header the baseline
+  serves. Never edit `src/Api/*/versions.php` (generated). See README "Versioned front door".
+- **Computed fields:** a column marked `computed` is read-only for clients. Never put it
+  into a create/update request body — it is answered `400` (`fields[]` reason `unknown`).
+  See README "What the generated domain does at the door".
+- **409 `duplicate`:** `data.violated` lists the outer fields that collided — mark exactly
+  those form fields with a hint. See FRONTEND.md "Notes on the contract".
+- **409 `stale_write` / `stale_delete`:** the record changed meanwhile (also on a transient
+  database conflict) — reload it and repeat the whole request as a new request.
+  See FRONTEND.md "Notes on the contract".
+- **Transaction:** every generated process runs in one transaction; a 4xx result rolls it
+  back, and domain events enter the answer only after the commit. See README "What the
+  generated domain does at the door".
