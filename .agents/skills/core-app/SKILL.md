@@ -87,9 +87,11 @@ from the domain manifest); this package scans no directories and knows no classe
 
 **Delivered:** `Middleware\RequireSession` - reads `Authorization: Bearer <token>`, authenticates through an `AuthenticatorInterface`, else 401 envelope + `WWW-Authenticate: Bearer`. Sets `RequestAttribute::SUBJECT`, `TENANT` (absent without tenant), `SUBJECT_ID`, `SESSION` (last two only for a session-aware result); client-supplied values are overwritten/removed. Anonymous: `Routes::health()` routes and `anonymousPaths` (exact path or `prefix*`, all methods).
 
-**Where (app template):** `public/index.php`, at the marked seam after `$routes->health('/health')` and before the route mount loop; recipe in the template README "Sessions".
+**Where (app template):** the pipeline is the **project setting `middleware`** (Builder, `project.json`: ordered list of standard names - today `session` - and FQCN project classes; never set = `["session"]`, `[]` = deliberately none). The Builder generator emits the wiring: `src/App/middleware.php` (`return static function (MiddlewareFactory $mw): array`, regenerated on every build), the once-written `src/App/bootstrap.php` loads it into the `'middleware'` entry of the app config, and the template's `public/index.php` registers every entry of `$app['middleware']` via `$routes->middleware()` (strictly checked: `list<MiddlewareInterface>`, else 500 envelope, never a stack trace). The template sets `new AppConfig(requireSessionGuard: true)`, so a non-anonymous route without a session guard fails at start. A hand-written route that needs no session goes through `$routes->anonymous()->get(...)` in `public/index.php`; `session` must stand before any middleware that reads session attributes.
 
-**Boundary:** a project-specific middleware is dev code at the same hook. A generally useful one (CORS, request id/audit, rate limit, tenant context) is an issue in `jardisCore/app`, not project code imitating the package.
+**Guarantees:** `Routes::health()` is always anonymous and never mounted under `$prefix`; 404, 405 and the version check (`X-Jardis-Version`) are answered before the pipeline runs.
+
+**Boundary:** a project-specific middleware is a project class named by FQCN in the `middleware` setting, with `__construct(DomainKernelInterface $kernel)` or no constructor (`MiddlewareFactory` builds it) - not a patch of the template's `index.php`. A generally useful one (CORS, request id/audit, rate limit, tenant context) is an issue in `jardisCore/app`, not project code imitating the package.
 
 ## SESSION — `RequireSession` (PSR-15, global or per route)
 Binds a request to a verified session or rejects it. Depends only on the ports of `jardissupport/contracts` ^2.9
