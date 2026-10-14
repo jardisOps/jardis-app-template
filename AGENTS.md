@@ -91,10 +91,11 @@ Outbound HTTP client with a composable middleware pipeline, automatic retry, and
 <!-- source: jardiscore/app -->
 # jardiscore/app
 
-HTTP delivery layer for Jardis-generated domains — a FastRoute router behind its own RouterInterface, a PSR-15 middleware pipeline, and the canonical DomainResponse-to-PSR-7 envelope mapper.
+HTTP delivery layer for Jardis-generated domains — a FastRoute router behind its own RouterInterface, a PSR-15 middleware pipeline (global and per-route, ready-made RequireSession), and the canonical DomainResponse-to-PSR-7 envelope mapper.
 
 - **Use when:** you need to expose a Jardis-generated domain's read-facades/process()/rules over HTTP, with routing, PSR-15 middleware, and a ready-made {status,data,errors,meta} response envelope
-- **How:** Full reference: https://docs.jardis.io/en/core/app
+- **How:** load skill `core-app` before touching the API — it carries the usage essentials and pitfalls.
+  Full reference: https://docs.jardis.io/en/core/app
 
 <!-- source: jardiscore/kernel -->
 # jardiscore/kernel
@@ -129,7 +130,8 @@ Versioned class resolution via namespace injection with proxy caching and fallba
 Shared port interfaces and contracts for all Jardis packages.
 
 - **Use when:** you need the interface definitions that Jardis adapters implement, without depending on any concrete implementation
-- **How:** Full reference: https://docs.jardis.io/en/support/contracts
+- **How:** load skill `support-contracts` before touching the API — it carries the usage essentials and pitfalls.
+  Full reference: https://docs.jardis.io/en/support/contracts
 
 <!-- source: jardissupport/data -->
 # jardissupport/data
