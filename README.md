@@ -323,8 +323,8 @@ all from Jardis packages (nothing is built here):
 
 | Part | Package |
 |---|---|
-| `RequireSession` PSR-15 middleware (401 envelope, request attributes) | `jardiscore/app` >= 1.5 |
-| `TokenAuthenticator`, `SessionManager`, `DbTokenStore`, `Credential` | `jardissupport/auth` >= 1.4 |
+| `RequireSession` PSR-15 middleware (401 envelope, request attributes) | `jardiscore/app` >= 1.6 |
+| `SignedTokenAuthenticator`, `SessionManager`, `DbTokenStore`, `Credential` | `jardissupport/auth` >= 1.5 |
 | `DbConnectionInterface` for the store | `jardisadapter/dbconnection` |
 | `RequestAttribute::SUBJECT` / `::SUBJECT_ID` / `::TENANT` / `::SESSION` | `jardissupport/contracts` >= 2.9 |
 
@@ -366,6 +366,9 @@ attributes (documentation, not a rule the Builder enforces).
 never `null` — when the token carries none; the token's `tenant` claim is set at
 login: `$sessionManager->create(Subject::from('42'), ['tenant' => 'acme'])`
 (`SessionManager` over the same `DbTokenStore`; login itself is yours to build).
+The access token is signed (`SignedTokenAuthenticator`, key `AUTH_TOKEN_KEY` in
+`.env.example`): `RequireSession` verifies it without any database access per
+request. Only refreshing a session goes through `DbTokenStore`.
 Two more attributes come with the session: `RequestAttribute::SUBJECT_ID`
 (`jardisSubjectId`, the bare id `42` - no `user:` prefix to split) and
 `RequestAttribute::SESSION` (`jardisSession`, the reference of exactly this

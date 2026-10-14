@@ -17,7 +17,8 @@ SessionManager        create/refresh/invalidate sessions → SessionResult + eve
 PasswordAuthenticator lookup user (closure or UserLookupInterface) → verify password → create session → AuthenticationResult
 TokenIssuer           issue one-time token (type, subject, ttl, claims) → IssuedToken{plain, hashed}
 TokenRedeemer         redeem one-time token: find → verify type/expiry → revoke → stored token
-TokenAuthenticator    token credential → verified session: subject + subject id + tenant + session reference (TenantAuthResult)
+SignedTokenAuthenticator signed access token (no store) → subject + subject id + tenant + session reference `sid` (TenantAuthResult)
+TokenAuthenticator    stored token credential (ApiKey/Verification/PasswordReset/issued) → verified session: subject + subject id + tenant + session reference (TenantAuthResult)
 DbTokenStore          TokenStoreInterface on DbConnectionInterface via jardissupport/dbquery (hash only)
 PasswordHasher        Argon2id/bcrypt via password_hash() builtins
 Guard                 RBAC permission check against immutable Policy
@@ -29,20 +30,21 @@ Guard                 RBAC permission check against immutable Policy
 ```php
 new SessionManager(
     TokenStoreInterface $tokenStore,
+    #[\SensitiveParameter] string $accessTokenKey,   // REQUIRED, raw 32 bytes (AUTH_TOKEN_KEY base64-decoded), else InvalidArgumentException
     VerifyToken $verifyToken = new VerifyToken(),
-    int $accessTokenTtl = 3600,
+    int $accessTokenTtl = 900,
     int $refreshTokenTtl = 604800,
     int $tokenLength = 32,
 )
 
 $sm->create(Subject $subject, array $claims = []): SessionResult
-    // Returns: SessionResult{session, accessToken, refreshToken, events=[SessionCreated]}
+    // Returns: SessionResult{session, accessToken (SIGNED, not stored), refreshToken (opaque, hash in store), events=[SessionCreated]}
+    // session->tokenHash = sid = HashedToken::hashOf(refreshToken); payload {typ:"access",sub,sid,iat,exp,claims}
 $sm->refresh(string $refreshTokenValue): SessionResult
     // Returns: events=[SessionCreated, SessionRefreshed]
 $sm->invalidate(SessionInterface $session): SessionInvalidated
-$sm->invalidateByReference(string $sessionReference): SessionInvalidated   // exactly one session incl. its paired refresh token; idempotent
-// Pair link: access token claim '_refresh' = refresh hash, refresh token claim '_access' = access hash.
-// refresh(): the refreshed session keeps the claims of the original session (both tokens carry them).
+$sm->invalidateByReference(string $sessionReference): SessionInvalidated   // revokes the refresh token of exactly one session (sid); idempotent. An issued access token stays valid until exp.
+// refresh(): new refresh + new access (new sid); the refreshed session keeps the claims of the original session.
 // '_'-prefixed claims are internal: never in Session::metadata, never in TenantAuthResult.
 $sm->invalidateAll(string $subject): AllSessionsInvalidated
 ```
@@ -54,19 +56,30 @@ new DbTokenStore(DbConnectionInterface $connection, string $table = 'auth_tokens
 // timestamps UTC; claims JSON in a TEXT column; store() of an existing hash throws PDOException
 ```
 
+### SignedTokenAuthenticator
+```php
+new SignedTokenAuthenticator(string $accessTokenKey, string $tenantClaim = SessionClaim::TENANT, ?Closure $clock = null)
+$a->authenticate(Credential::token($signed)): TenantAuthResult   // no store access
+// success: getSubject() 'user:42', getSubjectId() '42', getTenant() ?string (claims[tenantClaim]), getSessionReference() = sid
+// failure: 'Invalid token' (form/MAC/typ/sub/sid) | 'Token expired' (authentic, exp passed) | 'Unsupported credential type'
+// Handlers: Handler/Token/SignAccessToken(key)(array $payload): string · VerifyAccessToken(key, ?clock)(string): ?array (throws TokenExpiredException)
+// Token = base64url(json) . '.' . base64url(sodium_crypto_auth(segment, key)); no header/alg; key rotation = all access tokens invalid
+```
+
 ### TokenAuthenticator
+(store-based; since v1.5 session access tokens are signed and NOT in the store — use SignedTokenAuthenticator for them)
 ```php
 new TokenAuthenticator(
     TokenStoreInterface $tokenStore,
     VerifyToken $verifyToken = new VerifyToken(),
-    string $tenantClaim = SessionClaim::TENANT,   // claim of the access token that carries the tenant
+    string $tenantClaim = SessionClaim::TENANT,   // claim of the stored token that carries the tenant
     TokenType $expectedType = TokenType::Access,
 )
 $a->authenticate(Credential::token($plain)): TenantAuthResult   // implements SessionAwareAuthResultInterface
 // success: isSuccess(), getSubject() 'user:42', getSubjectId() '42', getTenant() ?string,
-//          getSessionReference() = HashedToken::hashOf($plain) (revoke it via $sm->invalidateByReference()), getReason() null
+//          getSessionReference() = HashedToken::hashOf($plain), getReason() null
 // failure: getReason() 'Invalid token' | 'Token expired' | 'Token revoked' | 'Unsupported credential type'
-// Set the tenant at login: $sm->create(Subject::from('42'), ['tenant' => 'acme'])
+// Tenant claim for session tokens is set at login: $sm->create(Subject::from('42'), ['tenant' => 'acme'])
 // Transports store the result under RequestAttribute::SUBJECT / ::SUBJECT_ID / ::TENANT / ::SESSION (jardissupport/contracts >= 2.9)
 // Hash of a plain token anywhere: HashedToken::hashOf($plain) — one function, never hash('sha256', …) in the consumer
 ```
