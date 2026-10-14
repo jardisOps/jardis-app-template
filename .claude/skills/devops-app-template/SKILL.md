@@ -68,8 +68,8 @@ project root.
 
 ## Sessions and upload limits
 
-Preinstalled, inert until wired: `jardiscore/app` >= 1.3 (`RequireSession`),
-`jardissupport/contracts` >= 2.8, `jardissupport/auth` >= 1.2 and the adapters
+Preinstalled, inert until wired: `jardiscore/app` >= 1.4 (`RequireSession`),
+`jardissupport/contracts` >= 2.9, `jardissupport/auth` >= 1.3 and the adapters
 `jardisadapter/dbconnection` (the `DbConnectionInterface` `DbTokenStore`
 needs), `http`, `filesystem`. The session door is **not** active by default
 (`public/index.php` stays open; it only marks the middleware seam). Recipe
@@ -80,7 +80,9 @@ DbTokenStore($connection)), Credential::token(...), $psr17, $psr17,
 ['/auth/login', ...]))` — `$connection` is the pool's `getWriter()` or
 `ConnectionFactory::fromPdo($pdo)` of `$kernel->dbConnection()`. Handlers read
 `RequestAttribute::SUBJECT` / `::TENANT` (tenant absent, never null, when the
-token has none). Tests: `tests/Unit/Session/`.
+token has none) and `::SUBJECT_ID` (bare id, no `user:` prefix) / `::SESSION`
+(reference of exactly this session: `$sessionManager->invalidateByReference(
+$request->getAttribute(RequestAttribute::SESSION))` logs the caller out). Tests: `tests/Unit/Session/`.
 
 Upload limits are 12M (`upload_max_filesize`, `post_max_size`), set by
 `support/php/60-upload.ini` mounted into `conf.d` of the fpm, cli and worker

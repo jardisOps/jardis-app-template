@@ -15,7 +15,7 @@ next: []
 ```
 SessionManager        create/refresh/invalidate sessions → SessionResult + events
 PasswordAuthenticator lookup user → verify password → create session → AuthenticationResult
-TokenAuthenticator    token credential → verified session: subject + tenant (TenantAuthResult)
+TokenAuthenticator    token credential → verified session: subject + subject id + tenant + session reference (TenantAuthResult)
 DbTokenStore          TokenStoreInterface on DbConnectionInterface via jardissupport/dbquery (hash only)
 PasswordHasher        Argon2id/bcrypt via password_hash() builtins
 Guard                 RBAC permission check against immutable Policy
@@ -38,6 +38,7 @@ $sm->create(Subject $subject, array $claims = []): SessionResult
 $sm->refresh(string $refreshTokenValue): SessionResult
     // Returns: events=[SessionCreated, SessionRefreshed]
 $sm->invalidate(SessionInterface $session): SessionInvalidated
+$sm->invalidateByReference(string $sessionReference): SessionInvalidated   // exactly one session; idempotent
 $sm->invalidateAll(string $subject): AllSessionsInvalidated
 ```
 
@@ -56,11 +57,13 @@ new TokenAuthenticator(
     string $tenantClaim = 'tenant',          // claim of the access token that carries the tenant
     TokenType $expectedType = TokenType::Access,
 )
-$a->authenticate(Credential::token($plain)): TenantAuthResult   // implements TenantAwareAuthResultInterface
-// success: isSuccess(), getSubject() 'user:42', getTenant() ?string, getReason() null
+$a->authenticate(Credential::token($plain)): TenantAuthResult   // implements SessionAwareAuthResultInterface
+// success: isSuccess(), getSubject() 'user:42', getSubjectId() '42', getTenant() ?string,
+//          getSessionReference() = HashedToken::hashOf($plain) (revoke it via $sm->invalidateByReference()), getReason() null
 // failure: getReason() 'Invalid token' | 'Token expired' | 'Token revoked' | 'Unsupported credential type'
 // Set the tenant at login: $sm->create(Subject::from('42'), ['tenant' => 'acme'])
-// Transports store the result under RequestAttribute::SUBJECT / ::TENANT (jardissupport/contracts >= 2.8)
+// Transports store the result under RequestAttribute::SUBJECT / ::SUBJECT_ID / ::TENANT / ::SESSION (jardissupport/contracts >= 2.9)
+// Hash of a plain token anywhere: HashedToken::hashOf($plain) — one function, never hash('sha256', …) in the consumer
 ```
 
 ### PasswordHasher
