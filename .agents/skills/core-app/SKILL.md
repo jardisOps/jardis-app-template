@@ -18,7 +18,7 @@ next: []
 | `Router` (`implements Contract\RouterInterface`) | `__construct(array $routes)` (`list<Route>`). `dispatch(ServerRequestInterface): RouteMatch`. Wraps FastRoute; dispatcher built lazily on first call. |
 | `Contract\RouterInterface` | `dispatch(ServerRequestInterface $request): RouteMatch` — the only routing contract; FastRoute never leaks past `Router`. |
 | `App` | The orchestrator. `__construct(Routes $routes, DomainKernelInterface $kernel, AppConfig $config, ?ResponseFactoryInterface, ?StreamFactoryInterface, ?ServerRequestFactoryInterface, ?UriFactoryInterface, ?UploadedFileFactoryInterface)` — all PSR-17 factories default to `Nyholm\Psr7\Factory\Psr17Factory`. `handle(ServerRequestInterface): ResponseInterface` (pure). `run(): void` (impure — builds request from SAPI, `handle()`s, emits). |
-| `Config\AppConfig` | `final readonly class` — `__construct(bool $debug = false, array $knownVersions = [])` (`list<string>`). Bootstrap-injected only; never reads ENV itself (E11). |
+| `Config\AppConfig` | `final readonly class` — `__construct(bool $debug = false, array $knownVersions = [], bool $requireSessionGuard = false)` (`list<string>`). `requireSessionGuard`: `App` throws `LogicException` at construction if a non-anonymous route has no `SessionGuardInterface` in its chain (via `Handler\Pipeline\AssertSessionGuard`). Bootstrap-injected only; never reads ENV itself (E11). |
 | `Handler\Request\ParseJsonBody` | `__invoke(ServerRequestInterface): array<array-key, mixed>` — the one JSON body parser (E7). |
 | `Handler\Request\ResolveVersion` | `__construct(array $knownVersions = [])` (`list<string>`). `__invoke(ServerRequestInterface): ?string` — the one reader of `X-Jardis-Version`: absent → `''` (baseline), exactly one case-sensitive known value → that value, else `null` (unknown / empty / repeated header). `App` wires it from `AppConfig::$knownVersions`. |
 | `Handler\Response\MapDomainResponse` | `__construct(ResponseFactoryInterface, StreamFactoryInterface)`. `__invoke(DomainResponseInterface): ResponseInterface` — the canonical envelope mapper (reference impl of `contract/docs/response-envelope.md`). |
@@ -28,8 +28,8 @@ next: []
 | `Handler\Pipeline\RunMiddlewarePipeline` | `__invoke(array $globalMiddleware, array $routeMiddleware, RequestHandlerInterface $finalHandler, ServerRequestInterface): ResponseInterface` — builds+runs the PSR-15 chain, global outer / route inner (E9). |
 | `Handler\Request\CreateServerRequest` | `__invoke(?array $server=null, ?array $headers=null, ?array $cookies=null, ?array $query=null, ?array $post=null, ?array $files=null, mixed $body=null): ServerRequestInterface` — Raw-Body-Invariante: reads `php://input` exactly once. |
 | `Handler\Response\EmitResponse` | `__invoke(ServerRequestInterface, ResponseInterface): void` — status line, headers, `Content-Length`, body (suppressed for HEAD, RFC 7231 §4.3.2). Never throws; best-effort 500 fallback on internal failure. |
-| `Middleware\RequireSession` (`implements MiddlewareInterface`) | `__construct(AuthenticatorInterface $authenticator, Closure $credentialFor, ResponseFactoryInterface, StreamFactoryInterface, array $anonymousPaths = [], string $headerName = 'Authorization', string $scheme = 'Bearer')`. Session door — see SESSION below. Closures it composes: `Handler\Session\IsAnonymous`, `ReadBearerToken`, `AuthenticateToken`, `ApplySession`. |
-| `Data\Route` / `Data\RouteMatch` / `Data\RouteMatchStatus` | `final readonly` VOs. `Route(string $method, string $path, Closure\|RequestHandlerInterface $handler, array $middleware = [], bool $anonymous = false)` (`anonymous` is set only by `Routes::health()`). `RouteMatch` only via named constructors `found()/notFound()/methodNotAllowed()`. `RouteMatchStatus`: `Found`/`NotFound`/`MethodNotAllowed`. |
+| `Middleware\RequireSession` (`implements Contract\SessionGuardInterface`, which extends `MiddlewareInterface`) | `__construct(AuthenticatorInterface $authenticator, Closure $credentialFor, ResponseFactoryInterface, StreamFactoryInterface, array $anonymousPaths = [], string $headerName = 'Authorization', string $scheme = 'Bearer')`. Session door — see SESSION below. Closures it composes: `Handler\Session\IsAnonymous`, `ReadBearerToken`, `AuthenticateToken`, `ApplySession`. |
+| `Data\Route` / `Data\RouteMatch` / `Data\RouteMatchStatus` | `final readonly` VOs. `Route(string $method, string $path, Closure\|RequestHandlerInterface $handler, array $middleware = [], bool $anonymous = false)` (`anonymous` is set only by `Routes::health()` and `Routes::anonymous()`). `RouteMatch` only via named constructors `found()/notFound()/methodNotAllowed()`. `RouteMatchStatus`: `Found`/`NotFound`/`MethodNotAllowed`. |
 | `Exception\AppException` (abstract), `Exception\InvalidJsonBody`, `Exception\UnresolvableHandlerResult` | `InvalidJsonBody` — empty/invalid/non-array JSON body (F8, mapped to 400). `UnresolvableHandlerResult` — handler returned neither `DomainResponseInterface` nor `ResponseInterface` (E6, propagates to generic 500). |
 
 ## ROUTES — registration API
@@ -47,6 +47,7 @@ $routes->delete('/orders/{id}', $handler);
 
 $routes->middleware($globalMiddleware);      // applied to every route (outer), registration order
 $routes->health('/health');                  // GET, always 200 {"status":200} — M10, never touches a domain
+$routes->anonymous()->post('/auth/login', $h); // same verbs; the route needs no session (Route::$anonymous)
 ```
 Each verb accepts `callable|RequestHandlerInterface`; a callable is converted to a `Closure` immediately on
 registration (E4) — every collected `Route` already satisfies `Closure|RequestHandlerInterface`.
@@ -122,6 +123,9 @@ $routes->health('/health');                     // anonymous automatically, no n
   `Route::$anonymous` → request attribute `DispatchAndRespond::ANONYMOUS_ATTRIBUTE` (`jardisAnonymousRoute`, strict bool, always written by
   the dispatcher, compare with `=== true`). Anonymous patterns match all HTTP methods of that path.
 - **Per route:** `$routes->get('/x', $handler, $requireSession)` guards only that route (global = guard everything except anonymous).
+- **`Middleware\MiddlewareFactory`:** `__construct(DomainKernelInterface $kernel, ?ResponseFactoryInterface, ?StreamFactoryInterface, ?TokenStoreInterface)`, `__invoke(string $name): MiddlewareInterface`. `'session'` -> `RequireSession` (store: passed one, else `DbTokenStore` over the kernel connection, resolved lazily on invoke); a FQCN -> project middleware with `__construct(DomainKernelInterface $kernel)` or none; else `InvalidArgumentException`.
+- **`Contract\SessionGuardInterface`:** method-less marker (`extends MiddlewareInterface`), implemented by `RequireSession`. The start-up check only tests `instanceof`; a decorator around the guard does not count unless it implements the marker.
+- **Switch:** `new AppConfig(requireSessionGuard: true)` makes `new App(...)` throw `LogicException` listing `METHOD path` of every non-anonymous route without a guard in `[...global, ...route]`. Default `false`.
 
 ## ENVELOPE CONTRACT — `{status, data, errors, meta}`
 Reference: `jardissupport/contracts` → `docs/response-envelope.md`. `ResponseStatus` (11 cases, `jardissupport/contracts`,
@@ -195,7 +199,8 @@ Reference: `jardissupport/contracts` → `docs/response-envelope.md`. `ResponseS
 ## DEPENDENCIES
 ```
 jardiscore/kernel            ^2.0
-jardissupport/contracts      ^2.9
+jardissupport/contracts      ^2.10
+jardissupport/factory        ^1.0
 nikic/fast-route             ^1.3
 nyholm/psr7                  ^1.8
 nyholm/psr7-server            ^1.1
@@ -204,4 +209,5 @@ psr/http-factory              ^1
 psr/http-server-handler       ^1
 psr/http-server-middleware    ^1
 ```
+suggest: `jardissupport/auth` (the `session` standard name: `TokenAuthenticator`, `DbTokenStore`), `jardisadapter/dbconnection` (bridge a kernel PDO into the token store).
 PHP >= 8.3.

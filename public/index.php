@@ -16,6 +16,7 @@ use JardisCore\App\Routes;
 use JardisCore\Kernel\Bootstrap\BuildDomainKernelFromEnv;
 use JardisSupport\Contract\Kernel\DomainKernelInterface;
 use Nyholm\Psr7\Factory\Psr17Factory;
+use Psr\Http\Server\MiddlewareInterface;
 
 require dirname(__DIR__) . '/vendor/autoload.php';
 
@@ -23,11 +24,14 @@ $root = dirname(__DIR__);
 $bootstrap = $root . '/src/App/bootstrap.php';
 
 /**
- * Everything up to a usable kernel runs inside this boundary. The framework
- * brings its own error handling, but only from `new App(...)` onwards — an
- * unreadable .env or a bootstrap.php that returns something unexpected would
- * otherwise put a full stack trace into the HTTP response, since
- * display_errors is On in the dev profile.
+ * Everything up to a constructed `App` runs inside this boundary: kernel,
+ * versions, middleware pipeline, route mount and the session-guard start
+ * check. The framework brings its own error handling, but only once `run()`
+ * is reached — an unreadable .env, a bootstrap.php that returns something
+ * unexpected, a failing middleware factory or a non-anonymous route without
+ * session middleware would otherwise put a full stack trace into the HTTP
+ * response, since display_errors is On in the dev profile. `->run()` stays
+ * outside: runtime errors go through `HandleThrowable` of jardiscore/app.
  *
  * `BuildDomainKernelFromEnv` takes the project root and reads the ONE `.env`
  * there (process environment wins) — the generated bootstrap.php calls it the
@@ -79,8 +83,73 @@ try {
             }
         }
     }
+
+    $routes = new Routes(new Psr17Factory());
+    $routes->health('/health');
+
+    /**
+     * App-wide middleware pipeline: the generated src/App/middleware.php,
+     * returned by bootstrap.php as the "middleware" entry (contract:
+     * `list<MiddlewareInterface>`, in registration order). Before the first
+     * build there is no bootstrap.php, the entry is absent and the pipeline
+     * stays empty. Registered before the route mount and inside the boundary:
+     * a failing factory or project class, or a wrong shape, is a startup error
+     * answered by the 500 envelope below, never a stack trace.
+     */
+    $pipeline = $app['middleware'] ?? [];
+
+    if (!is_array($pipeline) || !array_is_list($pipeline)) {
+        throw new RuntimeException(sprintf(
+            '%s must return a "middleware" entry that is a list of PSR-15 middleware.',
+            $bootstrap
+        ));
+    }
+
+    foreach ($pipeline as $middleware) {
+        if (!$middleware instanceof MiddlewareInterface) {
+            throw new RuntimeException(sprintf(
+                '%s must return a "middleware" entry that is a list of PSR-15 middleware.',
+                $bootstrap
+            ));
+        }
+
+        $routes->middleware($middleware);
+    }
+
+    /**
+     * Generic mount for Builder-emitted domain routes. Every build writes
+     * src/Api/{Domain}/routes.php (contract: `return function (Routes $routes,
+     * {Domain} $domain, string $prefix = ''): void`). The facade key in the
+     * bootstrap array is the lcfirst'd domain name — the same name the Api/
+     * directory carries, so the mount derives it from the path. Zero matches
+     * before the first build is fine: the app keeps running unconfigured and
+     * /health answers 200.
+     *
+     * To mount everything under a common prefix, pass it as the third argument:
+     *
+     *   (require $routesFile)($routes, $facade, '/api');
+     *
+     * Hand-written routes are still welcome right here, next to the loop; a
+     * public one is `$routes->anonymous()->get(...)`.
+     */
+    foreach (glob($root . '/src/Api/*/routes.php') ?: [] as $routesFile) {
+        $facade = $app[lcfirst(basename(dirname($routesFile)))] ?? null;
+
+        if (is_object($facade)) {
+            (require $routesFile)($routes, $facade);
+        }
+    }
+
+    $config = new AppConfig(
+        debug: (bool) $kernel->env('app_debug'),
+        knownVersions: $knownVersions,
+        requireSessionGuard: true, // a non-anonymous route without session middleware fails the start
+    );
+
+    // The start check (AssertSessionGuard) runs in the constructor, inside the boundary.
+    $application = new App($routes, $kernel, $config);
 } catch (Throwable $e) {
-    error_log('[bootstrap] ' . $e->getMessage());
+    error_log('[bootstrap] ' . $e::class . ': ' . $e->getMessage());
 
     http_response_code(500);
     header('Content-Type: application/json');
@@ -94,39 +163,4 @@ try {
     exit(1);
 }
 
-$routes = new Routes(new Psr17Factory());
-$routes->health('/health');
-
-// Seam for global middleware, e.g. the token session (README "Sessions"):
-// `$routes->middleware(new RequireSession(...))` goes here, before the route
-// mount below. Off by default — the delivered template stays open.
-
-/**
- * Generic mount for Builder-emitted domain routes. Every build writes
- * src/Api/{Domain}/routes.php (contract: `return function (Routes $routes,
- * {Domain} $domain, string $prefix = ''): void`). The facade key in the
- * bootstrap array is the lcfirst'd domain name — the same name the Api/
- * directory carries, so the mount derives it from the path. Zero matches
- * before the first build is fine: the app keeps running unconfigured and
- * /health answers 200.
- *
- * To mount everything under a common prefix, pass it as the third argument:
- *
- *   (require $routesFile)($routes, $facade, '/api');
- *
- * Hand-written routes are still welcome right here, next to the loop.
- */
-foreach (glob($root . '/src/Api/*/routes.php') ?: [] as $routesFile) {
-    $facade = $app[lcfirst(basename(dirname($routesFile)))] ?? null;
-
-    if (is_object($facade)) {
-        (require $routesFile)($routes, $facade);
-    }
-}
-
-$config = new AppConfig(
-    debug: (bool) $kernel->env('app_debug'),
-    knownVersions: $knownVersions,
-);
-
-(new App($routes, $kernel, $config))->run();
+$application->run();
