@@ -19,6 +19,12 @@ final class PublicIndexMiddlewareTest extends TestCase
 {
     private const STARTUP_MESSAGE = 'The application could not be started. See the error log.';
 
+    // The strict shape check in public/index.php: without it a foreign object would only fail
+    // later as a TypeError inside Routes::middleware(), landing in the same 500 envelope.
+    // Only the logged class and message (stderr) tell the two apart.
+    private const SHAPE_ERROR = 'RuntimeException: ';
+    private const SHAPE_MESSAGE = 'must return a "middleware" entry that is a list of PSR-15 middleware.';
+
     private string $root;
 
     protected function setUp(): void
@@ -117,7 +123,7 @@ return function (Routes \$routes, object \$domain, string \$prefix = ''): void {
 PHP);
     }
 
-    /** @return array{exit: int, body: string, log: list<string>} */
+    /** @return array{exit: int, body: string, stderr: string, log: list<string>} */
     private function request(string $path): array
     {
         $runner = $this->root . '/runner.php';
@@ -142,6 +148,8 @@ PHP);
         self::assertIsResource($process);
 
         $body = (string) stream_get_contents($pipes[1]);
+        // The front controller's error_log('[bootstrap] ...') lands on stderr in the CLI.
+        $stderr = (string) stream_get_contents($pipes[2]);
         fclose($pipes[1]);
         fclose($pipes[2]);
 
@@ -149,7 +157,7 @@ PHP);
         $log = is_file($logFile) ? file($logFile, FILE_IGNORE_NEW_LINES) : [];
         @unlink($logFile);
 
-        return ['exit' => proc_close($process), 'body' => $body, 'log' => $log === false ? [] : $log];
+        return ['exit' => proc_close($process), 'body' => $body, 'stderr' => $stderr, 'log' => $log === false ? [] : $log];
     }
 
     /** @return array<string, mixed> */
@@ -161,8 +169,11 @@ PHP);
         return $decoded;
     }
 
-    /** @param array{exit: int, body: string, log: list<string>} $result */
-    private function assertStartupError(array $result): void
+    /**
+     * @param array{exit: int, body: string, stderr: string, log: list<string>} $result
+     * @param string|null $logged substring the error log (stderr) must carry; the body never does
+     */
+    private function assertStartupError(array $result, ?string $logged = null): void
     {
         $envelope = $this->json($result['body']);
 
@@ -171,6 +182,10 @@ PHP);
         self::assertSame(self::STARTUP_MESSAGE, $envelope['errors']['bootstrap']);
         self::assertStringNotContainsString($this->root, $result['body']);
         self::assertStringNotContainsString('Stack trace', $result['body']);
+
+        if ($logged !== null) {
+            self::assertStringContainsString('[bootstrap] ' . $logged, $result['stderr']);
+        }
     }
 
     // (a) Mount
@@ -219,7 +234,10 @@ PHP);
         $this->bootstrap("'nope'");
         $this->routes(anonymous: true);
 
-        $this->assertStartupError($this->request('/shop'));
+        $result = $this->request('/shop');
+
+        $this->assertStartupError($result, self::SHAPE_ERROR);
+        self::assertStringContainsString(self::SHAPE_MESSAGE, $result['stderr']);
     }
 
     public function testMiddlewareEntryWithAForeignObjectIsAStartupError(): void
@@ -227,7 +245,10 @@ PHP);
         $this->bootstrap('[new stdClass()]');
         $this->routes(anonymous: true);
 
-        $this->assertStartupError($this->request('/shop'));
+        $result = $this->request('/shop');
+
+        $this->assertStartupError($result, self::SHAPE_ERROR);
+        self::assertStringContainsString(self::SHAPE_MESSAGE, $result['stderr']);
     }
 
     // (d) Session switch
