@@ -27,6 +27,7 @@ use PHPUnit\Framework\TestCase;
 final class SessionRecipeTest extends TestCase
 {
     private RequireSession $middleware;
+    private SessionManager $sessionManager;
     private string $accessToken;
 
     protected function setUp(): void
@@ -40,7 +41,8 @@ final class SessionRecipeTest extends TestCase
         $connection = (new ConnectionFactory())->fromPdo($pdo);
         $store = new DbTokenStore($connection);
 
-        $created = (new SessionManager($store))->create(Subject::from('42'), ['tenant' => 'acme']);
+        $this->sessionManager = new SessionManager($store);
+        $created = $this->sessionManager->create(Subject::from('42'), ['tenant' => 'acme']);
         $this->accessToken = $created->accessToken;
 
         $psr17 = new Psr17Factory();
@@ -65,6 +67,36 @@ final class SessionRecipeTest extends TestCase
         self::assertNotNull($handler->seen);
         self::assertSame('user:42', $handler->seen->getAttribute(RequestAttribute::SUBJECT));
         self::assertSame('acme', $handler->seen->getAttribute(RequestAttribute::TENANT));
+    }
+
+    public function testValidTokenCarriesSubjectIdAndSessionReferenceAsRequestAttributes(): void
+    {
+        $handler = new RecordingHandler();
+        $request = (new ServerRequest('GET', '/orders'))
+            ->withHeader('Authorization', 'Bearer ' . $this->accessToken);
+
+        $this->middleware->process($request, $handler);
+
+        self::assertNotNull($handler->seen);
+        self::assertSame('42', $handler->seen->getAttribute(RequestAttribute::SUBJECT_ID));
+        self::assertIsString($handler->seen->getAttribute(RequestAttribute::SESSION));
+        self::assertNotSame('', $handler->seen->getAttribute(RequestAttribute::SESSION));
+    }
+
+    public function testOwnSessionIsRevokedByTheReferenceFromTheRequest(): void
+    {
+        $handler = new RecordingHandler();
+        $request = (new ServerRequest('GET', '/orders'))
+            ->withHeader('Authorization', 'Bearer ' . $this->accessToken);
+        $this->middleware->process($request, $handler);
+        self::assertNotNull($handler->seen);
+
+        $this->sessionManager->invalidateByReference((string) $handler->seen->getAttribute(RequestAttribute::SESSION));
+
+        $again = new RecordingHandler();
+        $response = $this->middleware->process($request, $again);
+        self::assertSame(401, $response->getStatusCode());
+        self::assertNull($again->seen);
     }
 
     public function testMissingTokenIsAnswered401AndNeverReachesTheHandler(): void

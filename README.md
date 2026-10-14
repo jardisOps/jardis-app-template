@@ -323,10 +323,10 @@ Jardis packages (nothing is built here):
 
 | Part | Package |
 |---|---|
-| `RequireSession` PSR-15 middleware (401 envelope, request attributes) | `jardiscore/app` >= 1.3 |
-| `TokenAuthenticator`, `SessionManager`, `DbTokenStore`, `Credential` | `jardissupport/auth` >= 1.2 |
+| `RequireSession` PSR-15 middleware (401 envelope, request attributes) | `jardiscore/app` >= 1.4 |
+| `TokenAuthenticator`, `SessionManager`, `DbTokenStore`, `Credential` | `jardissupport/auth` >= 1.3 |
 | `DbConnectionInterface` for the store | `jardisadapter/dbconnection` |
-| `RequestAttribute::SUBJECT` / `::TENANT` | `jardissupport/contracts` >= 2.8 |
+| `RequestAttribute::SUBJECT` / `::SUBJECT_ID` / `::TENANT` / `::SESSION` | `jardissupport/contracts` >= 2.9 |
 
 **1. Create the token table once** (pick the file of your `DB_DRIVER`: `mysql.sql`,
 `pgsql.sql` or `sqlite.sql`):
@@ -377,6 +377,12 @@ identically with `401` (`WWW-Authenticate: Bearer`); the handler is not called.
 never `null` — when the token carries none; the token's `tenant` claim is set at
 login: `$sessionManager->create(Subject::from('42'), ['tenant' => 'acme'])`
 (`SessionManager` over the same `DbTokenStore`; login itself is yours to build).
+Two more attributes come with the session: `RequestAttribute::SUBJECT_ID`
+(`jardisSubjectId`, the bare id `42` - no `user:` prefix to split) and
+`RequestAttribute::SESSION` (`jardisSession`, the reference of exactly this
+session). Log the caller out without parsing the token:
+`$sessionManager->invalidateByReference($request->getAttribute(RequestAttribute::SESSION))`
+(`invalidateAll('user:42')` still revokes every session of the subject).
 
 `tests/Unit/Session/SessionRecipeTest.php` runs exactly this wiring against
 SQLite in memory.
