@@ -28,7 +28,7 @@ next: []
 | `Handler\Pipeline\RunMiddlewarePipeline` | `__invoke(array $globalMiddleware, array $routeMiddleware, RequestHandlerInterface $finalHandler, ServerRequestInterface): ResponseInterface` — builds+runs the PSR-15 chain, global outer / route inner (E9). |
 | `Handler\Request\CreateServerRequest` | `__invoke(?array $server=null, ?array $headers=null, ?array $cookies=null, ?array $query=null, ?array $post=null, ?array $files=null, mixed $body=null): ServerRequestInterface` — Raw-Body-Invariante: reads `php://input` exactly once. |
 | `Handler\Response\EmitResponse` | `__invoke(ServerRequestInterface, ResponseInterface): void` — status line, headers, `Content-Length`, body (suppressed for HEAD, RFC 7231 §4.3.2). Never throws; best-effort 500 fallback on internal failure. |
-| `Middleware\RequireSession` (`implements Contract\SessionGuardInterface`, which extends `MiddlewareInterface`) | `__construct(AuthenticatorInterface $authenticator, Closure $credentialFor, ResponseFactoryInterface, StreamFactoryInterface, array $anonymousPaths = [], string $headerName = 'Authorization', string $scheme = 'Bearer')`. Session door — see SESSION below. Closures it composes: `Handler\Session\IsAnonymous`, `ReadBearerToken`, `AuthenticateToken`, `ApplySession`. |
+| `Middleware\RequireSession` (`implements Contract\SessionGuardInterface`, which extends `MiddlewareInterface`) | `__construct(AuthenticatorInterface $authenticator, Closure $credentialFor, ResponseFactoryInterface, StreamFactoryInterface, string $headerName = 'Authorization', string $scheme = 'Bearer')`. Session door — see SESSION below. Closures it composes: `ReadBearerToken`, `AuthenticateToken`, `ApplySession`; anonymity is read from the route attribute `DispatchAndRespond::ANONYMOUS_ATTRIBUTE`. |
 | `Data\Route` / `Data\RouteMatch` / `Data\RouteMatchStatus` | `final readonly` VOs. `Route(string $method, string $path, Closure\|RequestHandlerInterface $handler, array $middleware = [], bool $anonymous = false)` (`anonymous` is set only by `Routes::health()` and `Routes::anonymous()`). `RouteMatch` only via named constructors `found()/notFound()/methodNotAllowed()`. `RouteMatchStatus`: `Found`/`NotFound`/`MethodNotAllowed`. |
 | `Exception\AppException` (abstract), `Exception\InvalidJsonBody`, `Exception\UnresolvableHandlerResult` | `InvalidJsonBody` — empty/invalid/non-array JSON body (F8, mapped to 400). `UnresolvableHandlerResult` — handler returned neither `DomainResponseInterface` nor `ResponseInterface` (E6, propagates to generic 500). |
 
@@ -85,13 +85,22 @@ from the domain manifest); this package scans no directories and knows no classe
 
 **Pluggable:** any PSR-15 `MiddlewareInterface`. `Routes::middleware($m)` = global; the verb methods (`get/post/put/patch/delete`) take trailing `MiddlewareInterface ...$middleware` = per route. There is no route-group API. Order (`Handler/Pipeline/RunMiddlewarePipeline.php`): `[...global, ...route]`, outer first, registration order within each group.
 
-**Delivered:** `Middleware\RequireSession` - reads `Authorization: Bearer <token>`, authenticates through an `AuthenticatorInterface`, else 401 envelope + `WWW-Authenticate: Bearer`. Sets `RequestAttribute::SUBJECT`, `TENANT` (absent without tenant), `SUBJECT_ID`, `SESSION` (last two only for a session-aware result); client-supplied values are overwritten/removed. Anonymous: `Routes::health()` routes and `anonymousPaths` (exact path or `prefix*`, all methods).
+**Delivered:** `Middleware\RequireSession` - reads `Authorization: Bearer <token>`, authenticates through an `AuthenticatorInterface`, else 401 envelope + `WWW-Authenticate: Bearer`. Sets `RequestAttribute::SUBJECT`, `TENANT` (absent without tenant), `SUBJECT_ID`, `SESSION` (last two only for a session-aware result); client-supplied values are overwritten/removed. Anonymous: routes registered by `Routes::health()` or `Routes::anonymous()` (`Route::$anonymous`); there is no path-pattern list.
 
-**Where (app template):** the pipeline is the **project setting `middleware`** (Builder, `project.json`: ordered list of standard names - today `session` - and FQCN project classes; never set = `["session"]`, `[]` = deliberately none). The Builder generator emits the wiring: `src/App/middleware.php` (`return static function (MiddlewareFactory $mw): array`, regenerated on every build), the once-written `src/App/bootstrap.php` loads it into the `'middleware'` entry of the app config, and the template's `public/index.php` registers every entry of `$app['middleware']` via `$routes->middleware()` (strictly checked: `list<MiddlewareInterface>`, else 500 envelope, never a stack trace). The template sets `new AppConfig(requireSessionGuard: true)`, so a non-anonymous route without a session guard fails at start. A hand-written route that needs no session goes through `$routes->anonymous()->get(...)` in `public/index.php`; `session` must stand before any middleware that reads session attributes.
+**Where (app template):** the pipeline is the **project setting `middleware`** (Builder, `project.json`). `core/app` ships no wiring: the Builder generator emits `src/App/middleware.php` (`return static function (DomainKernelInterface $kernel): array`, regenerated on every build), which builds the PSR-15 instances itself, e.g.
+```php
+return static function (DomainKernelInterface $kernel): array {
+    $psr17 = new Psr17Factory();
+    $key = base64_decode((string) $_ENV['AUTH_TOKEN_KEY'], true);   // raw 32 bytes
+
+    return [new RequireSession(new SignedTokenAuthenticator($key), Credential::token(...), $psr17, $psr17)];
+};
+```
+The once-written `src/App/bootstrap.php` loads it into the `'middleware'` entry of the app config, and the template's `public/index.php` registers every entry of `$app['middleware']` via `$routes->middleware()` (strictly checked: `list<MiddlewareInterface>`, else 500 envelope, never a stack trace). The template sets `new AppConfig(requireSessionGuard: true)`, so a non-anonymous route without a session guard fails at start. A hand-written route that needs no session goes through `$routes->anonymous()->get(...)` in `public/index.php`; the session middleware must stand before any middleware that reads session attributes.
 
 **Guarantees:** `Routes::health()` is always anonymous and never mounted under `$prefix`; 404, 405 and the version check (`X-Jardis-Version`) are answered before the pipeline runs.
 
-**Boundary:** a project-specific middleware is a project class named by FQCN in the `middleware` setting, with `__construct(DomainKernelInterface $kernel)` or no constructor (`MiddlewareFactory` builds it) - not a patch of the template's `index.php`. A generally useful one (CORS, request id/audit, rate limit, tenant context) is an issue in `jardisCore/app`, not project code imitating the package.
+**Boundary:** retrofitting a standard middleware = a PSR-15 class in `jardisCore/app` plus one line in the generated `middleware.php`; a project-specific middleware = an own PSR-15 class in the project, its FQCN named in the project setting. Not a patch of the template's `index.php`. A generally useful one (CORS, request id/audit, rate limit, tenant context) is an issue in `jardisCore/app`, not project code imitating the package.
 
 ## SESSION — `RequireSession` (PSR-15, global or per route)
 Binds a request to a verified session or rejects it. Depends only on the ports of `jardissupport/contracts` ^2.9
@@ -99,15 +108,15 @@ Binds a request to a verified session or rejects it. Depends only on the ports o
 ```php
 use JardisCore\App\Middleware\RequireSession;
 use JardisSupport\Auth\Data\Credential;      // support/auth (the app requires it, not core/app)
-use JardisSupport\Auth\TokenAuthenticator;    // + DbTokenStore as TokenStoreInterface
+use JardisSupport\Auth\SignedTokenAuthenticator; // access tokens of SessionManager (auth ^1.5): signature + exp, no store
 
 $routes->middleware(new RequireSession(
-    new TokenAuthenticator($tokenStore),
+    new SignedTokenAuthenticator($accessTokenKey), // raw 32-byte key
     Credential::token(...),                     // Closure(string): CredentialInterface
     $psr17, $psr17,                             // response + stream factory (the 401 uses BuildErrorResponse)
-    ['/auth/login', '/auth/refresh', '/docs/*'], // anonymous: exact path, or prefix when ending in `*`
 ));
-$routes->health('/health');                     // anonymous automatically, no need to list it
+$routes->anonymous()->post('/auth/login', $login); // routes that need no session
+$routes->health('/health');                     // anonymous automatically
 ```
 - **Token:** `Authorization: Bearer <token>` (exactly one header line, scheme case-insensitive, no whitespace in the token).
   `headerName`/`scheme` configurable; `scheme: ''` = the whole header value is the token.
@@ -121,11 +130,10 @@ $routes->health('/health');                     // anonymous automatically, no n
   (`jardisSubjectId`, bare id without `user:` prefix) and `RequestAttribute::SESSION` (`jardisSession`, reference that revokes exactly this
   session); empty/null or a plain tenant-aware result → both ABSENT. Same forgery strip as SUBJECT/TENANT.
   Recipe "revoke own session": `$sessionManager->invalidateByReference($request->getAttribute(RequestAttribute::SESSION))`.
-- **Where it runs:** only on a matched route (inside the pipeline) → unknown path stays 404, wrong method 405. `Routes::health()` routes carry
+- **Where it runs:** only on a matched route (inside the pipeline) → unknown path stays 404, wrong method 405. `Routes::health()` and `Routes::anonymous()` routes carry
   `Route::$anonymous` → request attribute `DispatchAndRespond::ANONYMOUS_ATTRIBUTE` (`jardisAnonymousRoute`, strict bool, always written by
-  the dispatcher, compare with `=== true`). Anonymous patterns match all HTTP methods of that path.
+  the dispatcher, compare with `=== true`). 
 - **Per route:** `$routes->get('/x', $handler, $requireSession)` guards only that route (global = guard everything except anonymous).
-- **`Middleware\MiddlewareFactory`:** `__construct(DomainKernelInterface $kernel, ?ResponseFactoryInterface, ?StreamFactoryInterface, ?TokenStoreInterface)`, `__invoke(string $name): MiddlewareInterface`. `'session'` -> `RequireSession` (store: passed one, else `DbTokenStore` over the kernel connection, resolved lazily on invoke); a FQCN -> project middleware with `__construct(DomainKernelInterface $kernel)` or none; else `InvalidArgumentException`.
 - **`Contract\SessionGuardInterface`:** method-less marker (`extends MiddlewareInterface`), implemented by `RequireSession`. The start-up check only tests `instanceof`; a decorator around the guard does not count unless it implements the marker.
 - **Switch:** `new AppConfig(requireSessionGuard: true)` makes `new App(...)` throw `LogicException` listing `METHOD path` of every non-anonymous route without a guard in `[...global, ...route]`. Default `false`.
 
@@ -211,5 +219,4 @@ psr/http-factory              ^1
 psr/http-server-handler       ^1
 psr/http-server-middleware    ^1
 ```
-suggest: `jardissupport/auth` (the `session` standard name: `TokenAuthenticator`, `DbTokenStore`), `jardisadapter/dbconnection` (bridge a kernel PDO into the token store).
 PHP >= 8.3.

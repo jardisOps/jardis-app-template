@@ -4,20 +4,20 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "07a4bfa4a29a6a42e32bfe2001575577",
+    "content-hash": "91015f61129159d65a049b94b6c8b84e",
     "packages": [
         {
             "name": "jardisadapter/dbconnection",
-            "version": "v1.2.0",
+            "version": "v1.3.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/jardisAdapter/dbConnection.git",
-                "reference": "b65a8cf60265f1a9239db2838f300cc1e126a243"
+                "reference": "6682d46c60f273358567c72b5b003acfd3b88177"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/jardisAdapter/dbConnection/zipball/b65a8cf60265f1a9239db2838f300cc1e126a243",
-                "reference": "b65a8cf60265f1a9239db2838f300cc1e126a243",
+                "url": "https://api.github.com/repos/jardisAdapter/dbConnection/zipball/6682d46c60f273358567c72b5b003acfd3b88177",
+                "reference": "6682d46c60f273358567c72b5b003acfd3b88177",
                 "shasum": ""
             },
             "require": {
@@ -67,9 +67,9 @@
                 "docs": "https://docs.jardis.io/en/adapter/dbconnection",
                 "email": "jardisDev@headgent.com",
                 "issues": "https://github.com/jardisAdapter/dbConnection/issues",
-                "source": "https://github.com/jardisAdapter/dbConnection/tree/v1.2.0"
+                "source": "https://github.com/jardisAdapter/dbConnection/tree/v1.3.0"
             },
-            "time": "2026-10-13T05:11:51+00:00"
+            "time": "2026-10-14T17:59:39+00:00"
         },
         {
             "name": "jardisadapter/filesystem",
@@ -205,16 +205,16 @@
         },
         {
             "name": "jardiscore/app",
-            "version": "v1.5.2",
+            "version": "v1.6.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/jardisCore/app.git",
-                "reference": "3746881c776a2a25760cf17ae39e88c9b2a85d37"
+                "reference": "882576ace6ce15e46e9d0a4badc176612336505a"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/jardisCore/app/zipball/3746881c776a2a25760cf17ae39e88c9b2a85d37",
-                "reference": "3746881c776a2a25760cf17ae39e88c9b2a85d37",
+                "url": "https://api.github.com/repos/jardisCore/app/zipball/882576ace6ce15e46e9d0a4badc176612336505a",
+                "reference": "882576ace6ce15e46e9d0a4badc176612336505a",
                 "shasum": ""
             },
             "require": {
@@ -232,8 +232,7 @@
             },
             "require-dev": {
                 "ext-pdo": "*",
-                "jardisadapter/dbconnection": "^1.0",
-                "jardissupport/auth": "^1.4",
+                "jardissupport/auth": "^1.5",
                 "jardissupport/data": "^1.0",
                 "jardissupport/dbquery": "^1.0",
                 "jardissupport/repository": "^1.0",
@@ -243,10 +242,6 @@
                 "phpstan/phpstan": "^2.0.4",
                 "phpunit/phpunit": "^11.0",
                 "squizlabs/php_codesniffer": "^3.11.2"
-            },
-            "suggest": {
-                "jardisadapter/dbconnection": "Required by MiddlewareFactory to bridge a plain PDO from the kernel into the token store",
-                "jardissupport/auth": "Required by MiddlewareFactory for the standard name \"session\" (TokenAuthenticator, DbTokenStore)"
             },
             "type": "library",
             "autoload": {
@@ -279,22 +274,22 @@
                 "docs": "https://docs.jardis.io/en/core/app",
                 "email": "jardisDev@headgent.com",
                 "issues": "https://github.com/jardisCore/app/issues",
-                "source": "https://github.com/jardisCore/app/tree/v1.5.2"
+                "source": "https://github.com/jardisCore/app/tree/v1.6.0"
             },
-            "time": "2026-10-14T15:05:25+00:00"
+            "time": "2026-10-14T18:06:29+00:00"
         },
         {
             "name": "jardiscore/kernel",
-            "version": "v2.4.5",
+            "version": "v2.5.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/jardisCore/kernel.git",
-                "reference": "456ff9c9b818545eb480bfa33f4e5aa49148b2cb"
+                "reference": "d607bf8562011296cb093628da08d4cf2b9ea4c1"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/jardisCore/kernel/zipball/456ff9c9b818545eb480bfa33f4e5aa49148b2cb",
-                "reference": "456ff9c9b818545eb480bfa33f4e5aa49148b2cb",
+                "url": "https://api.github.com/repos/jardisCore/kernel/zipball/d607bf8562011296cb093628da08d4cf2b9ea4c1",
+                "reference": "d607bf8562011296cb093628da08d4cf2b9ea4c1",
                 "shasum": ""
             },
             "require": {
@@ -316,7 +311,7 @@
                 "ext-redis": "*",
                 "jardis/dev-skills": "^1.0",
                 "jardisadapter/cache": "^1.0",
-                "jardisadapter/dbconnection": "^1.1",
+                "jardisadapter/dbconnection": "^1.3",
                 "jardisadapter/eventdispatcher": "^1.0",
                 "jardisadapter/filesystem": "^1.0",
                 "jardisadapter/http": "^1.0",
@@ -333,7 +328,7 @@
                 "ext-rdkafka": "For Kafka messaging via the Bootstrap-Packer",
                 "ext-redis": "For Redis-based caching, logging and messaging via the Bootstrap-Packer",
                 "jardisadapter/cache": "For multi-layer caching (Memory, Redis, Database) via the Bootstrap-Packer",
-                "jardisadapter/dbconnection": "For ConnectionPool with read/write splitting, health checks and load balancing",
+                "jardisadapter/dbconnection": "For lazy ConnectionPool (connection opens on first access) with read/write splitting, health checks and load balancing; requires ^1.3",
                 "jardisadapter/eventdispatcher": "For PSR-14 event dispatching via the Bootstrap-Packer",
                 "jardisadapter/filesystem": "For local and S3 filesystem abstraction via the Bootstrap-Packer",
                 "jardisadapter/http": "For PSR-18 HTTP client with handler pipeline via the Bootstrap-Packer",
@@ -377,22 +372,22 @@
                 "docs": "https://docs.jardis.io/en/core/kernel",
                 "email": "jardisDev@headgent.com",
                 "issues": "https://github.com/jardisCore/kernel/issues",
-                "source": "https://github.com/jardisCore/kernel/tree/v2.4.5"
+                "source": "https://github.com/jardisCore/kernel/tree/v2.5.0"
             },
-            "time": "2026-10-03T16:38:08+00:00"
+            "time": "2026-10-14T18:04:11+00:00"
         },
         {
             "name": "jardissupport/auth",
-            "version": "v1.4.0",
+            "version": "v1.5.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/jardisSupport/auth.git",
-                "reference": "0cdfc2105a234845fbe40c8e321144d28e4b309f"
+                "reference": "e40c26f1d9b3d87aa3dbd75c301e48019db3bce6"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/jardisSupport/auth/zipball/0cdfc2105a234845fbe40c8e321144d28e4b309f",
-                "reference": "0cdfc2105a234845fbe40c8e321144d28e4b309f",
+                "url": "https://api.github.com/repos/jardisSupport/auth/zipball/e40c26f1d9b3d87aa3dbd75c301e48019db3bce6",
+                "reference": "e40c26f1d9b3d87aa3dbd75c301e48019db3bce6",
                 "shasum": ""
             },
             "require": {
@@ -423,7 +418,7 @@
                     "email": "jardisDev@headgent.com"
                 }
             ],
-            "description": "Opaque token management with SQL token store and token authentication (subject + tenant), session handling, password hashing, and role-based access control for PHP DDD applications — framework-free, no JWT, no third-party runtime dependencies beyond PHP built-ins and the Jardis contracts and dbquery packages",
+            "description": "Signed access tokens and opaque refresh tokens with SQL token store and token authentication (subject + tenant), session handling, password hashing, and role-based access control for PHP DDD applications — framework-free, no JWT, no third-party runtime dependencies beyond PHP built-ins and the Jardis contracts and dbquery packages",
             "homepage": "https://jardis.io",
             "keywords": [
                 "Authentication",
@@ -445,9 +440,9 @@
                 "docs": "https://docs.jardis.io/en/support/auth",
                 "email": "jardisDev@headgent.com",
                 "issues": "https://github.com/jardisSupport/auth/issues",
-                "source": "https://github.com/jardisSupport/auth/tree/v1.4.0"
+                "source": "https://github.com/jardisSupport/auth/tree/v1.5.0"
             },
-            "time": "2026-10-14T08:39:35+00:00"
+            "time": "2026-10-14T18:00:24+00:00"
         },
         {
             "name": "jardissupport/classversion",
