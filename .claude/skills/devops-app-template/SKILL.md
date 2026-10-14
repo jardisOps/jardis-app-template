@@ -66,23 +66,41 @@ above the key and stays silent; an unmarked extra is reported
 convention: every configuration value lives exactly once, in the `.env` in the
 project root.
 
-## Sessions and upload limits
+## Sessions, middleware and upload limits
 
-Preinstalled, inert until wired: `jardiscore/app` >= 1.4 (`RequireSession`),
-`jardissupport/contracts` >= 2.9, `jardissupport/auth` >= 1.3 and the adapters
-`jardisadapter/dbconnection` (the `DbConnectionInterface` `DbTokenStore`
-needs), `http`, `filesystem`. The session door is **not** active by default
-(`public/index.php` stays open; it only marks the middleware seam). Recipe
-(README "Sessions"): create the token table once with `make db-import
-SCHEMA=vendor/jardissupport/auth/resources/sql/<mysql|pgsql|sqlite>.sql`, then
-`$routes->middleware(new RequireSession(new TokenAuthenticator(new
-DbTokenStore($connection)), Credential::token(...), $psr17, $psr17,
-['/auth/login', ...]))` — `$connection` is the pool's `getWriter()` or
-`ConnectionFactory::fromPdo($pdo)` of `$kernel->dbConnection()`. Handlers read
-`RequestAttribute::SUBJECT` / `::TENANT` (tenant absent, never null, when the
-token has none) and `::SUBJECT_ID` (bare id, no `user:` prefix) / `::SESSION`
-(reference of exactly this session: `$sessionManager->invalidateByReference(
-$request->getAttribute(RequestAttribute::SESSION))` logs the caller out). Tests: `tests/Unit/Session/`.
+Preinstalled: `jardiscore/app` >= 1.5 (`RequireSession`, `MiddlewareFactory`),
+`jardissupport/contracts` >= 2.9, `jardissupport/auth` >= 1.4 and the adapters
+`jardisadapter/dbconnection` (what `DbTokenStore` needs), `http`, `filesystem`
+(template v1.24.0). The app-wide pipeline is **not** hand-written in the
+template: it is the Builder project setting `middleware` (never set =
+`["session"]`, `[]` = none; project classes by FQCN with
+`__construct(DomainKernelInterface $kernel)` or no constructor). The Builder
+emits `src/App/middleware.php`, the once-written `src/App/bootstrap.php`
+returns it as the `'middleware'` entry. See the README "Sessions" for the recipe
+and the skills `core-app` and `design-headless-mcp` for the setting.
+
+**Front-controller contract (`public/index.php`, hand-owned):**
+- `$app['middleware'] ?? []` must be a `list<MiddlewareInterface>` — checked
+  strictly (`is_array`, `array_is_list`, every entry `instanceof
+  MiddlewareInterface`); anything else throws and is answered by the 500
+  envelope (no stack trace). Before the first build there is no `bootstrap.php`,
+  the entry is absent and `/health` still answers 200.
+- Pipeline registration, route mount and `new App(...)` all run inside the
+  error boundary.
+- `new AppConfig(..., requireSessionGuard: true)`: a non-anonymous route
+  without a session guard fails the start, naming `METHOD path`.
+- Recipe "hand route anonymous": `$routes->anonymous()->get('/status',
+  $handler)` next to the mount loop. `session` must stand before any middleware
+  that reads session attributes. `/health` is always anonymous and never under
+  the mount prefix.
+
+Create the token table once: `make db-import
+SCHEMA=vendor/jardissupport/auth/resources/sql/<mysql|pgsql|sqlite>.sql`.
+Handlers read `RequestAttribute::SUBJECT` / `::TENANT` (tenant absent, never
+null, when the token has none) and `::SUBJECT_ID` / `::SESSION`
+(`$sessionManager->invalidateByReference($request->getAttribute(
+RequestAttribute::SESSION))` logs the caller out). Tests:
+`tests/Unit/FrontController/`.
 
 Upload limits are 12M (`upload_max_filesize`, `post_max_size`), set by
 `support/php/60-upload.ini` mounted into `conf.d` of the fpm, cli and worker

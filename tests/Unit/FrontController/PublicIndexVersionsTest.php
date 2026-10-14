@@ -63,7 +63,7 @@ use Nyholm\Psr7\Factory\Psr17Factory;
 use Psr\Http\Message\ServerRequestInterface;
 
 return function (Routes $routes, object $domain, string $prefix = ''): void {
-    $routes->get($prefix . '/' . strtolower(basename(__DIR__)), static function (ServerRequestInterface $request): \Psr\Http\Message\ResponseInterface {
+    $routes->anonymous()->get($prefix . '/' . strtolower(basename(__DIR__)), static function (ServerRequestInterface $request): \Psr\Http\Message\ResponseInterface {
         $factory = new Psr17Factory();
 
         return $factory->createResponse(200)->withBody($factory->createStream(

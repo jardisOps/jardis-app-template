@@ -317,14 +317,14 @@ in the domain manifest — never in this project.
 
 ## Sessions
 
-The template ships the packages for a token session but does **not** switch it
-on — `public/index.php` stays open until you wire it. The parts, all from
-Jardis packages (nothing is built here):
+The token session is a project setting, not code you write: the Builder
+generates the middleware pipeline and `public/index.php` mounts it. The parts,
+all from Jardis packages (nothing is built here):
 
 | Part | Package |
 |---|---|
-| `RequireSession` PSR-15 middleware (401 envelope, request attributes) | `jardiscore/app` >= 1.4 |
-| `TokenAuthenticator`, `SessionManager`, `DbTokenStore`, `Credential` | `jardissupport/auth` >= 1.3 |
+| `RequireSession` PSR-15 middleware (401 envelope, request attributes) | `jardiscore/app` >= 1.5 |
+| `TokenAuthenticator`, `SessionManager`, `DbTokenStore`, `Credential` | `jardissupport/auth` >= 1.4 |
 | `DbConnectionInterface` for the store | `jardisadapter/dbconnection` |
 | `RequestAttribute::SUBJECT` / `::SUBJECT_ID` / `::TENANT` / `::SESSION` | `jardissupport/contracts` >= 2.9 |
 
@@ -338,38 +338,27 @@ make db-import SCHEMA=vendor/jardissupport/auth/resources/sql/mysql.sql
 The DDL is `CREATE … IF NOT EXISTS` (default table `auth_tokens`), so a second
 run changes nothing. Only the SHA-256 hash of a token is stored.
 
-**2. Register the middleware globally** in `public/index.php`, directly after
-`$routes = new Routes(…)` and before the route mount loop. `health()` is
-anonymous on its own; list further anonymous paths (exact, or a prefix ending in
-`*`):
+**2. Switch the pipeline on in the project setting `middleware`** (MCP
+`update_project_settings`, or the project page of the Builder UI). The default is
+`["session"]`: every build writes `src/App/middleware.php` from that list and
+`src/App/bootstrap.php` returns it as the `middleware` entry, which
+`public/index.php` registers in list order. Nothing to wire by hand; `health()`
+is anonymous on its own. A route is public through the model door
+`door: anonymous` (MCP `save_process` / `save_queries`), which the generated
+`routes.php` emits as `$routes->anonymous()`.
 
-```php
-use JardisAdapter\DbConnection\Factory\ConnectionFactory;
-use JardisCore\App\Middleware\RequireSession;
-use JardisSupport\Auth\Data\Credential;
-use JardisSupport\Auth\DbTokenStore;
-use JardisSupport\Auth\TokenAuthenticator;
-use JardisSupport\Contract\DbConnection\ConnectionPoolInterface;
-
-$db = $kernel->dbConnection(); // pool (read replicas) or plain PDO, null without DB_*
-$connection = $db instanceof ConnectionPoolInterface
-    ? $db->getWriter()
-    : (new ConnectionFactory())->fromPdo($db);
-$psr17 = new Psr17Factory();
-
-$routes->middleware(new RequireSession(
-    new TokenAuthenticator(new DbTokenStore($connection)),
-    Credential::token(...),
-    $psr17,
-    $psr17,
-    ['/auth/login', '/auth/refresh'],
-));
-```
-
-(Guard `$db === null` first if the stack may run without a database.) The
-middleware runs only on a matched route: unknown paths stay 404, wrong methods
-405. A missing, malformed, unknown, expired or revoked token is answered
+The middleware runs only on a matched route: unknown paths stay 404, wrong
+methods 405. A missing, malformed, unknown, expired or revoked token is answered
 identically with `401` (`WWW-Authenticate: Bearer`); the handler is not called.
+With `"middleware": []` the app starts without a session: a non-anonymous route
+then fails the start check (`requireSessionGuard`) with the `500` startup
+envelope, so switching the session off means every route is anonymous.
+
+Project middleware goes into the same list as a fully qualified class name. The
+class implements `Psr\Http\Server\MiddlewareInterface` and has either no
+constructor or `__construct(DomainKernelInterface $kernel)`. Order is pipeline
+order: put `session` **before** every middleware that reads the session
+attributes (documentation, not a rule the Builder enforces).
 
 **3. Read the session** in a handler from the request attributes
 `RequestAttribute::SUBJECT` (`jardisSubject`, e.g. `user:42`) and
@@ -384,8 +373,17 @@ session). Log the caller out without parsing the token:
 `$sessionManager->invalidateByReference($request->getAttribute(RequestAttribute::SESSION))`
 (`invalidateAll('user:42')` still revokes every session of the subject).
 
-`tests/Unit/Session/SessionRecipeTest.php` runs exactly this wiring against
-SQLite in memory.
+**Hand route, anonymous.** A route you register yourself in `public/index.php`
+(next to the mount loop) is not anonymous by default. A public one is:
+
+```php
+$routes->anonymous()->get('/ping', static fn (ServerRequestInterface $request): ResponseInterface
+    => (new Psr17Factory())->createResponse(204));
+```
+
+`tests/Unit/FrontController/PublicIndexMiddlewareTest.php` runs the real
+`public/index.php` in a subprocess and holds the mount, the pipeline order, the
+500 startup path and the session switch.
 
 ## Upload limits
 
