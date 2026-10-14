@@ -14,7 +14,9 @@ next: []
 ## ARCHITECTURE
 ```
 SessionManager        create/refresh/invalidate sessions → SessionResult + events
-PasswordAuthenticator lookup user → verify password → create session → AuthenticationResult
+PasswordAuthenticator lookup user (closure or UserLookupInterface) → verify password → create session → AuthenticationResult
+TokenIssuer           issue one-time token (type, subject, ttl, claims) → IssuedToken{plain, hashed}
+TokenRedeemer         redeem one-time token: find → verify type/expiry → revoke → stored token
 TokenAuthenticator    token credential → verified session: subject + subject id + tenant + session reference (TenantAuthResult)
 DbTokenStore          TokenStoreInterface on DbConnectionInterface via jardissupport/dbquery (hash only)
 PasswordHasher        Argon2id/bcrypt via password_hash() builtins
@@ -38,7 +40,10 @@ $sm->create(Subject $subject, array $claims = []): SessionResult
 $sm->refresh(string $refreshTokenValue): SessionResult
     // Returns: events=[SessionCreated, SessionRefreshed]
 $sm->invalidate(SessionInterface $session): SessionInvalidated
-$sm->invalidateByReference(string $sessionReference): SessionInvalidated   // exactly one session; idempotent
+$sm->invalidateByReference(string $sessionReference): SessionInvalidated   // exactly one session incl. its paired refresh token; idempotent
+// Pair link: access token claim '_refresh' = refresh hash, refresh token claim '_access' = access hash.
+// refresh(): the refreshed session keeps the claims of the original session (both tokens carry them).
+// '_'-prefixed claims are internal: never in Session::metadata, never in TenantAuthResult.
 $sm->invalidateAll(string $subject): AllSessionsInvalidated
 ```
 
@@ -54,7 +59,7 @@ new DbTokenStore(DbConnectionInterface $connection, string $table = 'auth_tokens
 new TokenAuthenticator(
     TokenStoreInterface $tokenStore,
     VerifyToken $verifyToken = new VerifyToken(),
-    string $tenantClaim = 'tenant',          // claim of the access token that carries the tenant
+    string $tenantClaim = SessionClaim::TENANT,   // claim of the access token that carries the tenant
     TokenType $expectedType = TokenType::Access,
 )
 $a->authenticate(Credential::token($plain)): TenantAuthResult   // implements SessionAwareAuthResultInterface
@@ -82,20 +87,36 @@ new Guard(Policy $policy)
 
 $guard->check(SessionInterface $session, string $permission): bool
 $guard->authorize(SessionInterface $session, string $permission): void  // throws UnauthorizedException
-// metadata['role'] accepts string or string[] — first match wins
+// metadata[SessionClaim::ROLE] accepts string or string[] — first match wins
 ```
 
 ### PasswordAuthenticator
 ```php
 new PasswordAuthenticator(
-    PasswordHasher $passwordHasher,  // concrete class, NOT PasswordHasherInterface
+    PasswordHasherInterface $passwordHasher,
     SessionManager $sessionManager,
-    Closure $userLookup  // fn(string $id): ?array{hash, subject: Subject, claims: array}
+    Closure|UserLookupInterface $userLookup
+    // Closure: fn(string $id): ?array{hash, subject: Subject, claims: array}
+    // UserLookupInterface: lookup(string): ?CredentialRecordInterface (getPasswordHash, getSubject 'type:id', getClaims)
+    //   mapped by Handler/Authentication/LookupCredentialRecord; subject without 'type:' → 'user:<value>'
 )
 $auth->authenticate(Credential $credential): AuthenticationResult
 // AuthenticationResult->isSuccess(), ->session, ->accessToken, ->events
 // Events on success: [SessionCreated, AuthenticationSucceeded]
 // Events on failure: [AuthenticationFailed]
+```
+
+### TokenIssuer / TokenRedeemer
+```php
+new TokenIssuer(TokenStoreInterface $tokenStore, int $tokenLength = 32)
+$issuer->issue(TokenType $type, Subject $subject, int $ttlSeconds, array $claims = []): IssuedToken
+// IssuedToken (readonly): string $plain (hand out once), HashedToken $hashed (as stored)
+
+new TokenRedeemer(TokenStoreInterface $tokenStore, VerifyToken $verifyToken = new VerifyToken())
+$redeemer->redeem(string $plainToken, TokenType $expectedType): HashedTokenInterface
+// success: token is revoked, stored token (subject, claims) returned
+// unknown token or wrong type: InvalidCredentialException; expired: TokenExpiredException;
+// already redeemed: TokenRevokedException
 ```
 
 ## DATA CLASSES (`src/Data/`)
@@ -109,6 +130,7 @@ $auth->authenticate(Credential $credential): AuthenticationResult
 | `Subject` | readonly — `id`, `type`, `toString()` → `"type:id"`, `equals()` |
 | `Credential` | readonly — `::password()`, `::apiKey()`, `::token()` |
 | `Token` | readonly — `::create(TokenType)`, `expiresIn()`, `forSubject()`, `withClaims()`, `hash()` → `HashedToken` |
+| `IssuedToken` | readonly — `plain`, `hashed: HashedToken` |
 | `HashedToken` | readonly, implements `HashedTokenInterface` — SHA-256 hash, `revoked`, `withRevoked()` |
 | `Permission` | readonly — `::from("resource:action")`, `matches()`, wildcard support |
 | `Policy` | readonly — `::fromArray()` or `PolicyBuilder`, `isAllowed(role, permission)`, `getRoles()` |
@@ -147,6 +169,9 @@ Plain readonly data objects — no interface, no dispatcher dependency. Caller d
 | `CredentialInterface` | `getType`, `getValue`, `getIdentifier` |
 | `AuthResultInterface` | `isSuccess`, `getSubject`, `getReason` |
 | `TenantAwareAuthResultInterface` | extends `AuthResultInterface` + `getTenant(): ?string` |
+| `UserLookupInterface` | `lookup(string): ?CredentialRecordInterface` (contracts >= 2.10) |
+| `CredentialRecordInterface` | `getPasswordHash`, `getSubject`, `getClaims` |
+| `SessionClaim` | final constants `TENANT = 'tenant'`, `ROLE = 'role'` |
 | `RequestAttribute` | final constants `SUBJECT = 'jardisSubject'`, `TENANT = 'jardisTenant'` |
 | `TokenType` (enum) | `Access`, `Refresh`, `ApiKey`, `Verification`, `PasswordReset` |
 | `CredentialType` (enum) | `Password`, `ApiKey`, `Token` |
