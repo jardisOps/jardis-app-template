@@ -1,6 +1,6 @@
 ---
 name: core-app
-description: jardiscore/app v1 - the HTTP-Delivery layer for Jardis domains, a FastRoute router hidden behind an own RouterInterface, a PSR-15 middleware pipeline, the canonical DomainResponse-to-PSR-7 envelope mapper, and a DomainKernel bootstrap bridge. TRIGGER: App, Routes, Router, RouterInterface, ParseJsonBody, X-Jardis-Version, knownVersions, jardisVersion, EmitResponse, HandleThrowable, MapDomainResponse, BuildErrorResponse, jardiscore/app, response envelope, {status,data,errors,meta}, health(), auto-HEAD, middleware: when and where, RequireSession, per-route middleware.
+description: jardiscore/app v1 - the HTTP-Delivery layer for Jardis domains, a FastRoute router hidden behind an own RouterInterface, a PSR-15 middleware pipeline, the canonical DomainResponse-to-PSR-7 envelope mapper, and a DomainKernel bootstrap bridge. TRIGGER: App, Routes, Router, RouterInterface, ParseJsonBody, X-Jardis-Version, knownVersions, jardisVersion, EmitResponse, HandleThrowable, MapDomainResponse, BuildErrorResponse, jardiscore/app, response envelope, {status,data,errors,meta}, health(), auto-HEAD, middleware: when and where, RequireSession, RequireRequestAttribute, request.attributeMissing, required request attribute, 403, per-route middleware.
 user-invocable: false
 zone: post-active
 persona: D
@@ -29,6 +29,7 @@ next: []
 | `Handler\Request\CreateServerRequest` | `__invoke(?array $server=null, ?array $headers=null, ?array $cookies=null, ?array $query=null, ?array $post=null, ?array $files=null, mixed $body=null): ServerRequestInterface` — Raw-Body-Invariante: reads `php://input` exactly once. |
 | `Handler\Response\EmitResponse` | `__invoke(ServerRequestInterface, ResponseInterface): void` — status line, headers, `Content-Length`, body (suppressed for HEAD, RFC 7231 §4.3.2). Never throws; best-effort 500 fallback on internal failure. |
 | `Middleware\RequireSession` (`implements Contract\SessionGuardInterface`, which extends `MiddlewareInterface`) | `__construct(AuthenticatorInterface $authenticator, Closure $credentialFor, ResponseFactoryInterface, StreamFactoryInterface, string $headerName = 'Authorization', string $scheme = 'Bearer')`. Session door — see SESSION below. Closures it composes: `ReadBearerToken`, `AuthenticateToken`, `ApplySession`; anonymity is read from the route attribute `DispatchAndRespond::ANONYMOUS_ATTRIBUTE`. |
+| `Middleware\RequireRequestAttribute` (`implements MiddlewareInterface`, NOT `SessionGuardInterface`) | `__construct(ResponseFactoryInterface, StreamFactoryInterface, string ...$names)`. Per-route presence check — see REQUIRED ATTRIBUTES below. Empty list / empty name -> `InvalidArgumentException`. |
 | `Data\Route` / `Data\RouteMatch` / `Data\RouteMatchStatus` | `final readonly` VOs. `Route(string $method, string $path, Closure\|RequestHandlerInterface $handler, array $middleware = [], bool $anonymous = false)` (`anonymous` is set only by `Routes::health()` and `Routes::anonymous()`). `RouteMatch` only via named constructors `found()/notFound()/methodNotAllowed()`. `RouteMatchStatus`: `Found`/`NotFound`/`MethodNotAllowed`. |
 | `Exception\AppException` (abstract), `Exception\InvalidJsonBody`, `Exception\UnresolvableHandlerResult` | `InvalidJsonBody` — empty/invalid/non-array JSON body (F8, mapped to 400). `UnresolvableHandlerResult` — handler returned neither `DomainResponseInterface` nor `ResponseInterface` (E6, propagates to generic 500). |
 
@@ -85,7 +86,7 @@ from the domain manifest); this package scans no directories and knows no classe
 
 **Pluggable:** any PSR-15 `MiddlewareInterface`. `Routes::middleware($m)` = global; the verb methods (`get/post/put/patch/delete`) take trailing `MiddlewareInterface ...$middleware` = per route. There is no route-group API. Order (`Handler/Pipeline/RunMiddlewarePipeline.php`): `[...global, ...route]`, outer first, registration order within each group.
 
-**Delivered:** `Middleware\RequireSession` - reads `Authorization: Bearer <token>`, authenticates through an `AuthenticatorInterface`, else 401 envelope + `WWW-Authenticate: Bearer`. Sets `RequestAttribute::SUBJECT`, `TENANT` (absent without tenant), `ROLE` (only for a `RoleAwareAuthResultInterface` with a non-empty role, else absent), `SUBJECT_ID`, `SESSION` (last two only for a session-aware result); client-supplied values are overwritten/removed. Anonymous: routes registered by `Routes::health()` or `Routes::anonymous()` (`Route::$anonymous`); there is no path-pattern list.
+**Delivered:** `Middleware\RequireSession` - reads `Authorization: Bearer <token>`, authenticates through an `AuthenticatorInterface`, else 401 envelope + `WWW-Authenticate: Bearer`. Sets `RequestAttribute::SUBJECT`, `TENANT` (absent without tenant), `ROLE` (only for a `RoleAwareAuthResultInterface` with a non-empty role, else absent), `SUBJECT_ID`, `SESSION` (last two only for a session-aware result); client-supplied values are overwritten/removed. **Also delivered:** `Middleware\RequireRequestAttribute` - per route, behind the session door: each named attribute must be a non-empty string, else 403 envelope `errors {message, messageKey: 'request.attributeMissing', context: {attribute}}` (first missing name wins); presence only, authorizes nothing, not a session guard. Anonymous: routes registered by `Routes::health()` or `Routes::anonymous()` (`Route::$anonymous`); there is no path-pattern list.
 
 **Where (app template):** the pipeline is the **project setting `middleware`** (Builder, `project.json`). `core/app` ships no wiring: the Builder generator emits `src/App/middleware.php` (`return static function (DomainKernelInterface $kernel): array`, regenerated on every build), which builds the PSR-15 instances itself, e.g.
 ```php
@@ -137,6 +138,20 @@ $routes->health('/health');                     // anonymous automatically
 - **Per route:** `$routes->get('/x', $handler, $requireSession)` guards only that route (global = guard everything except anonymous).
 - **`Contract\SessionGuardInterface`:** method-less marker (`extends MiddlewareInterface`), implemented by `RequireSession`. The start-up check only tests `instanceof`; a decorator around the guard does not count unless it implements the marker.
 - **Switch:** `new AppConfig(requireSessionGuard: true)` makes `new App(...)` throw `LogicException` listing `METHOD path` of every non-anonymous route without a guard in `[...global, ...route]`. Default `false`.
+
+## REQUIRED ATTRIBUTES — `RequireRequestAttribute` (PSR-15, per route)
+For a door that depends on a request attribute (e.g. a tenant). Presence check only - no role/ownership check (that is domain logic).
+```php
+use JardisCore\App\Middleware\RequireRequestAttribute;
+use JardisSupport\Contract\Auth\RequestAttribute;
+
+$routes->middleware($requireSession);
+$routes->get('/projects', $handler, new RequireRequestAttribute($psr17, $psr17, RequestAttribute::TENANT));
+```
+- **Check:** per name, in order: the attribute must be a non-empty string (absent / not a string / `''` fails); the first failing name ends the request.
+- **403:** `{status:403, data:{}, errors:{message, messageKey:"request.attributeMissing" (const `MESSAGE_KEY`), context:{attribute:"<name>"}}, meta:{}}` - same form as the 401, no `@type`; handler not called. Otherwise the request passes unchanged.
+- **Order:** behind the middleware that sets the attribute; with no token the session door answers 401 first. A path placeholder `{jardisTenant}` cannot satisfy it (`ApplySession` strips it).
+- **Not a guard:** does not implement `SessionGuardInterface` -> never satisfies `requireSessionGuard`. 404/405 unchanged (runs only on a matched route).
 
 ## ENVELOPE CONTRACT — `{status, data, errors, meta}`
 Reference: `jardissupport/contracts` → `docs/response-envelope.md`. `ResponseStatus` (11 cases, `jardissupport/contracts`,

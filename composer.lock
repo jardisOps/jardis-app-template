@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "e24cfb5da99e17866d04e653fcf8e654",
+    "content-hash": "3d9839fc1fdd5b9c27ad2088af9ac87e",
     "packages": [
         {
             "name": "jardisadapter/dbconnection",
@@ -205,16 +205,16 @@
         },
         {
             "name": "jardiscore/app",
-            "version": "v1.7.0",
+            "version": "v1.8.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/jardisCore/app.git",
-                "reference": "88242efdeb21618282d187b8effab4b6c1d5d489"
+                "reference": "6cbc3e01f9cfd0bc3592a118894b0e93dd400bb9"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/jardisCore/app/zipball/88242efdeb21618282d187b8effab4b6c1d5d489",
-                "reference": "88242efdeb21618282d187b8effab4b6c1d5d489",
+                "url": "https://api.github.com/repos/jardisCore/app/zipball/6cbc3e01f9cfd0bc3592a118894b0e93dd400bb9",
+                "reference": "6cbc3e01f9cfd0bc3592a118894b0e93dd400bb9",
                 "shasum": ""
             },
             "require": {
@@ -274,9 +274,9 @@
                 "docs": "https://docs.jardis.io/en/core/app",
                 "email": "jardisDev@headgent.com",
                 "issues": "https://github.com/jardisCore/app/issues",
-                "source": "https://github.com/jardisCore/app/tree/v1.7.0"
+                "source": "https://github.com/jardisCore/app/tree/v1.8.0"
             },
-            "time": "2026-10-15T06:52:04+00:00"
+            "time": "2026-10-15T18:19:43+00:00"
         },
         {
             "name": "jardiscore/kernel",

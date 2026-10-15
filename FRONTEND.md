@@ -114,6 +114,7 @@ Error answers are declared per status code in each operation's `responses`; `dat
 | Status | `@type` | Schema | Fields |
 |---|---|---|---|
 | `400` | `validation` | `ValidationError` | `fields[]` of `{field, reason, message, messageKey}`; `reason` is `missing` / `invalid` / `type` / `unknown` |
+| `403` | none (`data` is `{}`) | — | `errors.messageKey` = `request.attributeMissing`, `errors.context.attribute` (the missing request attribute, e.g. `jardisTenant`), `errors.message`; `data` is `{}`. A door that needs a session attribute (e.g. a tenant) answers this when the session lacks it; without a token the answer is `401`, not `403` |
 | `404` | `notFound` | `NotFound` | `context` (the path parameters of the lookup) |
 | `409` | `concurrencyConflict` | `ConcurrencyConflict` | `reason`, `aggregate`, `context`, `violated` (see notes above) |
 | `422` | `ruleViolation` | `RuleViolation` | `rule`, `messageKey`, `context` |
