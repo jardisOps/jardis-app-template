@@ -13,10 +13,11 @@ next: []
 
 ## ARCHITECTURE
 ```
-SessionManager        create/refresh/invalidate sessions → SessionResult + events
+AuthServices          bundle of SessionManager, TokenIssuer, TokenRedeemer, PasswordHasher (AuthServicesInterface); fromStore() builds it with defaults
+SessionManager        implements SessionManagerInterface — create/refresh/invalidate sessions → SessionResult + events
 PasswordAuthenticator lookup user (closure or UserLookupInterface) → verify password → create session → AuthenticationResult
 TokenIssuer           issue one-time token (type, subject, ttl, claims) → IssuedToken{plain, hashed}
-TokenRedeemer         redeem one-time token: find → verify type/expiry → revoke → stored token
+TokenRedeemer         peek (find → verify type/expiry/revocation, no revoke) / redeem (peek + revoke) → stored token
 SignedTokenAuthenticator signed access token (no store) → subject + subject id + tenant + session reference `sid` (TenantAuthResult)
 TokenAuthenticator    stored token credential (ApiKey/Verification/PasswordReset/issued) → verified session: subject + subject id + tenant + session reference (TenantAuthResult)
 DbTokenStore          TokenStoreInterface on DbConnectionInterface via jardissupport/dbquery (hash only)
@@ -37,16 +38,23 @@ new SessionManager(
     int $tokenLength = 32,
 )
 
-$sm->create(Subject $subject, array $claims = []): SessionResult
+$sm->create(Subject|string $subject, array $claims = []): SessionResult   // string = qualified 'type:id' (Subject::parse), contract signature
     // Returns: SessionResult{session, accessToken (SIGNED, not stored), refreshToken (opaque, hash in store), events=[SessionCreated]}
     // session->tokenHash = sid = HashedToken::hashOf(refreshToken); payload {typ:"access",sub,sid,iat,exp,claims}
-$sm->refresh(string $refreshTokenValue): SessionResult
+$sm->refresh(string $refreshToken): SessionResult
     // Returns: events=[SessionCreated, SessionRefreshed]
 $sm->invalidate(SessionInterface $session): SessionInvalidated
-$sm->invalidateByReference(string $sessionReference): SessionInvalidated   // revokes the refresh token of exactly one session (sid); idempotent. An issued access token stays valid until exp.
+$sm->invalidateByReference(string $sessionReference): void   // since v1.6 void (contract); handler Handler/Session/InvalidateSessionByReference still returns the SessionInvalidated event. Revokes the refresh token of exactly one session (sid); idempotent. An issued access token stays valid until exp.
 // refresh(): new refresh + new access (new sid); the refreshed session keeps the claims of the original session.
 // '_'-prefixed claims are internal: never in Session::metadata, never in TenantAuthResult.
-$sm->invalidateAll(string $subject): AllSessionsInvalidated
+$sm->invalidateAll(string $subject): void       // since v1.6 void (contract); handler InvalidateAllSessions returns AllSessionsInvalidated
+```
+
+### AuthServices
+```php
+new AuthServices(SessionManagerInterface, TokenIssuerInterface, TokenRedeemerInterface, PasswordHasherInterface)
+AuthServices::fromStore(TokenStoreInterface $store, #[\SensitiveParameter] string $accessTokenKey, ?PasswordHasherInterface $hasher = null): self   // defaults, Argon2id hasher, no env reading
+$s->sessions() · ->tokenIssuer() · ->tokenRedeemer() · ->hasher()
 ```
 
 ### DbTokenStore
@@ -60,7 +68,7 @@ new DbTokenStore(DbConnectionInterface $connection, string $table = 'auth_tokens
 ```php
 new SignedTokenAuthenticator(string $accessTokenKey, string $tenantClaim = SessionClaim::TENANT, ?Closure $clock = null)
 $a->authenticate(Credential::token($signed)): TenantAuthResult   // no store access
-// success: getSubject() 'user:42', getSubjectId() '42', getTenant() ?string (claims[tenantClaim]), getSessionReference() = sid
+// success: getSubject() 'user:42', getSubjectId() '42', getTenant() ?string (claims[tenantClaim]), getRole() ?string (claims[SessionClaim::ROLE], null if absent), getSessionReference() = sid
 // failure: 'Invalid token' (form/MAC/typ/sub/sid) | 'Token expired' (authentic, exp passed) | 'Unsupported credential type'
 // Handlers: Handler/Token/SignAccessToken(key)(array $payload): string · VerifyAccessToken(key, ?clock)(string): ?array (throws TokenExpiredException)
 // Token = base64url(json) . '.' . base64url(sodium_crypto_auth(segment, key)); no header/alg; key rotation = all access tokens invalid
@@ -77,7 +85,7 @@ new TokenAuthenticator(
 )
 $a->authenticate(Credential::token($plain)): TenantAuthResult   // implements SessionAwareAuthResultInterface
 // success: isSuccess(), getSubject() 'user:42', getSubjectId() '42', getTenant() ?string,
-//          getSessionReference() = HashedToken::hashOf($plain), getReason() null
+//          getRole() ?string (stored claim SessionClaim::ROLE), getSessionReference() = HashedToken::hashOf($plain), getReason() null
 // failure: getReason() 'Invalid token' | 'Token expired' | 'Token revoked' | 'Unsupported credential type'
 // Tenant claim for session tokens is set at login: $sm->create(Subject::from('42'), ['tenant' => 'acme'])
 // Transports store the result under RequestAttribute::SUBJECT / ::SUBJECT_ID / ::TENANT / ::SESSION (jardissupport/contracts >= 2.9)
@@ -107,7 +115,7 @@ $guard->authorize(SessionInterface $session, string $permission): void  // throw
 ```php
 new PasswordAuthenticator(
     PasswordHasherInterface $passwordHasher,
-    SessionManager $sessionManager,
+    SessionManagerInterface $sessionManager,
     Closure|UserLookupInterface $userLookup
     // Closure: fn(string $id): ?array{hash, subject: Subject, claims: array}
     // UserLookupInterface: lookup(string): ?CredentialRecordInterface (getPasswordHash, getSubject 'type:id', getClaims)
@@ -122,11 +130,12 @@ $auth->authenticate(Credential $credential): AuthenticationResult
 ### TokenIssuer / TokenRedeemer
 ```php
 new TokenIssuer(TokenStoreInterface $tokenStore, int $tokenLength = 32)
-$issuer->issue(TokenType $type, Subject $subject, int $ttlSeconds, array $claims = []): IssuedToken
-// IssuedToken (readonly): string $plain (hand out once), HashedToken $hashed (as stored)
+$issuer->issue(TokenType $type, Subject|string $subject, int $ttlSeconds, array $claims = []): IssuedToken   // implements TokenIssuerInterface; string = 'type:id'
+// IssuedToken (readonly): string $plain (hand out once), HashedToken $hashed (as stored); getters getPlain()/getHashed() (IssuedTokenInterface)
 
 new TokenRedeemer(TokenStoreInterface $tokenStore, VerifyToken $verifyToken = new VerifyToken())
-$redeemer->redeem(string $plainToken, TokenType $expectedType): HashedTokenInterface
+$redeemer->peek(string $plain, TokenType $expected): HashedTokenInterface     // same checks as redeem, token is NOT revoked (Handler/Token/PeekToken)
+$redeemer->redeem(string $plain, TokenType $expected): HashedTokenInterface   // implements TokenRedeemerInterface
 // success: token is revoked, stored token (subject, claims) returned
 // unknown token or wrong type: InvalidCredentialException; expired: TokenExpiredException;
 // already redeemed: TokenRevokedException
@@ -137,13 +146,14 @@ $redeemer->redeem(string $plainToken, TokenType $expectedType): HashedTokenInter
 | Class | Key fields / notes |
 |-------|-------------------|
 | `Session` | readonly — `subject`, `tokenHash`, `createdAt`, `expiresAt`, `metadata` |
-| `SessionResult` | readonly — `session`, `accessToken`, `refreshToken`, `events: list<object>` |
+| `SessionResult` | readonly, implements `SessionResultInterface` — `session`, `accessToken`, `refreshToken`, `events: list<object>`; getters `getSession/getAccessToken/getRefreshToken` |
 | `AuthResult` | readonly — `::success()` / `::failure()` factories, `subject: Subject`, `reason` |
 | `AuthenticationResult` | readonly, implements `AuthResultInterface` — wraps `AuthResult` + session + tokens + events |
 | `Subject` | readonly — `id`, `type`, `toString()` → `"type:id"`, `equals()` |
 | `Credential` | readonly — `::password()`, `::apiKey()`, `::token()` |
 | `Token` | readonly — `::create(TokenType)`, `expiresIn()`, `forSubject()`, `withClaims()`, `hash()` → `HashedToken` |
-| `IssuedToken` | readonly — `plain`, `hashed: HashedToken` |
+| `IssuedToken` | readonly, implements `IssuedTokenInterface` — `plain`, `hashed: HashedToken`; getters `getPlain/getHashed` |
+| `TenantAuthResult` | readonly, implements `SessionAwareAuthResultInterface` + `RoleAwareAuthResultInterface` — `::success($subject, $tenant, $sessionReference, $role)`, `getRole()` |
 | `HashedToken` | readonly, implements `HashedTokenInterface` — SHA-256 hash, `revoked`, `withRevoked()` |
 | `Permission` | readonly — `::from("resource:action")`, `matches()`, wildcard support |
 | `Policy` | readonly — `::fromArray()` or `PolicyBuilder`, `isAllowed(role, permission)`, `getRoles()` |
@@ -185,8 +195,13 @@ Plain readonly data objects — no interface, no dispatcher dependency. Caller d
 | `UserLookupInterface` | `lookup(string): ?CredentialRecordInterface` (contracts >= 2.10) |
 | `CredentialRecordInterface` | `getPasswordHash`, `getSubject`, `getClaims` |
 | `SessionClaim` | final constants `TENANT = 'tenant'`, `ROLE = 'role'` |
-| `RequestAttribute` | final constants `SUBJECT = 'jardisSubject'`, `TENANT = 'jardisTenant'` |
-| `TokenType` (enum) | `Access`, `Refresh`, `ApiKey`, `Verification`, `PasswordReset` |
+| `RequestAttribute` | final constants `SUBJECT`, `SUBJECT_ID`, `TENANT`, `SESSION`, `ROLE = 'jardisRole'` |
+| `SessionManagerInterface` | `create(string $subject, array $claims)`, `refresh`, `invalidateByReference(): void`, `invalidateAll(): void` (contracts >= 2.11) |
+| `TokenIssuerInterface` / `TokenRedeemerInterface` | `issue` / `peek`, `redeem` (contracts >= 2.11) |
+| `SessionResultInterface` / `IssuedTokenInterface` | `getAccessToken/getRefreshToken/getSession` / `getPlain/getHashed` |
+| `RoleAwareAuthResultInterface` | extends `AuthResultInterface` + `getRole(): ?string` |
+| `AuthServicesInterface` | `sessions`, `tokenIssuer`, `tokenRedeemer`, `hasher` |
+| `TokenType` (enum) | `Access`, `Refresh`, `ApiKey`, `Verification`, `PasswordReset`, `Invitation` |
 | `CredentialType` (enum) | `Password`, `ApiKey`, `Token` |
 
 ## USAGE — RBAC

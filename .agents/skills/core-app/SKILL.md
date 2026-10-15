@@ -85,7 +85,7 @@ from the domain manifest); this package scans no directories and knows no classe
 
 **Pluggable:** any PSR-15 `MiddlewareInterface`. `Routes::middleware($m)` = global; the verb methods (`get/post/put/patch/delete`) take trailing `MiddlewareInterface ...$middleware` = per route. There is no route-group API. Order (`Handler/Pipeline/RunMiddlewarePipeline.php`): `[...global, ...route]`, outer first, registration order within each group.
 
-**Delivered:** `Middleware\RequireSession` - reads `Authorization: Bearer <token>`, authenticates through an `AuthenticatorInterface`, else 401 envelope + `WWW-Authenticate: Bearer`. Sets `RequestAttribute::SUBJECT`, `TENANT` (absent without tenant), `SUBJECT_ID`, `SESSION` (last two only for a session-aware result); client-supplied values are overwritten/removed. Anonymous: routes registered by `Routes::health()` or `Routes::anonymous()` (`Route::$anonymous`); there is no path-pattern list.
+**Delivered:** `Middleware\RequireSession` - reads `Authorization: Bearer <token>`, authenticates through an `AuthenticatorInterface`, else 401 envelope + `WWW-Authenticate: Bearer`. Sets `RequestAttribute::SUBJECT`, `TENANT` (absent without tenant), `ROLE` (only for a `RoleAwareAuthResultInterface` with a non-empty role, else absent), `SUBJECT_ID`, `SESSION` (last two only for a session-aware result); client-supplied values are overwritten/removed. Anonymous: routes registered by `Routes::health()` or `Routes::anonymous()` (`Route::$anonymous`); there is no path-pattern list.
 
 **Where (app template):** the pipeline is the **project setting `middleware`** (Builder, `project.json`). `core/app` ships no wiring: the Builder generator emits `src/App/middleware.php` (`return static function (DomainKernelInterface $kernel): array`, regenerated on every build), which builds the PSR-15 instances itself, e.g.
 ```php
@@ -103,7 +103,7 @@ The once-written `src/App/bootstrap.php` loads it into the `'middleware'` entry 
 **Boundary:** retrofitting a standard middleware = a PSR-15 class in `jardisCore/app` plus one line in the generated `middleware.php`; a project-specific middleware = an own PSR-15 class in the project, its FQCN named in the project setting. Not a patch of the template's `index.php`. A generally useful one (CORS, request id/audit, rate limit, tenant context) is an issue in `jardisCore/app`, not project code imitating the package.
 
 ## SESSION — `RequireSession` (PSR-15, global or per route)
-Binds a request to a verified session or rejects it. Depends only on the ports of `jardissupport/contracts` ^2.9
+Binds a request to a verified session or rejects it. Depends only on the ports of `jardissupport/contracts` ^2.11
 (`AuthenticatorInterface`, `CredentialInterface`, `TenantAwareAuthResultInterface`, `RequestAttribute`) — NOT on `support/auth`.
 ```php
 use JardisCore\App\Middleware\RequireSession;
@@ -126,6 +126,7 @@ $routes->health('/health');                     // anonymous automatically
 - **Session:** valid → request attribute `RequestAttribute::SUBJECT` (`jardisSubject`) and, if the result is `TenantAwareAuthResultInterface`
   with a non-empty tenant, `RequestAttribute::TENANT` (`jardisTenant`); no tenant → the attribute is ABSENT (never null/''). Pre-existing
   attributes of these names (e.g. a path placeholder `{jardisSubject}`) are always overwritten/removed, also on anonymous paths.
+  If the result is a `RoleAwareAuthResultInterface` (contracts ^2.11, auth ^1.6) with a non-empty role, `RequestAttribute::ROLE` (`jardisRole`) is set too; else ABSENT (never null/''). It is an attribute, not a guard - core/app authorizes nothing, no new middleware. Same forgery strip.
   If the result is a `SessionAwareAuthResultInterface` (contracts ^2.9, auth ^1.3) it additionally sets `RequestAttribute::SUBJECT_ID`
   (`jardisSubjectId`, bare id without `user:` prefix) and `RequestAttribute::SESSION` (`jardisSession`, reference that revokes exactly this
   session); empty/null or a plain tenant-aware result → both ABSENT. Same forgery strip as SUBJECT/TENANT.
@@ -209,7 +210,7 @@ Reference: `jardissupport/contracts` → `docs/response-envelope.md`. `ResponseS
 ## DEPENDENCIES
 ```
 jardiscore/kernel            ^2.0
-jardissupport/contracts      ^2.10
+jardissupport/contracts      ^2.11
 jardissupport/factory        ^1.0
 nikic/fast-route             ^1.3
 nyholm/psr7                  ^1.8
