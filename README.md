@@ -365,7 +365,7 @@ attributes (documentation, not a rule the Builder enforces).
 `RequestAttribute::TENANT` (`jardisTenant`). The tenant attribute is absent —
 never `null` — when the token carries none; the token's `tenant` claim is set at
 login: `$sessionManager->create(Subject::from('42'), ['tenant' => 'acme'])`
-(`SessionManager` over the same `DbTokenStore`; login itself is yours to build).
+(`SessionManager` over the same `DbTokenStore`; login/refresh/... come from the Builder blueprint "Access" (in progress), whose nodes call `kernel->auth()`).
 The access token is signed (`SignedTokenAuthenticator`, key `AUTH_TOKEN_KEY` in
 `.env.example`): `RequireSession` verifies it without any database access per
 request. Only refreshing a session goes through `DbTokenStore`.
