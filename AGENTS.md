@@ -100,16 +100,16 @@ HTTP delivery layer for Jardis-generated domains — a FastRoute router behind i
 <!-- source: jardiscore/kernel -->
 # jardiscore/kernel
 
-Immutable infrastructure holder (the DomainKernel) for Jardis-generated domains, with an optional ENV-driven bootstrap packer.
+Immutable infrastructure holder (the DomainKernel) for Jardis-generated domains, with an optional ENV-driven bootstrap packer that also assembles the ready-made session and token services from configuration.
 
-- **Use when:** you need to assemble and inject the infrastructure (db connection, cache, logger, events, HTTP client, mailer, filesystem) that a generated {Domain} facade takes via constructor injection
+- **Use when:** you need to assemble and inject the infrastructure (db connection, cache, logger, events, HTTP client, mailer, filesystem, session and token services) that a generated {Domain} facade takes via constructor injection
 - **How:** load skill `core-kernel` before touching the API — it carries the usage essentials and pitfalls.
   Full reference: https://docs.jardis.io/en/core/kernel
 
 <!-- source: jardissupport/auth -->
 # jardissupport/auth
 
-Session management, password hashing and authentication, and role-based access control with domain events.
+Session management with signed access tokens (no database access per request) that carry subject, tenant and role, password hashing and authentication, a ready-made bundle of session and token services (also available through the kernel), and role-based access control with domain events.
 
 - **Use when:** you need user login, session lifecycle management, password verification, or role-based permission checks
 - **How:** load skill `support-auth` before touching the API — it carries the usage essentials and pitfalls.
@@ -127,7 +127,7 @@ Versioned class resolution via namespace injection with proxy caching and fallba
 <!-- source: jardissupport/contracts -->
 # jardissupport/contracts
 
-Shared port interfaces and contracts for all Jardis packages.
+Shared port interfaces and contracts for all Jardis packages, including the authentication, token and session-service ports.
 
 - **Use when:** you need the interface definitions that Jardis adapters implement, without depending on any concrete implementation
 - **How:** load skill `support-contracts` before touching the API — it carries the usage essentials and pitfalls.
@@ -136,7 +136,7 @@ Shared port interfaces and contracts for all Jardis packages.
 <!-- source: jardissupport/data -->
 # jardissupport/data
 
-Entity hydration from raw data, change tracking, field mapping, and unique identifier generation.
+Entity hydration from raw data, change tracking, field mapping with optional skipping of null values for write-only columns, and unique identifier generation.
 
 - **Use when:** you need to hydrate domain entities from persistence data, detect changed fields, map column names, or generate unique entity identifiers
 - **How:** load skill `support-data` before touching the API — it carries the usage essentials and pitfalls.

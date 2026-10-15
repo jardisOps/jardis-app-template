@@ -25,15 +25,15 @@ namespace stays **singular**. Package name ≠ namespace, that is not a contradi
 
 ## WHAT IS IN HERE
 Contracts only — interfaces, enums, `final readonly` value objects and exception classes. **Zero
-implementation code, no tests.** Implementations live in the adapter/support packages; this package
+implementation code**; the only tests are contract-shape conformance tests (reflection on signatures). Implementations live in the adapter/support packages; this package
 is the port layer that keeps the hexagonal dependency direction honest across the ecosystem.
 
-108 contracts across 18 namespaces under `src/`.
+115 contracts across 18 namespaces under `src/`.
 
 ## CONTRACT GROUPS
 | Namespace | # | Contracts | Implemented by |
 |---|---|---|---|
-| `Auth` | 16 | `UserLookupInterface` (`lookup(string $identifier): ?CredentialRecordInterface`), `CredentialRecordInterface` (`getPasswordHash(): string`, `getSubject(): string` format `type:id`, `getClaims(): array<string, mixed>`), `SessionClaim` (final constants `TENANT = tenant`, `ROLE = role`), `AuthResultInterface`, `TenantAwareAuthResultInterface` (additive: `getTenant()`; consumers check `instanceof`), `SessionAwareAuthResultInterface` (extends it; `getSubjectId()` bare id, `getSessionReference()` token-hash reference to revoke exactly this session), `RequestAttribute` (final constants `SUBJECT = jardisSubject`, `TENANT = jardisTenant`, `SUBJECT_ID = jardisSubjectId`, `SESSION = jardisSession` — request attribute names), `AuthenticatorInterface`, `CredentialInterface`, `CredentialType` (enum), `GuardInterface`, `HashedTokenInterface`, `PasswordHasherInterface`, `SessionInterface`, `TokenStoreInterface`, `TokenType` (enum) | `support-auth` |
+| `Auth` | 23 | `UserLookupInterface` (`lookup(string $identifier): ?CredentialRecordInterface`), `CredentialRecordInterface` (`getPasswordHash(): string`, `getSubject(): string` format `type:id`, `getClaims(): array<string, mixed>`), `SessionClaim` (final constants `TENANT = tenant`, `ROLE = role`), `AuthResultInterface`, `TenantAwareAuthResultInterface` (additive: `getTenant()`; consumers check `instanceof`), `SessionAwareAuthResultInterface` (extends it; `getSubjectId()` bare id, `getSessionReference()` token-hash reference to revoke exactly this session), `RequestAttribute` (final constants `SUBJECT = jardisSubject`, `TENANT = jardisTenant`, `SUBJECT_ID = jardisSubjectId`, `SESSION = jardisSession`, `ROLE = jardisRole` (2.11; set from claim `SessionClaim::ROLE` only when the token carries it) — request attribute names), `AuthenticatorInterface`, `CredentialInterface`, `CredentialType` (enum), `GuardInterface`, `HashedTokenInterface`, `PasswordHasherInterface`, `SessionInterface`, `TokenStoreInterface`, `TokenType` (enum, since 2.11 also `Invitation`). **Auth services (2.11, additive):** `AuthServicesInterface` (exactly four accessors `sessions()`, `tokenIssuer()`, `tokenRedeemer()`, `hasher()`; reached via `DomainKernelInterface::auth(): ?AuthServicesInterface`, `null` = app wires no auth), `SessionManagerInterface` (`create(string $subject, array $claims = [])` / `refresh(string $refreshToken)` → `SessionResultInterface`, `invalidateByReference(string)`, `invalidateAll(string $subject)`; subject = qualified `type:id`; lifecycle events stay auth-internal), `SessionResultInterface` (`getAccessToken`, `getRefreshToken`, `getSession(): SessionInterface`), `TokenIssuerInterface` (`issue(TokenType, string $subject, int $ttlSeconds, array $claims = []): IssuedTokenInterface`), `IssuedTokenInterface` (`getPlain`, `getHashed(): HashedTokenInterface`), `TokenRedeemerInterface` (`peek(string $plain, TokenType $expected)` finds + validates WITHOUT revoking, `redeem(...)` validates + revokes once; both return `HashedTokenInterface`; failure exceptions live in `jardissupport/auth` and are only documented), `RoleAwareAuthResultInterface` (extends `AuthResultInterface`, `getRole(): ?string`). No auth data classes live in contracts. | `support-auth` |
 | `ClassVersion` | 2 | `ClassVersionInterface`, `ClassVersionConfigInterface` | `support-classversion` |
 | `Connection` | 1 | `ConnectionInterface` — generic connection abstraction | — |
 | `Data` | 3 | `HydrationInterface`, `IdentityInterface`, `FieldMapperInterface` | `support-data` |
@@ -42,7 +42,7 @@ is the port layer that keeps the hexagonal dependency direction honest across th
 | `DotEnv` | 1 | `DotEnvInterface` | `support-dotenv` |
 | `EventListener` | 1 | `EventListenerRegistryInterface` — registration side, paired with the PSR-14 dispatcher | `adapter-eventdispatcher` |
 | `Filesystem` | 6 | `FilesystemInterface`, `FilesystemReaderInterface`, `FilesystemWriterInterface`, `FilesystemServiceInterface`, `FileInfoInterface`, `FilesystemExceptionInterface` | `adapter-filesystem` |
-| `Identity` | 12 | `UserStatus` (enum `Active`/`Disabled`); read-only entities `UserInterface` (`getId/getEmail/getDisplayName/getStatus/getCreatedAt`, no hash), `TenantInterface` (`getId/getSlug/getName/getCreatedAt`), `MembershipInterface` (`getUserId/getTenantId/getRole/getCreatedAt`), `GroupInterface` (`getId/getTenantId/getName/getCreatedAt`), `InvitationInterface` (`getId/getTenantId/getEmail/getRole/getTokenHash/getExpiresAt/getAcceptedAt/getRevokedAt/getCreatedAt`); stores `UserStoreInterface` (`store($user, $passwordHash)`, `updateStatus`, `updatePasswordHash`, `findById`, `findByEmail`, `passwordHashOf`), `TenantStoreInterface` (`store`, `findById`, `findBySlug`), `MembershipStoreInterface` (`store`, `updateRole`, `remove`, `find`, `listForUser`, `listForTenant`), `GroupStoreInterface` (`store`, `findById`, `findByName`, `listForTenant`), `GroupMemberStoreInterface` (`add`, `remove`, `removeUserFromTenantGroups`, `listMembers`, `isMember`), `InvitationStoreInterface` (`store`, `findByTokenHash`, `findPending`, `listPendingForTenant`, `markAccepted(id, at): bool` CAS, `markRevoked`) | `support-identity` (jardissupport/identity) |
+| `Identity` | 12 | **DEPRECATED since 2.11.0** (generic subdomain, replaced by the Builder blueprint "Access"; nothing removed, removal only in the next major) — `UserStatus` (enum `Active`/`Disabled`); read-only entities `UserInterface` (`getId/getEmail/getDisplayName/getStatus/getCreatedAt`, no hash), `TenantInterface` (`getId/getSlug/getName/getCreatedAt`), `MembershipInterface` (`getUserId/getTenantId/getRole/getCreatedAt`), `GroupInterface` (`getId/getTenantId/getName/getCreatedAt`), `InvitationInterface` (`getId/getTenantId/getEmail/getRole/getTokenHash/getExpiresAt/getAcceptedAt/getRevokedAt/getCreatedAt`); stores `UserStoreInterface` (`store($user, $passwordHash)`, `updateStatus`, `updatePasswordHash`, `findById`, `findByEmail`, `passwordHashOf`), `TenantStoreInterface` (`store`, `findById`, `findBySlug`), `MembershipStoreInterface` (`store`, `updateRole`, `remove`, `find`, `listForUser`, `listForTenant`), `GroupStoreInterface` (`store`, `findById`, `findByName`, `listForTenant`), `GroupMemberStoreInterface` (`add`, `remove`, `removeUserFromTenantGroups`, `listMembers`, `isMember`), `InvitationStoreInterface` (`store`, `findByTokenHash`, `findPending`, `listPendingForTenant`, `markAccepted(id, at): bool` CAS, `markRevoked`) | `support-identity` (jardissupport/identity) |
 | `Kernel` | 6 | `DomainKernelInterface`, `GeneratedContextInterface`, `ContextResponseInterface`, `DomainResponseInterface`, `EventScope` (enum), `ResponseStatus` (enum) | `core-kernel` + generated domain |
 | `Mailer` | 4 | `MailerInterface`, `MailMessageInterface`, `MailTransportInterface`, `MailerExceptionInterface` | `adapter-mailer` |
 | `Messaging` | 10 | `MessagePublisherInterface`, `MessageConsumerInterface`, `PublisherInterface`, `ConsumerInterface`, `MessageHandlerInterface`, `MessagingServiceInterface` + `Exception\{MessageException, ConnectionException, ConsumerException, PublishException}` | `adapter-messaging` |
@@ -78,15 +78,16 @@ use JardisSupport\Contract\Repository\PrimaryKey\PkStrategy;  // pure enum
 // AUTOINCREMENT · INTEGER · NONE
 
 use JardisSupport\Contract\Auth\CredentialType;     // string-backed
-use JardisSupport\Contract\Auth\TokenType;          // string-backed
+use JardisSupport\Contract\Auth\TokenType;          // string-backed: Access, Refresh, ApiKey, Verification, PasswordReset, Invitation
 use JardisSupport\Contract\Auth\SessionClaim;       // final constants: TENANT = 'tenant', ROLE = 'role'
 use JardisSupport\Contract\Identity\UserStatus;      // string-backed: Active, Disabled
-use JardisSupport\Contract\Auth\RequestAttribute;  // final constants: SUBJECT, TENANT, SUBJECT_ID = 'jardisSubjectId', SESSION = 'jardisSession'
+use JardisSupport\Contract\Auth\RequestAttribute;  // final constants: SUBJECT, TENANT, SUBJECT_ID = 'jardisSubjectId', SESSION = 'jardisSession', ROLE = 'jardisRole'
 ```
 
 ## KERNEL CONTRACTS — GENERATED-CODE SURFACE
-- `DomainKernelInterface` — the DomainKernel contract: 12 accessors (11 nullable/typed service
-  accessors plus `container()`), among them `eventListenerRegistry():
+- `DomainKernelInterface` — the DomainKernel contract: 13 accessors (12 nullable/typed service
+  accessors plus `container()`), among them `auth(): ?AuthServicesInterface` (2.11; adding it
+  obliges every kernel implementor to implement it), and `eventListenerRegistry():
   ?EventListenerRegistryInterface`, the registration counterpart to `eventDispatcher()` (without a
   registry, event routing simply stays inactive), and `messaging(): ?MessagingServiceInterface`
   (added v2.0.0). `projectRoot(): string` was renamed from `domainRoot()` in v2.0.0 (BREAKING) —

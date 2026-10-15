@@ -19,7 +19,7 @@ next: [support-repository]
 ```php
 $h = new Hydration();
 $h->hydrate(object $entity, array $row): object           // DB row → entity + snapshot (merge)
-$h->apply(object $entity, array $data): object            // set properties, NO snapshot update
+$h->apply(object $entity, array $data, array $skipNullKeys = []): object  // set properties, NO snapshot update; keys in $skipNullKeys with null are NOT written (field untouched)
 $h->hydrateAggregate(object $agg, array $data): object    // recursive nested hydration
 $h->loadMultiple(object $template, array $rows): array    // clone template per row
 
@@ -47,7 +47,7 @@ $id->generateNanoId(int $length = 21, string $alphabet = '...'): string  // URL-
 ```php
 $fm = new FieldMapper();
 // Map format: [domainName => columnName]
-$fm->toColumns(array $data, array $map): array    // domain → DB, flat only, unmapped keys pass through
+$fm->toColumns(array $data, array $map, array $skipNullColumns = []): array    // domain → DB, flat only, unmapped keys pass through; a key whose COLUMN name is in $skipNullColumns and whose value is null is omitted (caller supplies the list, e.g. password hash on update); empty list = old behaviour
 $fm->fromColumns(array $data, array $map): array  // DB → domain, recursive, unmapped keys pass through
 $fm->fromAggregate(array $data, callable $mapProvider, string $entity): array
 // mapProvider: fn(string $entityName): array — per-entity map
