@@ -39,6 +39,11 @@ The delivered state runs on SQLite and needs no database container. That is
 possible because the Jardis kernel treats every adapter as optional: an unset
 ENV means the kernel carries `null` for that service instead of failing.
 
+Booting is lazy (kernel 2.7, dbconnection 1.4): the kernel opens no connection
+and no file while it is built — the SQLite file `var/app.sqlite` is created by
+the first database access, not by starting the app. A request that never
+touches the database leaves `var/` untouched.
+
 ## Opt-in services
 
 Every service beyond web + app is a compose profile, selected through **one
