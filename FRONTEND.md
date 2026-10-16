@@ -114,7 +114,7 @@ Error answers are declared per status code in each operation's `responses`; `dat
 | Status | `@type` | Schema | Fields |
 |---|---|---|---|
 | `400` | `validation` | `ValidationError` | `fields[]` of `{field, reason, message, messageKey}`; `reason` is `missing` / `invalid` / `type` / `unknown` |
-| `403` | none (`data` is `{}`) | — | `errors.messageKey` = `request.attributeMissing`, `errors.context.attribute` (the missing request attribute, e.g. `jardisTenant`), `errors.message`; `data` is `{}`. A door that needs a session attribute (e.g. a tenant) answers this when the session lacks it; without a token the answer is `401`, not `403` |
+| `403` | none (`data` is `{}`) | — | `errors.messageKey` = `request.attributeMissing`, `errors.context.attribute` (the missing request attribute, e.g. `jardisTenant`), `errors.message`; `data` is `{}`. A door answers this for a request attribute it cannot run without (e.g. a tenant) — one the route reads unconditionally (for a union body only those every alternative reads); an attribute read only by one union alternative or an optional/nullable/list-nested property is not guarded up front, and when it is absent the route fails closed with `500`; without a token the answer is `401`, not `403` |
 | `404` | `notFound` | `NotFound` | `context` (the path parameters of the lookup) |
 | `409` | `concurrencyConflict` | `ConcurrencyConflict` | `reason`, `aggregate`, `context`, `violated` (see notes above) |
 | `422` | `ruleViolation` | `RuleViolation` | `rule`, `messageKey`, `context` |
