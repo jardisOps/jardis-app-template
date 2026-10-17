@@ -1,6 +1,6 @@
 ---
 name: design-headless-mcp
-description: Driving a Jardis workspace headless through `jardis mcp` — Tools as actions vs Resources as read-only, the Workspace to Schema to Aggregate to Process to Build to Code-read workflow, the strategic-design surface (glossary, Steckbrief, planned BCs, Context-Map edges with the eight canonical DDD patterns, and the read-only drift check declared-vs-real coupling), the Type-A GUI-replacement pattern (output directory via update_project_settings, code via code-file/code-tree resources, a new workspace means a new process), documented workspace-registry limits, computed columns (`computed` on `save_aggregate`), process input types from the backend (`inputTypes`, `valueList`), the transaction default with its opt-out warning (`runInTransaction`, `V-PROC-TX-OPTOUT`), declared class `versions` (`update_domain_manifest`, resource `jardis://domain/{domain}/manifest`), and structured error envelopes (confirm flags, BUILD_RUNNING/DRAFT_EXISTS). Use when an AI must design, build, or inspect a Jardis domain without a browser.
+description: Driving a Jardis workspace headless through `jardis mcp` — Tools as actions vs Resources as read-only, the Workspace to Schema to Aggregate to Process to Build to Code-read workflow, the strategic-design surface (glossary, Steckbrief, planned BCs, Context-Map edges with the eight canonical DDD patterns, and the read-only drift check declared-vs-real coupling), the Type-A GUI-replacement pattern (output directory via update_project_settings, code via code-file/code-tree resources, a new workspace means a new process), documented workspace-registry limits, computed columns (`computed` on `save_aggregate`), process input types from the backend (`inputTypes`, `valueList`), the transaction default with its opt-out warning (`runInTransaction`, `V-PROC-TX-OPTOUT`), declared class `versions` (`update_domain_manifest`, resource `jardis://domain/{domain}/manifest`), blueprint import (`import_blueprint`, resource `jardis://blueprints`, its 404/412/409 refusals), and structured error envelopes (confirm flags, BUILD_RUNNING/DRAFT_EXISTS). Use when an AI must design, build, or inspect a Jardis domain without a browser.
 zone: post-active
 persona: C
 profile: jardis
@@ -59,6 +59,26 @@ One walk from an empty workspace to readable generated code. Each step is a Tool
    a build writes them to `src/Api/{Domain}/versions.php` and into the OpenAPI contract
    (`generated-code-versioning` §3). The build warns `V-VERSION-DRIFT` when a declared version has
    no `v{N}/` class or a `v{N}/` directory is not declared.
+   **Blueprint import — a ready-made bounded context instead of `add_bc` plus hand-modelling.**
+   Read the static resource `jardis://blueprints` first (readable without a license): a list of
+   `{name, description, category, variants[]}`. `import_blueprint {domain, subdomain, bc, blueprint,
+   variant}` (all five required; a mutating tool, blocked without a license) writes one variant as a
+   NEW bounded context into an existing domain and subdomain: schema, aggregates, queries, closures
+   and processes, plus the hand-written bodies, which go into the BC's folder under the configured
+   `outputDir`. Every reference to the blueprint's own domain and BC name is rewritten to yours;
+   `bc` is PascalCase-normalized. The call is atomic - any failure leaves workspace and `outputDir`
+   untouched. Answer: `{bcPath, outputPath, artifacts[], bodies[], rewritten[], mentions[]}`;
+   `mentions[]` lists free-text occurrences of a source name that were NOT rewritten (reported,
+   never changed silently). Refusals: **404** (domain, subdomain, blueprint or variant unknown) ·
+   **412** `DOMAIN_NOT_CONFIGURED` (no `outputDir`: set it with `update_project_settings` first) ·
+   **409** `CONFLICT` (the BC name exists in this or another subdomain of the domain, or its output
+   folder exists - **here `CONFLICT` does NOT mean "already imported, treat as done"**: nothing was
+   written; choose another `bc`, never retry unchanged) · **409** `CONFLICT` with
+   `details.collisions[]` `{kind: table|aggregate, name, subdomain, bc}` (a table or aggregate name
+   of the blueprint already exists in another BC of the domain; the list names each). Afterwards the
+   imported BC is a normal BC with no marker and no protection: change it with the usual tools
+   (`save_aggregate`, `save_process`, `save_closures`, ...) and `build` as for any BC. The import is
+   a first import only (no re-import) and declares no Context-Map edge.
 2. **`import_schema`** — write the bounded context's schema, either from a database
    introspection or from a schema drafted for a domain idea (see `design-draft-schema`), whose
    JSON you pass in the `yaml` argument (wire-key kept for contract stability — it carries JSON
@@ -95,11 +115,13 @@ One walk from an empty workspace to readable generated code. Each step is a Tool
     "requestAttribute": {"region_code": "tenant", "created_by": "subject"},
     "writeOnly": ["api_token_hash"]}
    ```
+   (An aggregate without any outer door is set on the graph: `save_aggregate` `graph.visibility` = `"internal"` (omit = keep, `"public"` = default) or `rename_aggregate` `visibility`; see below.)
    - `requestAttribute` (ROOT node only; omit = keep, `{}` = delete): the column's value comes from the authenticated request (`tenant` / `subject`), never from the client. It leaves every input contract and is set at every write door; only a `tenant` column also filters the read doors, a `subject` column never filters a read. Columns must be varchar/char data columns (`REQATTR-1`) and the aggregate needs a public unique key (`REQATTR-3`).
    - `identifier.scope` (lists `tenant` columns, `REQATTR-2`): the key is unique per scope value; the schema needs ONE unique index over exactly scope + key column, scope columns NOT NULL (`ID-1`, blocker). A PUBLIC query on a scoped root binds each `tenant` column by a top-level `where.all` equality (`REQATTR-4`, `validate_queries`).
-   - `writeOnly` (omit = keep, `[]` = delete): written, never read — absent from Akte, list, bulk read, events and the OpenAPI response, present in the write contract. A public query may not filter or order on it (`WO-2`); not the PK, key, FK, adopt, computed or request-attribute column (`WO-1`).
+   - `writeOnly` (omit = keep, `[]` = delete): written, never read from outside — absent from Akte, public list, bulk read, events and the OpenAPI response, present in the write contract. Only a declared query with effective visibility `internal` projects it (family-internal read, e.g. verifying a stored digest). A public query may not filter or order on it (`WO-2`); not the PK, key, FK, adopt, computed or request-attribute column (`WO-1`).
+   - `graph.visibility` (`public` default / `internal`): `internal` removes EVERY outer form of the aggregate — no `{agg}()`/`{Agg}Read` on the BC facade, no exposed command, no route, no OpenAPI path; reads and writes stay possible family-internally through the kernel seam and through a process of the BC. Blockers: another value (`V-AGG-VIS-1`), a `public` query on it (`-2`, switching the aggregate never rewrites `Queries.json`: set those queries `internal` or the aggregate public), `expose: true` on its command (`-3`), a foreign BC's `consumedCalls` into it (`-4`); warning `V-AGG-VIS-5` when a process answers with its reference (nobody outside can reload it). Cross-BC access goes through a public aggregate's `{Agg}Read` or the target BC's `process()`.
    - Blockers come back in `valid` / `errors` of the save answer; check them (the aggregate is written regardless).
-   - The request attributes are `RequestAttribute::SUBJECT` (`jardisSubject`) and `::TENANT` (`jardisTenant`) of `jardissupport/contracts` >= 2.8.0; the authenticating middleware of the app sets them.
+   - The request attributes are `RequestAttribute::SUBJECT` (`jardisSubject`) and `::TENANT` (`jardisTenant`) of `jardissupport/contracts` >= 2.8.0; the authenticating middleware of the app sets them. A door whose required attribute is absent answers 403 `request.attributeMissing` (`context.attribute` = name) from the per-route middleware `RequireRequestAttribute` (`jardiscore/app` >= 1.8) before the handler — never 500; the OpenAPI contract names it (`oneOf` next to a declared 403 of the process).
    - A process input field takes the same marker: `{"name": "regionCode", "type": "string", "requestAttribute": "tenant"}` in `input.fields[]` of `save_process` (scalar string, no `valueList`/`default`, at most one field per attribute: `V-INPUT-REQATTR`); a Rule node on a tenant-scoped root needs a `tenant` field as scope source (`V-PROC-SCOPE-SOURCE`).
 4. **`save_naming`** — apply/confirm the field-mapping naming conventions for the bounded
    context before building.
@@ -112,7 +134,12 @@ One walk from an empty workspace to readable generated code. Each step is a Tool
    `date`, `datetime`, `time`, `decimal`, `uuid`, … plus `string|array|mixed`), and an input field
    may reference a value list of the BC as `valueList: <Name>` instead of `type`
    (`input.fields[].type` / `valueList`; an unknown list is the blocker `V-INPUT-VALUELIST`, a field typed
-   `array`/`mixed` warns `V-INPUT-UNTYPED`). **Transaction:** a process runs in one transaction by
+   `array`/`mixed` warns `V-INPUT-UNTYPED`). (FIX3) A field can also be a list (`list: true` with the element `type`; no minimum length, `[]`
+   is valid) or an object (`fields: [...]`, members scalar or object, at most two object levels;
+   `fields` + `list: true` = object list) — `save_process` refuses a third object level, an empty
+   object, `default` on a list/object, `accepts` inside an object and any key that contradicts the
+   kind, e.g. `fields` on a scalar (V-INPUT-OBJECT-DEPTH, V-INPUT-OBJECT-EMPTY, V-INPUT-SHAPE); a
+   wrong element answers 400 with its index path, never 500. **Transaction:** a process runs in one transaction by
    default — the key `runInTransaction` is absent in a normal process, the load answer / resource
    reports the effective value as `runsInTransaction`, and a 4xx end status rolls the run back
    (events only after the commit). `update_process_metadata` writes `runInTransaction` only when
@@ -189,6 +216,8 @@ All save tools answer lean: `save_closures`, `save_queries`, `save_glossary`, `s
 `newMtime` — the saved content (terms, Canvas fields, catalog entry, planned-BC fields) comes back
 only with `echo: true`; otherwise read it through the matching Resource (`glossary`, `steckbrief` —
 also for a planned BC —, `valuelists`, `queries`, `closures`). The HTTP/UI answer stays full.
+
+**BC-declared ENV keys (`save_bc_env`).** A BC whose body reads its own setting declares the key in `BC.json` `env[]` with `save_bc_env` (`env` = the complete list, full replace, `[]` clears): `key` (UPPER_SNAKE), optional closed `values`, optional `default` (one of `values`), `description`. The value lives in the ONE project `.env`, dynamic block `domain`: write it with `save_runtime_env` (block `domain`, key-addressed: line `-1` + `key`); read the block with `jardis://runtime/env` (a declared key without a value is `present: false`). The body reads `$this->resource()->env('<KEY>')`. Blockers, nothing written: `V-RT-10` key form, declared once, no platform key (runtime catalogue, `DB_READER{n}_*`, `APP_SECRET_KEY`, any `*_FILE`) and no key another BC declares; `V-RT-11` no `values`/`default` entry that dotenv would load as non-string (number, bool word incl. empty, `[...]`, `{...}`), interpolate (`${X}`), expand (leading `~`) or trim — use words like `net`/`gross`; `V-RT-12` the same for the written value, plus membership in a closed `values` set; `V-RT-13` a value is ONE line (no CR/LF/VT/FF/NUL), for every block and tool. An undeclared key of the block stays `V-RT-7`. A blueprint import bringing an already-declared key is reported afterwards (`V-RT-10` on both BCs), not refused at the import.
 
 **Context Map (per Domain, full MCP parity with the UI board):** declared BC-to-BC
 relationships are edges carrying one of the eight canonical DDD patterns (Partnership, Shared
@@ -285,6 +314,8 @@ data.
 
 **Aggregate delete takes its queries along:** `delete_aggregate` removes the queries the aggregate owns from `Queries.json` (the delete preview lists them as `affectedQueries`; duplicated-root queries are `unassignableQueries` and stay); declared readers (`reads:`) of such a query block with 409 `details.queryReaders`, one `force` overrides every block, the answer carries `removedQueries`. `validate_definitions_all` also checks each BC's Queries (rows with `aggregate ""`), and the process validator rejects colliding PHP class names derived from one process (Blocker `V-PROC-CLASS-UNIQUE`).
 
+**Rule node in a process (`save_process`).** A node with `rule: <Closure>` binds the closure's inputs in one of two forms, never both (`V-PROC-RULE-ARGS-XOR`): the short form `ruleSubject.payloadField` (closure with exactly one `command`/`aggregate` input; a process input field) or the long form `ruleArgs: [{"param": "<input name>", "source": …}]` that binds EVERY input of the closure exactly once. `source` is a bare string = a process input field, or `{"kind": "latest", "node": "<earlier node id>", "field": "<f>"}` = a field of the latest result of an earlier station (a command node adds `facade` + `method` and offers the fields of its identity chain; a hand-written node offers the fields of its `outputShape`; no `all`). A `command` input only comes from a command field of the process input; an `aggregate` input from a scalar key value (loaded, 404 as before). Any closure with a `verdict` output and at least one input may back a Rule node; `V-PROC-RULE-ARGS` blocks missing/duplicate/unknown params, unfitting types and a source node that is not a mandatory station before the rule.
+
 **Queries-Layer — full MCP parity:** a BC's
 `Queries.json` (declarative read queries — `root:` entity, visibility `internal`/`public`,
 condition tree, parameters, joins; every query is a paginated list answering
@@ -293,7 +324,7 @@ is rejected by the Blocker V-QDEF-24) is fully MCP-reachable, same
 pattern as Rules above. `save_queries` persists the whole artefact (LockedSave — mtime `CONFLICT`
 like `save_aggregate`/`save_closures`; a draft with findings still writes, `valid`/`errors`/
 `warnings`/`suggestions` travel in the response; the saved query set is echoed only with `echo: true`, otherwise read it through the queries Resource); `validate_queries` checks a not-yet-saved query
-set against V-QDEF-1..16, 18..25 (25 = `limit` above 500, warning) plus RB1 (name collision with the read base, Blocker) —
+set against V-QDEF-1..16, 18..26 (25 = `limit` above 500, warning; 26 = the query's class stem equals a derived read way `{Agg}ById`/`ByIds`/`By<Key>` of its aggregate, blocker) plus RB1 (name collision with the read base, Blocker) —
 read-only, no write. `preview_queries` is read-only and
 returns the **generated PHP code** a build would write for the query set (never SQL — the Builder
 never emits SQL, only PHP) plus artefact-wide findings; pass `compareWithStored: true` for a
@@ -365,7 +396,7 @@ fallen behind.
 Every Tool/Resource failure comes back as one structured envelope — `code`, an optional
 `ruleId` + `location` for validator findings, a human `message`, and an actionable `hint` —
 never a bare error string. Recurring codes worth recognising by name: `CONFLICT` ("already
-exists" — safe to retry with a different name or treat as confirmation), `CONFIRM_REQUIRED`
+exists" — safe to retry with a different name or treat as confirmation; **not** for `import_blueprint`, where it means nothing was written), `CONFIRM_REQUIRED`
 (a destructive call — delete/rename with real impact — needs an explicit confirm flag; inspect
 the matching preview Resource first), `BUILD_RUNNING` / `DRAFT_EXISTS` (build-time guards, §2
 step 6), `NOT_FOUND`, `VALIDATION` (inspect `details` for field-level findings). Never retry a

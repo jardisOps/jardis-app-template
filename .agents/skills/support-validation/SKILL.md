@@ -123,6 +123,20 @@ $validator->validate($order)->getErrors();
 - `getKinds()` carries the same keys as `getErrors()`; object properties outside lists keep plain `{shortName}`.
 - Siblings are never merged. Default `false` = result identical to 1.3.
 
+## FIELD PATHS + LIST ELEMENTS (opt-in, `^1.6`)
+```php
+$validator = new ObjectValidator($registry, fieldPaths: true);   // 4th ctor arg, named
+$validator->validate($order)->getErrors();
+// ['order' => ['lines[1]' => ['quantity' => ['Must be at least 1']]]]
+$result->toFields('order');   // [['field' => 'lines[1].quantity', 'reason' => 'invalid', ...]]
+
+(new CompositeFieldValidator())->field('tags')->each(Length::class, Length::min(2));
+// element errors keyed 'tags[1]'; kinds as single values; non-array value skipped; [] = no finding
+```
+- Segment per level = **property name** (not class name) — two properties of one class stay apart; list element `name[i]`, list-in-list `name[i][j]`; any depth.
+- Root keeps its `lcfirst` short name (strip via `toFields($root)`); `fieldPaths` implies indexed lists.
+- `each()` keys are `{field}[{index}]` in every ObjectValidator mode (opt-in by declaration). Default without `fieldPaths` = result identical to 1.5.
+
 ## LAYER
 - **Application:** validate Commands/DTOs before Domain
 - **Domain:** NEVER imports Validation
