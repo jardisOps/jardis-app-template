@@ -89,38 +89,54 @@ runs the real `WORKER_COMMAND` once and therefore needs a prior
 
 ### Schema einspielen
 
-Table creation is not done by the kernel (Säule 1) — you import a SQL file
-over the project's own DB connection (`DB_*` from `.env`, no DB client binary
-needed):
+Table creation is not done by the kernel (Säule 1) — one command sets up the
+whole database over the project's own DB connection (`DB_*` from `.env`, no DB
+client binary needed):
 
-1. Export in the Builder (MCP `export_schema_sql_files`, or the UI). It writes
-   `.jardis/<Domain>/<Subdomain>/<BC>/Schema.<dialect>.sql`.
-2. Import it:
-   ```sh
-   make db-import SCHEMA=.jardis/<Domain>/<Subdomain>/<BC>/Schema.mariadb.sql
-   ```
-   or per MCP `run_make_target {target: "db-import", params: {SCHEMA: "…"}}`
-   (`run_make_target` has a 10-minute limit). `SCHEMA` is relative to the
-   project root and must stay inside it. Underneath it is
-   `bin/console db:import <file>`; the first failing statement stops the
-   import and is reported by number.
+```sh
+make db-import
+```
 
-| `DB_DRIVER` | File |
+It is a rule over the installed state, not a list: for the configured driver it
+imports, in this order and each in sorted order,
+
+1. the SQL of every installed Jardis package — the file named after the driver
+   in `vendor/jardis*/<package>/resources/sql/` (`mysql.sql`, `pgsql.sql`,
+   `sqlite.sql`; read from `vendor`, never copied), e.g. `auth_tokens` of
+   `jardissupport/auth`;
+2. every BC schema `.jardis/<Domain>/<Subdomain>/<BC>/Schema.<dialect>.sql` of
+   that driver (written by the Builder's `build`; one file per BC directory).
+
+Each file prints one line (path, number of statements). No file found for the
+driver → exit code 1 with a plain message. Via MCP: `run_make_target
+{target: "db-import"}` (10-minute limit). Underneath it is
+`bin/console db:import`; the first failing statement stops the import and is
+reported with its file and number.
+
+To import a single file only (e.g. `support/sql/domain_events.sql` below):
+
+```sh
+make db-import SCHEMA=.jardis/<Domain>/<Subdomain>/<BC>/Schema.mariadb.sql
+```
+
+`SCHEMA` is relative to the project root and must stay inside it.
+
+| `DB_DRIVER` | BC schema file (one per BC directory, first match) |
 |---|---|
-| `mysql` | `Schema.mariadb.sql` or `Schema.mysql.sql` |
-| `pgsql` | `Schema.postgres.sql` |
+| `mysql` | `Schema.mariadb.sql`, else `Schema.mysql.sql` |
+| `pgsql` | `Schema.postgres.sql`, else `Schema.pgsql.sql` |
 | `sqlite` | `Schema.sqlite.sql` |
 
-A `Schema.<dialect>.sql` that does not match the connection's driver is
-refused. Notes:
+A single `Schema.<dialect>.sql` that does not match the connection's driver is
+refused; in the whole-database run foreign-dialect files are skipped. Notes:
 
 - The MySQL/MariaDB file creates the database from the export
   (`CREATE DATABASE IF NOT EXISTS` + `USE`): `DB_DATABASE` must match that
   name and `DB_USER` needs the right to create it.
 - PostgreSQL expects `DB_DATABASE` to exist already.
-- A second run is idempotent (`CREATE … IF NOT EXISTS`). There is no
-  migration and no DROP behaviour.
-
+- A second run is idempotent (`CREATE … IF NOT EXISTS`); a script that is not
+  idempotent fails loudly with its file name. There is no migration and no
+  DROP behaviour.
 #### Database queue schema
 
 `MESSAGING_TRANSPORT=database` needs the event tables in place first — the
