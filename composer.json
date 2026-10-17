@@ -19,7 +19,7 @@
         "jardissupport/dotenv": "^1.0",
         "jardissupport/repository": "^1.6",
         "jardissupport/secret": "^1.0",
-        "jardissupport/validation": "^1.5",
+        "jardissupport/validation": "^1.6",
         "jardissupport/workflow": "^1.0",
         "nyholm/psr7": "^1.8"
     },
