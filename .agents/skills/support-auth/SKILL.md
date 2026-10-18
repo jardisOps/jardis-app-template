@@ -187,7 +187,7 @@ Plain readonly data objects — no interface, no dispatcher dependency. Caller d
 | `PasswordHasherInterface` | `hash`, `verify`, `needsRehash` |
 | `GuardInterface` | `check`, `authorize` |
 | `AuthenticatorInterface` | `authenticate(CredentialInterface): AuthResultInterface` |
-| `SessionInterface` | `getSubject`, `getTokenHash`, `isExpired`, `getMetadata` |
+| `SessionInterface` | `getSubject`, `getTokenHash`, `getExpiresAt` (`?DateTimeImmutable`, null = no expiry), `isExpired`, `getMetadata` |
 | `HashedTokenInterface` | `getHash`, `getType`, `getSubject`, `getClaims`, `getExpiresAt`, `getCreatedAt`, `isExpired`, `isRevoked` |
 | `CredentialInterface` | `getType`, `getValue`, `getIdentifier` |
 | `AuthResultInterface` | `isSuccess`, `getSubject`, `getReason` |
