@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "30d804816087091254593da2f8207cc7",
+    "content-hash": "b56358e4e238e8ac8bdd3f8aafa6c83e",
     "packages": [
         {
             "name": "jardisadapter/dbconnection",
@@ -386,21 +386,21 @@
         },
         {
             "name": "jardissupport/auth",
-            "version": "v1.6.0",
+            "version": "v1.7.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/jardisSupport/auth.git",
-                "reference": "510de36d363431dbbdd2401e74d48118d3517bcd"
+                "reference": "faa904f410cbc897143554700ee1aed86d8ec810"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/jardisSupport/auth/zipball/510de36d363431dbbdd2401e74d48118d3517bcd",
-                "reference": "510de36d363431dbbdd2401e74d48118d3517bcd",
+                "url": "https://api.github.com/repos/jardisSupport/auth/zipball/faa904f410cbc897143554700ee1aed86d8ec810",
+                "reference": "faa904f410cbc897143554700ee1aed86d8ec810",
                 "shasum": ""
             },
             "require": {
                 "ext-sodium": "*",
-                "jardissupport/contracts": "^2.11",
+                "jardissupport/contracts": "^2.12",
                 "jardissupport/dbquery": "^1.1",
                 "php": ">=8.3"
             },
@@ -448,9 +448,9 @@
                 "docs": "https://docs.jardis.io/en/support/auth",
                 "email": "jardisDev@headgent.com",
                 "issues": "https://github.com/jardisSupport/auth/issues",
-                "source": "https://github.com/jardisSupport/auth/tree/v1.6.0"
+                "source": "https://github.com/jardisSupport/auth/tree/v1.7.0"
             },
-            "time": "2026-10-15T06:39:23+00:00"
+            "time": "2026-10-17T18:17:35+00:00"
         },
         {
             "name": "jardissupport/classversion",
@@ -516,21 +516,22 @@
         },
         {
             "name": "jardissupport/contracts",
-            "version": "v2.11.0",
+            "version": "v2.12.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/jardisSupport/contracts.git",
-                "reference": "8b36348ab38d98c0e8b06afaae155d9a8a2da0ce"
+                "reference": "6243c4ee1557db51a46acbcdfccc3b002656fad0"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/jardisSupport/contracts/zipball/8b36348ab38d98c0e8b06afaae155d9a8a2da0ce",
-                "reference": "8b36348ab38d98c0e8b06afaae155d9a8a2da0ce",
+                "url": "https://api.github.com/repos/jardisSupport/contracts/zipball/6243c4ee1557db51a46acbcdfccc3b002656fad0",
+                "reference": "6243c4ee1557db51a46acbcdfccc3b002656fad0",
                 "shasum": ""
             },
             "require": {
                 "ext-pdo": "*",
                 "php": ">=8.2",
+                "psr/clock": "^1.0",
                 "psr/container": "^2.0",
                 "psr/event-dispatcher": "^1.0",
                 "psr/http-client": "^1.0",
@@ -575,9 +576,9 @@
                 "docs": "https://docs.jardis.io/en/support/contracts",
                 "email": "jardisDev@headgent.com",
                 "issues": "https://github.com/jardisSupport/contracts/issues",
-                "source": "https://github.com/jardisSupport/contracts/tree/v2.11.0"
+                "source": "https://github.com/jardisSupport/contracts/tree/v2.12.0"
             },
-            "time": "2026-10-15T06:32:26+00:00"
+            "time": "2026-10-17T11:32:15+00:00"
         },
         {
             "name": "jardissupport/data",
@@ -902,6 +903,67 @@
             "time": "2026-10-13T13:02:25+00:00"
         },
         {
+            "name": "jardissupport/scheduling",
+            "version": "v1.2.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/jardisSupport/scheduling.git",
+                "reference": "fb2dbedbb04664aaf080a5a39cfafa8a2756e2f3"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/jardisSupport/scheduling/zipball/fb2dbedbb04664aaf080a5a39cfafa8a2756e2f3",
+                "reference": "fb2dbedbb04664aaf080a5a39cfafa8a2756e2f3",
+                "shasum": ""
+            },
+            "require": {
+                "jardissupport/contracts": "^2.12",
+                "php": ">=8.3"
+            },
+            "require-dev": {
+                "phpstan/phpstan": "2.1.56",
+                "phpunit/phpunit": "10.5.63",
+                "squizlabs/php_codesniffer": "3.13.6"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "JardisSupport\\Scheduling\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Jardis Development",
+                    "email": "jardisDev@headgent.com"
+                }
+            ],
+            "description": "Cron expression parsing and task scheduling with fluent API and timezone support",
+            "homepage": "https://jardis.io",
+            "keywords": [
+                "Headgent",
+                "cron",
+                "cron-expression",
+                "domain-driven-design",
+                "jardis",
+                "php",
+                "scheduling",
+                "task",
+                "task-scheduling",
+                "timer"
+            ],
+            "support": {
+                "docs": "https://docs.jardis.io/en/support/scheduling",
+                "email": "jardisDev@headgent.com",
+                "issues": "https://github.com/jardisSupport/scheduling/issues",
+                "source": "https://github.com/jardisSupport/scheduling/tree/v1.2.0"
+            },
+            "time": "2026-10-17T11:37:48+00:00"
+        },
+        {
             "name": "jardissupport/secret",
             "version": "v1.1.3",
             "source": {
@@ -973,16 +1035,16 @@
         },
         {
             "name": "jardissupport/validation",
-            "version": "v1.6.0",
+            "version": "v1.7.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/jardisSupport/validation.git",
-                "reference": "e9e8c4260a5127b7df21326bfd4079760cf15372"
+                "reference": "f88305da6003928208e5bd32ddb7b114e879c823"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/jardisSupport/validation/zipball/e9e8c4260a5127b7df21326bfd4079760cf15372",
-                "reference": "e9e8c4260a5127b7df21326bfd4079760cf15372",
+                "url": "https://api.github.com/repos/jardisSupport/validation/zipball/f88305da6003928208e5bd32ddb7b114e879c823",
+                "reference": "f88305da6003928208e5bd32ddb7b114e879c823",
                 "shasum": ""
             },
             "require": {
@@ -1025,29 +1087,33 @@
                 "docs": "https://docs.jardis.io/en/support/validation",
                 "email": "jardisDev@headgent.com",
                 "issues": "https://github.com/jardisSupport/validation/issues",
-                "source": "https://github.com/jardisSupport/validation/tree/v1.6.0"
+                "source": "https://github.com/jardisSupport/validation/tree/v1.7.1"
             },
-            "time": "2026-10-17T06:46:53+00:00"
+            "time": "2026-10-17T12:07:45+00:00"
         },
         {
             "name": "jardissupport/workflow",
-            "version": "v1.0.8",
+            "version": "v2.3.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/jardisSupport/workflow.git",
-                "reference": "19e9a27f6f94867ee1bea7f9634a506a6ef3d0a5"
+                "reference": "d04afe7a25b592858fe7a8e8246a72083d73d331"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/jardisSupport/workflow/zipball/19e9a27f6f94867ee1bea7f9634a506a6ef3d0a5",
-                "reference": "19e9a27f6f94867ee1bea7f9634a506a6ef3d0a5",
+                "url": "https://api.github.com/repos/jardisSupport/workflow/zipball/d04afe7a25b592858fe7a8e8246a72083d73d331",
+                "reference": "d04afe7a25b592858fe7a8e8246a72083d73d331",
                 "shasum": ""
             },
             "require": {
-                "jardissupport/contracts": "^1.0 || ^2.0",
-                "php": ">=8.2"
+                "jardissupport/contracts": "^2.12",
+                "jardissupport/repository": "^1.6",
+                "jardissupport/scheduling": "^1.2",
+                "php": ">=8.3",
+                "psr/log": "^3.0"
             },
             "require-dev": {
+                "jardissupport/validation": "^1.7.1",
                 "phpstan/phpstan": "2.1.56",
                 "phpunit/phpunit": "10.5.63",
                 "squizlabs/php_codesniffer": "3.13.6"
@@ -1068,7 +1134,7 @@
                     "email": "jardisDev@headgent.com"
                 }
             ],
-            "description": "Directed workflow engine with status-based transitions, automatic data accumulation, and builder API",
+            "description": "Process engine for request-response use cases: declarative node graphs, typed results and failure forms, transaction bracket",
             "homepage": "https://jardis.io",
             "keywords": [
                 "Headgent",
@@ -1086,9 +1152,9 @@
                 "docs": "https://docs.jardis.io/en/support/workflow",
                 "email": "jardisDev@headgent.com",
                 "issues": "https://github.com/jardisSupport/workflow/issues",
-                "source": "https://github.com/jardisSupport/workflow/tree/v1.0.8"
+                "source": "https://github.com/jardisSupport/workflow/tree/v2.3.0"
             },
-            "time": "2026-10-03T16:17:12+00:00"
+            "time": "2026-10-17T22:34:49+00:00"
         },
         {
             "name": "nikic/fast-route",
@@ -1283,6 +1349,54 @@
                 }
             ],
             "time": "2023-11-08T09:30:43+00:00"
+        },
+        {
+            "name": "psr/clock",
+            "version": "1.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/php-fig/clock.git",
+                "reference": "e41a24703d4560fd0acb709162f73b8adfc3aa0d"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/php-fig/clock/zipball/e41a24703d4560fd0acb709162f73b8adfc3aa0d",
+                "reference": "e41a24703d4560fd0acb709162f73b8adfc3aa0d",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^7.0 || ^8.0"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Psr\\Clock\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "PHP-FIG",
+                    "homepage": "https://www.php-fig.org/"
+                }
+            ],
+            "description": "Common interface for reading the clock.",
+            "homepage": "https://github.com/php-fig/clock",
+            "keywords": [
+                "clock",
+                "now",
+                "psr",
+                "psr-20",
+                "time"
+            ],
+            "support": {
+                "issues": "https://github.com/php-fig/clock/issues",
+                "source": "https://github.com/php-fig/clock/tree/1.0.0"
+            },
+            "time": "2022-11-25T14:36:26+00:00"
         },
         {
             "name": "psr/container",
@@ -1765,16 +1879,16 @@
     "packages-dev": [
         {
             "name": "jardis/dev-skills",
-            "version": "v1.32.0",
+            "version": "v1.33.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/jardisTools/dev-skills.git",
-                "reference": "399f1f1d12b650a74c7536894cab8d17e1b4cb14"
+                "reference": "3dd8392ebdc47db9c88701c810c07fc96494437a"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/jardisTools/dev-skills/zipball/399f1f1d12b650a74c7536894cab8d17e1b4cb14",
-                "reference": "399f1f1d12b650a74c7536894cab8d17e1b4cb14",
+                "url": "https://api.github.com/repos/jardisTools/dev-skills/zipball/3dd8392ebdc47db9c88701c810c07fc96494437a",
+                "reference": "3dd8392ebdc47db9c88701c810c07fc96494437a",
                 "shasum": ""
             },
             "require": {
@@ -1831,9 +1945,9 @@
                 "docs": "https://docs.jardis.io/en/skills",
                 "email": "jardisDev@headgent.com",
                 "issues": "https://github.com/jardisTools/dev-skills/issues",
-                "source": "https://github.com/jardisTools/dev-skills/tree/v1.32.0"
+                "source": "https://github.com/jardisTools/dev-skills/tree/v1.33.0"
             },
-            "time": "2026-10-17T05:13:02+00:00"
+            "time": "2026-10-18T01:35:37+00:00"
         },
         {
             "name": "myclabs/deep-copy",

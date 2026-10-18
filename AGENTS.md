@@ -178,6 +178,15 @@ Generic CRUD repository with raw-data persistence, read/write endpoint splitting
 - **How:** load skill `support-repository` before touching the API — it carries the usage essentials and pitfalls.
   Full reference: https://docs.jardis.io/en/support/repository
 
+<!-- source: jardissupport/scheduling -->
+# jardissupport/scheduling
+
+Cron expression parsing, task definition with tags and priority, and schedule validation.
+
+- **Use when:** you need to define, parse, validate, or manage recurring scheduled tasks and cron-based job configurations
+- **How:** load skill `support-scheduling` before touching the API — it carries the usage essentials and pitfalls.
+  Full reference: https://docs.jardis.io/en/support/scheduling
+
 <!-- source: jardissupport/secret -->
 # jardissupport/secret
 
@@ -203,7 +212,6 @@ Multi-step business process orchestration with sequential step execution and pro
 
 - **Use when:** you need to model and execute multi-step workflows or business processes with defined step sequences
 - **How:** load skill `support-workflow` before touching the API — it carries the usage essentials and pitfalls.
-  Full reference: https://docs.jardis.io/en/support/workflow
 
 <!-- END jardis/dev-skills -->
 

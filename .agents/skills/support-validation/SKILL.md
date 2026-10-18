@@ -136,6 +136,10 @@ $result->toFields('order');   // [['field' => 'lines[1].quantity', 'reason' => '
 - Segment per level = **property name** (not class name) — two properties of one class stay apart; list element `name[i]`, list-in-list `name[i][j]`; any depth.
 - Root keeps its `lcfirst` short name (strip via `toFields($root)`); `fieldPaths` implies indexed lists.
 - `each()` keys are `{field}[{index}]` in every ObjectValidator mode (opt-in by declaration). Default without `fieldPaths` = result identical to 1.5.
+- `ObjectValidator` implements `JardisSupport\Contract\Validation\ValidatorInterface` (injection per port; from the next minor):
+```php
+$fieldErrors = fn(ValidatorInterface $v) => $v->validate($order)->toFields('order');
+```
 
 ## LAYER
 - **Application:** validate Commands/DTOs before Domain
