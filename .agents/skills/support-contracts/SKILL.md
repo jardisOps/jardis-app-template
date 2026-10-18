@@ -50,7 +50,7 @@ is the port layer that keeps the hexagonal dependency direction honest across th
 | `Scheduling` | 5 | `ScheduleInterface`, `ScheduledTaskInterface`, `CronExpressionInterface`, `ConstraintInterface`, `ScheduleViolation` (final readonly) | `support-scheduling` |
 | `Secret` | 2 | `SecretResolverInterface`, `SecretResolutionException` | `support-secret` |
 | `Validation` | 4 | `ValidatorInterface`, `ValueValidatorInterface`, `MissingValueValidatorInterface` (marker), `ValidationResult` (final readonly; `getKinds()`, `KIND_MISSING`\|`KIND_INVALID`, `toFields()`) | `support-validation` |
-| `Workflow` | 8 | `WorkflowInterface`, `WorkflowBuilderInterface`, `WorkflowNodeBuilderInterface`, `WorkflowConfigInterface`, `WorkflowContextInterface`, `WorkflowResultInterface`, `WorkflowChainInterface`, `AggregateResponse` | `support-workflow` |
+| `Workflow` | 8 | `WorkflowInterface`, `WorkflowBuilderInterface`, `WorkflowNodeBuilderInterface`, `WorkflowConfigInterface`, `WorkflowContextInterface`, `WorkflowResultInterface`, `WorkflowChainInterface`, `AggregateResponse` (nur die 7 `Workflow*Interface` sind **deprecated seit 2.12.0, Ersatz `jardissupport/workflow` 2.0**; `AggregateResponse` bleibt) | `support-workflow` |
 
 **Validation marker:** a `ValueValidatorInterface` that also implements `MissingValueValidatorInterface` reports an ABSENT value; `ValidationResult::getKinds()` then yields `KIND_MISSING` (`missing`) for its failures, every other validator yields `KIND_INVALID` (`invalid`).
 
@@ -59,7 +59,7 @@ is the port layer that keeps the hexagonal dependency direction honest across th
 ## PSR BOUNDARY
 PSR interfaces are **not** re-declared here — they are required as dependencies and used directly:
 `psr/container` (PSR-11), `psr/simple-cache` (PSR-16), `psr/log` (PSR-3),
-`psr/event-dispatcher` (PSR-14), `psr/http-client` (PSR-18), plus `ext-pdo`.
+`psr/event-dispatcher` (PSR-14), `psr/http-client` (PSR-18), `psr/clock` (PSR-20), plus `ext-pdo`.
 Jardis declares its own contract only where no PSR exists (Mailer, Filesystem, Messaging,
 Repository, DbQuery, Workflow, Auth, …).
 
