@@ -178,14 +178,12 @@ Generic CRUD repository with raw-data persistence, read/write endpoint splitting
 - **How:** load skill `support-repository` before touching the API — it carries the usage essentials and pitfalls.
   Full reference: https://docs.jardis.io/en/support/repository
 
-<!-- source: jardissupport/scheduling -->
-# jardissupport/scheduling
+<!-- source: jardissupport/response -->
+# jardissupport/response
 
-Cron expression parsing, task definition with tags and priority, and schedule validation.
+Response building for one request-response use case: response objects (`ContextResponse`, `DomainResponse`), failure forms (400 `ValidationFailure`, 404 `NotFound`, 409 `Conflict`, 422 `RuleViolation`), the `data` of the response envelope `{status, data, errors, meta}`, read answers (`ReadResult`, `Reference`). The door steps (input validation, actor check, failure mapping, cause logging) are part of the package. Details: `README.md`, https://docs.jardis.io/en/support/response
 
-- **Use when:** you need to define, parse, validate, or manage recurring scheduled tasks and cron-based job configurations
-- **How:** load skill `support-scheduling` before touching the API — it carries the usage essentials and pitfalls.
-  Full reference: https://docs.jardis.io/en/support/scheduling
+- **How:** load skill `support-response` before touching the API — it carries the usage essentials and pitfalls.
 
 <!-- source: jardissupport/secret -->
 # jardissupport/secret
