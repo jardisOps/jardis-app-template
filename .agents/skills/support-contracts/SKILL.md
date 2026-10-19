@@ -43,14 +43,14 @@ is the port layer that keeps the hexagonal dependency direction honest across th
 | `EventListener` | 1 | `EventListenerRegistryInterface` — registration side, paired with the PSR-14 dispatcher | `adapter-eventdispatcher` |
 | `Filesystem` | 6 | `FilesystemInterface`, `FilesystemReaderInterface`, `FilesystemWriterInterface`, `FilesystemServiceInterface`, `FileInfoInterface`, `FilesystemExceptionInterface` | `adapter-filesystem` |
 | `Identity` | 12 | **DEPRECATED since 2.11.0** (generic subdomain, replaced by the Builder blueprint "Access"; nothing removed, removal only in the next major) — `UserStatus` (enum `Active`/`Disabled`); read-only entities `UserInterface` (`getId/getEmail/getDisplayName/getStatus/getCreatedAt`, no hash), `TenantInterface` (`getId/getSlug/getName/getCreatedAt`), `MembershipInterface` (`getUserId/getTenantId/getRole/getCreatedAt`), `GroupInterface` (`getId/getTenantId/getName/getCreatedAt`), `InvitationInterface` (`getId/getTenantId/getEmail/getRole/getTokenHash/getExpiresAt/getAcceptedAt/getRevokedAt/getCreatedAt`); stores `UserStoreInterface` (`store($user, $passwordHash)`, `updateStatus`, `updatePasswordHash`, `findById`, `findByEmail`, `passwordHashOf`), `TenantStoreInterface` (`store`, `findById`, `findBySlug`), `MembershipStoreInterface` (`store`, `updateRole`, `remove`, `find`, `listForUser`, `listForTenant`), `GroupStoreInterface` (`store`, `findById`, `findByName`, `listForTenant`), `GroupMemberStoreInterface` (`add`, `remove`, `removeUserFromTenantGroups`, `listMembers`, `isMember`), `InvitationStoreInterface` (`store`, `findByTokenHash`, `findPending`, `listPendingForTenant`, `markAccepted(id, at): bool` CAS, `markRevoked`) | `support-identity` (jardissupport/identity) |
-| `Kernel` | 6 | `DomainKernelInterface`, `GeneratedContextInterface`, `ContextResponseInterface`, `DomainResponseInterface`, `EventScope` (enum), `ResponseStatus` (enum) | `core-kernel` + generated domain |
+| `Kernel` | 9 | `DomainKernelInterface`, `GeneratedContextInterface`, `ContextResponseInterface`, `DomainResponseInterface`, `EventScope` (enum), `ResponseStatus` (enum), `ConcurrencyConflictExceptionInterface`, `ValidationExceptionInterface`, `ReportedFailureExceptionInterface` | `core-kernel` + generated domain |
 | `Mailer` | 4 | `MailerInterface`, `MailMessageInterface`, `MailTransportInterface`, `MailerExceptionInterface` | `adapter-mailer` |
 | `Messaging` | 10 | `MessagePublisherInterface`, `MessageConsumerInterface`, `PublisherInterface`, `ConsumerInterface`, `MessageHandlerInterface`, `MessagingServiceInterface` + `Exception\{MessageException, ConnectionException, ConsumerException, PublishException}` | `adapter-messaging` |
 | `Repository` | 6 | `RepositoryInterface`, `PrimaryKey\PkStrategy` (enum), `Exception\{PersistException, RecordNotFoundException, UniqueViolationException, TransientConflictException}` | `support-repository` |
 | `Scheduling` | 5 | `ScheduleInterface`, `ScheduledTaskInterface`, `CronExpressionInterface`, `ConstraintInterface`, `ScheduleViolation` (final readonly) | `support-scheduling` |
 | `Secret` | 2 | `SecretResolverInterface`, `SecretResolutionException` | `support-secret` |
 | `Validation` | 4 | `ValidatorInterface`, `ValueValidatorInterface`, `MissingValueValidatorInterface` (marker), `ValidationResult` (final readonly; `getKinds()`, `KIND_MISSING`\|`KIND_INVALID`, `toFields()`) | `support-validation` |
-| `Workflow` | 8 | `WorkflowInterface`, `WorkflowBuilderInterface`, `WorkflowNodeBuilderInterface`, `WorkflowConfigInterface`, `WorkflowContextInterface`, `WorkflowResultInterface`, `WorkflowChainInterface`, `AggregateResponse` (nur die 7 `Workflow*Interface` sind **deprecated seit 2.12.0, Ersatz `jardissupport/workflow` 2.0**; `AggregateResponse` bleibt) | `support-workflow` |
+| `Workflow` | 8 | `WorkflowInterface`, `WorkflowBuilderInterface`, `WorkflowNodeBuilderInterface`, `WorkflowConfigInterface`, `WorkflowContextInterface`, `WorkflowResultInterface`, `WorkflowChainInterface`, `AggregateResponse` (nur die 7 `Workflow*Interface` sind **deprecated seit 2.12.0, Ersatz `jardissupport/workflow` 4.0**; `AggregateResponse` bleibt) | `support-workflow` |
 
 **Validation marker:** a `ValueValidatorInterface` that also implements `MissingValueValidatorInterface` reports an ABSENT value; `ValidationResult::getKinds()` then yields `KIND_MISSING` (`missing`) for its failures, every other validator yields `KIND_INVALID` (`invalid`).
 
@@ -96,6 +96,13 @@ use JardisSupport\Contract\Auth\RequestAttribute;  // final constants: SUBJECT, 
 - `GeneratedContextInterface` — deliberately **empty marker**. Every generated `{Domain}Context`
   implements it — no shared base class needed and independent of domain boundaries. There is no
   `BoundedContextInterface` in this package.
+- `ConcurrencyConflictExceptionInterface` / `ValidationExceptionInterface` (2.13) and
+  `ReportedFailureExceptionInterface` — exception markers, all `extends \Throwable`. Generated exceptions implement them;
+  the delivery layer catches the interface. Concurrency: `getReason()`, `getAggregate()`, `getContext()`,
+  `getViolated()` (door → 409). Validation: `getFields()` as `list<array{field, reason, message,
+  messageKey}>` (door → 400).
+  `ReportedFailureExceptionInterface` (no methods): the cause was already reported where it arose;
+  the door keeps the status and does not log it again.
 - `DomainResponseInterface` / `ContextResponseInterface` — the response vocabulary that generated
   domains and the delivery layer share.
 

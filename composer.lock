@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "fff1920b78e765e0e7a98e7a603ba773",
+    "content-hash": "50110fa4114c6e679af7e2baee4a9467",
     "packages": [
         {
             "name": "jardisadapter/dbconnection",
@@ -516,16 +516,16 @@
         },
         {
             "name": "jardissupport/contracts",
-            "version": "v2.12.0",
+            "version": "v2.13.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/jardisSupport/contracts.git",
-                "reference": "6243c4ee1557db51a46acbcdfccc3b002656fad0"
+                "reference": "2f904d76fd303615022aac2f69fb2da4e36a2cf5"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/jardisSupport/contracts/zipball/6243c4ee1557db51a46acbcdfccc3b002656fad0",
-                "reference": "6243c4ee1557db51a46acbcdfccc3b002656fad0",
+                "url": "https://api.github.com/repos/jardisSupport/contracts/zipball/2f904d76fd303615022aac2f69fb2da4e36a2cf5",
+                "reference": "2f904d76fd303615022aac2f69fb2da4e36a2cf5",
                 "shasum": ""
             },
             "require": {
@@ -576,22 +576,22 @@
                 "docs": "https://docs.jardis.io/en/support/contracts",
                 "email": "jardisDev@headgent.com",
                 "issues": "https://github.com/jardisSupport/contracts/issues",
-                "source": "https://github.com/jardisSupport/contracts/tree/v2.12.0"
+                "source": "https://github.com/jardisSupport/contracts/tree/v2.13.0"
             },
-            "time": "2026-10-17T11:32:15+00:00"
+            "time": "2026-10-19T17:53:58+00:00"
         },
         {
             "name": "jardissupport/data",
-            "version": "v1.3.0",
+            "version": "v1.4.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/jardisSupport/data.git",
-                "reference": "7eefac0b20f562dcd99b4be72090c531c367cf47"
+                "reference": "b8ee56809c7991163207a488a9e32bd95901dd34"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/jardisSupport/data/zipball/7eefac0b20f562dcd99b4be72090c531c367cf47",
-                "reference": "7eefac0b20f562dcd99b4be72090c531c367cf47",
+                "url": "https://api.github.com/repos/jardisSupport/data/zipball/b8ee56809c7991163207a488a9e32bd95901dd34",
+                "reference": "b8ee56809c7991163207a488a9e32bd95901dd34",
                 "shasum": ""
             },
             "require": {
@@ -643,9 +643,9 @@
                 "docs": "https://docs.jardis.io/en/support/data",
                 "email": "jardisDev@headgent.com",
                 "issues": "https://github.com/jardisSupport/data/issues",
-                "source": "https://github.com/jardisSupport/data/tree/v1.3.0"
+                "source": "https://github.com/jardisSupport/data/tree/v1.4.0"
             },
-            "time": "2026-10-15T06:36:16+00:00"
+            "time": "2026-10-19T18:16:17+00:00"
         },
         {
             "name": "jardissupport/dbquery",
@@ -839,16 +839,16 @@
         },
         {
             "name": "jardissupport/repository",
-            "version": "v1.6.0",
+            "version": "v1.7.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/jardisSupport/repository.git",
-                "reference": "1e5dd38adff523df18f51fde2f535efffc0d0610"
+                "reference": "79ea924d8732110bcc0d373d6e3937c168dcfe37"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/jardisSupport/repository/zipball/1e5dd38adff523df18f51fde2f535efffc0d0610",
-                "reference": "1e5dd38adff523df18f51fde2f535efffc0d0610",
+                "url": "https://api.github.com/repos/jardisSupport/repository/zipball/79ea924d8732110bcc0d373d6e3937c168dcfe37",
+                "reference": "79ea924d8732110bcc0d373d6e3937c168dcfe37",
                 "shasum": ""
             },
             "require": {
@@ -898,29 +898,33 @@
                 "docs": "https://docs.jardis.io/en/support/repository",
                 "email": "jardisDev@headgent.com",
                 "issues": "https://github.com/jardisSupport/repository/issues",
-                "source": "https://github.com/jardisSupport/repository/tree/v1.6.0"
+                "source": "https://github.com/jardisSupport/repository/tree/v1.7.0"
             },
-            "time": "2026-10-13T13:02:25+00:00"
+            "time": "2026-10-19T18:21:20+00:00"
         },
         {
-            "name": "jardissupport/scheduling",
-            "version": "v1.2.0",
+            "name": "jardissupport/response",
+            "version": "v1.0.0",
             "source": {
                 "type": "git",
-                "url": "https://github.com/jardisSupport/scheduling.git",
-                "reference": "fb2dbedbb04664aaf080a5a39cfafa8a2756e2f3"
+                "url": "https://github.com/jardisSupport/response.git",
+                "reference": "9c768fe7c37f95882a52c1ab2774f865eb092c99"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/jardisSupport/scheduling/zipball/fb2dbedbb04664aaf080a5a39cfafa8a2756e2f3",
-                "reference": "fb2dbedbb04664aaf080a5a39cfafa8a2756e2f3",
+                "url": "https://api.github.com/repos/jardisSupport/response/zipball/9c768fe7c37f95882a52c1ab2774f865eb092c99",
+                "reference": "9c768fe7c37f95882a52c1ab2774f865eb092c99",
                 "shasum": ""
             },
             "require": {
-                "jardissupport/contracts": "^2.12",
-                "php": ">=8.3"
+                "jardissupport/contracts": "^2.13",
+                "php": ">=8.3",
+                "psr/clock": "^1.0",
+                "psr/log": "^3.0"
             },
             "require-dev": {
+                "jardissupport/scheduling": "^1.2",
+                "jardissupport/validation": "^1.7.1",
                 "phpstan/phpstan": "2.1.56",
                 "phpunit/phpunit": "10.5.63",
                 "squizlabs/php_codesniffer": "3.13.6"
@@ -928,7 +932,7 @@
             "type": "library",
             "autoload": {
                 "psr-4": {
-                    "JardisSupport\\Scheduling\\": "src/"
+                    "JardisSupport\\Response\\": "src/"
                 }
             },
             "notification-url": "https://packagist.org/downloads/",
@@ -941,27 +945,25 @@
                     "email": "jardisDev@headgent.com"
                 }
             ],
-            "description": "Cron expression parsing and task scheduling with fluent API and timezone support",
+            "description": "Response building for Jardis request-response use cases: failure forms, response objects, response envelope data and the door steps",
             "homepage": "https://jardis.io",
             "keywords": [
                 "Headgent",
-                "cron",
-                "cron-expression",
                 "domain-driven-design",
+                "envelope",
+                "failure-forms",
                 "jardis",
                 "php",
-                "scheduling",
-                "task",
-                "task-scheduling",
-                "timer"
+                "request-response",
+                "response"
             ],
             "support": {
-                "docs": "https://docs.jardis.io/en/support/scheduling",
+                "docs": "https://docs.jardis.io/en/support/response",
                 "email": "jardisDev@headgent.com",
-                "issues": "https://github.com/jardisSupport/scheduling/issues",
-                "source": "https://github.com/jardisSupport/scheduling/tree/v1.2.0"
+                "issues": "https://github.com/jardisSupport/response/issues",
+                "source": "https://github.com/jardisSupport/response/tree/v1.0.0"
             },
-            "time": "2026-10-17T11:37:48+00:00"
+            "time": "2026-10-19T16:50:36+00:00"
         },
         {
             "name": "jardissupport/secret",
@@ -1093,26 +1095,24 @@
         },
         {
             "name": "jardissupport/workflow",
-            "version": "v3.0.0",
+            "version": "v4.0.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/jardisSupport/workflow.git",
-                "reference": "4762502f35ae7356fd4ce4fabefc488712bafb92"
+                "reference": "03b2c66459e5d28193d8475d44824ba9ae559bc2"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/jardisSupport/workflow/zipball/4762502f35ae7356fd4ce4fabefc488712bafb92",
-                "reference": "4762502f35ae7356fd4ce4fabefc488712bafb92",
+                "url": "https://api.github.com/repos/jardisSupport/workflow/zipball/03b2c66459e5d28193d8475d44824ba9ae559bc2",
+                "reference": "03b2c66459e5d28193d8475d44824ba9ae559bc2",
                 "shasum": ""
             },
             "require": {
-                "jardissupport/contracts": "^2.12",
-                "jardissupport/repository": "^1.6",
-                "jardissupport/scheduling": "^1.2",
-                "php": ">=8.3",
-                "psr/log": "^3.0"
+                "jardissupport/contracts": "^2.13",
+                "php": ">=8.3"
             },
             "require-dev": {
+                "jardissupport/scheduling": "^1.2",
                 "jardissupport/validation": "^1.7.1",
                 "phpstan/phpstan": "2.1.56",
                 "phpunit/phpunit": "10.5.63",
@@ -1134,7 +1134,7 @@
                     "email": "jardisDev@headgent.com"
                 }
             ],
-            "description": "Process engine for request-response use cases: declarative node graphs, typed results and failure forms, transaction bracket",
+            "description": "Process engine for request-response use cases: declarative node graphs, typed results, routing, sub-processes",
             "homepage": "https://jardis.io",
             "keywords": [
                 "Headgent",
@@ -1152,9 +1152,9 @@
                 "docs": "https://docs.jardis.io/en/support/workflow",
                 "email": "jardisDev@headgent.com",
                 "issues": "https://github.com/jardisSupport/workflow/issues",
-                "source": "https://github.com/jardisSupport/workflow/tree/v3.0.0"
+                "source": "https://github.com/jardisSupport/workflow/tree/v4.0.0"
             },
-            "time": "2026-10-18T07:49:04+00:00"
+            "time": "2026-10-19T18:23:32+00:00"
         },
         {
             "name": "nikic/fast-route",
