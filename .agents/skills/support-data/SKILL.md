@@ -71,6 +71,9 @@ $fm->fromAggregate(array $data, callable $mapProvider, string $entity): array
 - `array` property + indexed array of assoc arrays → skip (MANY-relation)
 - Class property + array value → skip (ONE-relation)
 
+## WIRE PROJECTION
+`ProjectWire` (PHP → JSON wire, counterpart to `TypeCaster`): `(new ProjectWire())($payload, $typeMap)` with formats `date` | `date-time` | `time` or a nested map. Wire values are UTC: a `date-time` `DateTimeInterface` is **converted to UTC** before formatting (since v1.4.0; earlier its wall clock was read as UTC; the caller's object is never modified), strings without offset are read as UTC, strings with offset are converted. `date`/`time` objects keep their own wall clock. Zero-dates/empty/unparsable → `null`; unmapped keys pass through.
+
 ## TYPE CASTING
 `TypeCaster`: `string` → `DateTime`|`DateTimeImmutable` (formats: `Y-m-d H:i:s` | `Y-m-d` | `H:i:s`, then **fallback `new DateTime($v)`** since v1.1.0 — so Postgres `TIMESTAMPTZ` `2026-08-28 12:34:56.123456+00`, ISO-8601 `…T12:34:56Z`, offsets like `+05:30` parse; unparseable → `null`) · `int` · `bool` (`(bool)((int)$v)`) · `float` · `BackedEnum::from($v)`.
 - **< v1.1.0:** TIMESTAMPTZ with microseconds/offset returned `null` silently ("Trailing data") — map such rows manually there.
