@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "50110fa4114c6e679af7e2baee4a9467",
+    "content-hash": "3bad59df4d2fcdddb612c4510e14c905",
     "packages": [
         {
             "name": "jardisadapter/dbconnection",
@@ -964,6 +964,67 @@
                 "source": "https://github.com/jardisSupport/response/tree/v1.0.0"
             },
             "time": "2026-10-19T16:50:36+00:00"
+        },
+        {
+            "name": "jardissupport/scheduling",
+            "version": "v1.2.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/jardisSupport/scheduling.git",
+                "reference": "fb2dbedbb04664aaf080a5a39cfafa8a2756e2f3"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/jardisSupport/scheduling/zipball/fb2dbedbb04664aaf080a5a39cfafa8a2756e2f3",
+                "reference": "fb2dbedbb04664aaf080a5a39cfafa8a2756e2f3",
+                "shasum": ""
+            },
+            "require": {
+                "jardissupport/contracts": "^2.12",
+                "php": ">=8.3"
+            },
+            "require-dev": {
+                "phpstan/phpstan": "2.1.56",
+                "phpunit/phpunit": "10.5.63",
+                "squizlabs/php_codesniffer": "3.13.6"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "JardisSupport\\Scheduling\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Jardis Development",
+                    "email": "jardisDev@headgent.com"
+                }
+            ],
+            "description": "Cron expression parsing and task scheduling with fluent API and timezone support",
+            "homepage": "https://jardis.io",
+            "keywords": [
+                "Headgent",
+                "cron",
+                "cron-expression",
+                "domain-driven-design",
+                "jardis",
+                "php",
+                "scheduling",
+                "task",
+                "task-scheduling",
+                "timer"
+            ],
+            "support": {
+                "docs": "https://docs.jardis.io/en/support/scheduling",
+                "email": "jardisDev@headgent.com",
+                "issues": "https://github.com/jardisSupport/scheduling/issues",
+                "source": "https://github.com/jardisSupport/scheduling/tree/v1.2.0"
+            },
+            "time": "2026-10-17T11:37:48+00:00"
         },
         {
             "name": "jardissupport/secret",

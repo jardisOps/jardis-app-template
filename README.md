@@ -274,8 +274,10 @@ yours from the start:
    the recipe in [`FRONTEND.md`](FRONTEND.md).
 
 The runtime packages generated code imports (`jardissupport/data`, `dbquery`,
-`repository`, `validation`, `workflow`) ship preinstalled — a fresh build
-runs without any `composer require`. So do the packages of the
+`repository`, `validation`, `workflow`, `response`, `scheduling`,
+`classversion`, `factory`) ship preinstalled as direct requirements (none
+relies on another package pulling it in) — a fresh build runs without any
+`composer require`. So do the packages of the
 [session door](#sessions) (`jardiscore/app` with `RequireSession`,
 `jardissupport/contracts`, `jardissupport/auth`) and the three adapters it
 and the generated front door lean on: `jardisadapter/dbconnection` (the
