@@ -185,6 +185,15 @@ Response building for one request-response use case: response objects (`ContextR
 
 - **How:** load skill `support-response` before touching the API — it carries the usage essentials and pitfalls.
 
+<!-- source: jardissupport/scheduling -->
+# jardissupport/scheduling
+
+Cron expression parsing, task definition with tags and priority, and schedule validation.
+
+- **Use when:** you need to define, parse, validate, or manage recurring scheduled tasks and cron-based job configurations
+- **How:** load skill `support-scheduling` before touching the API — it carries the usage essentials and pitfalls.
+  Full reference: https://docs.jardis.io/en/support/scheduling
+
 <!-- source: jardissupport/secret -->
 # jardissupport/secret
 
