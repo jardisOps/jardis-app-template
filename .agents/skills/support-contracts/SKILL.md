@@ -28,7 +28,7 @@ Contracts only — interfaces, enums, `final readonly` value objects and excepti
 implementation code**; the only tests are contract-shape conformance tests (reflection on signatures). Implementations live in the adapter/support packages; this package
 is the port layer that keeps the hexagonal dependency direction honest across the ecosystem.
 
-115 contracts across 18 namespaces under `src/`.
+119 contracts across 18 namespaces under `src/`.
 
 ## CONTRACT GROUPS
 | Namespace | # | Contracts | Implemented by |
@@ -38,7 +38,7 @@ is the port layer that keeps the hexagonal dependency direction honest across th
 | `Connection` | 1 | `ConnectionInterface` — generic connection abstraction | — |
 | `Data` | 3 | `HydrationInterface`, `IdentityInterface`, `FieldMapperInterface` | `support-data` |
 | `DbConnection` | 4 | `DbConnectionInterface`, `ConnectionPoolInterface`, `DatabaseConfigInterface`, `SavepointInterface` (additive capability: `savepoint`/`releaseSavepoint`/`rollbackToSavepoint`; consumers check `instanceof SavepointInterface`) | `adapter-dbconnection`, `support-repository` |
-| `DbQuery` | 17 | `DbQueryBuilderInterface`, `DbInsertBuilderInterface`, `DbUpdateBuilderInterface`, `DbDeleteBuilderInterface`, `DbQueryConditionBuilderInterface`, `DbQueryJsonConditionBuilderInterface`, `DbWhereConditionInterface`, `DbComparisonOperatorsInterface`, `DbJoinInterface`, `DbOrderLimitInterface`, `DbWindowBuilderInterface`, `DbQueryExistsInterface`, `DbSqlGeneratorInterface`, `DbPreparedQueryInterface`, `ExpressionInterface`, `QueryResultInterface`, `ExecuteResultInterface` | `support-dbquery` |
+| `DbQuery` | 18 | `DbQueryBuilderInterface`, `DbInsertBuilderInterface`, `DbUpdateBuilderInterface`, `DbDeleteBuilderInterface`, `DbQueryConditionBuilderInterface`, `DbQueryJsonConditionBuilderInterface`, `DbWhereConditionInterface`, `DbComparisonOperatorsInterface`, `DbJoinInterface`, `DbOrderLimitInterface`, `DbWindowBuilderInterface`, `DbQueryExistsInterface`, `DbSqlGeneratorInterface`, `DbPreparedQueryInterface`, `ExpressionInterface`, `LikePatternInterface`, `QueryResultInterface`, `ExecuteResultInterface` | `support-dbquery` |
 | `DotEnv` | 1 | `DotEnvInterface` | `support-dotenv` |
 | `EventListener` | 1 | `EventListenerRegistryInterface` — registration side, paired with the PSR-14 dispatcher | `adapter-eventdispatcher` |
 | `Filesystem` | 6 | `FilesystemInterface`, `FilesystemReaderInterface`, `FilesystemWriterInterface`, `FilesystemServiceInterface`, `FileInfoInterface`, `FilesystemExceptionInterface` | `adapter-filesystem` |

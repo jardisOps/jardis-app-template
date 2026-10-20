@@ -57,6 +57,17 @@ use JardisSupport\DbQuery\{DbQuery, Data\Dialect};
 ->where('f')->between(10, 20)   ->where('f')->notBetween(10, 20)
 ```
 
+## LITERAL SEARCH (LikePattern)
+```php
+use JardisSupport\DbQuery\Data\LikePattern;
+->where('f')->like(LikePattern::contains($userTerm))    // escapes % _ and '!' -> LIKE ? ESCAPE '!'
+->where('f')->like(LikePattern::startsWith($t))         // endsWith($t) / literal($t)
+->where('f')->notLike(LikePattern::contains($t))
+// same clause on MySQL/MariaDB/PostgreSQL/SQLite; plain ->like('x%') keeps wildcards (caller-owned)
+// LikePattern implements contracts LikePatternInterface (pattern(), escapeClause()): typed against the
+// contracts interfaces, like()/notLike() accept it (phpstan-clean); any implementation of the interface works
+```
+
 ## CONDITION CHAINING
 ```php
 ->where('a')->equals(1)
@@ -135,12 +146,16 @@ use JardisSupport\DbQuery\DbInsert;
 (new DbInsert())->into('users')->fields('name', 'email')->values('John', 'j@x.com')->values('Jane', 'jane@x.com');
 (new DbInsert())->into('users')->fields('name', 'email')->fromSelect($selectQuery);  // INSERT...SELECT
 
-// Conflict handling (dialect-specific):
-->onDuplicateKeyUpdate('name', 'New')              // MySQL
-->onConflict('email')->doUpdate(['name' => 'New']) // PostgreSQL
-->onConflict('email')->doNothing()                 // PostgreSQL
-->orIgnore()                                       // SQLite
-->replace()                                        // SQLite
+// Upsert - ONE chain, every dialect:
+->onConflict('email')->onDuplicateKeyUpdate('name', 'New')
+//   MySQL/MariaDB: ON DUPLICATE KEY UPDATE  | PostgreSQL/SQLite: ON CONFLICT (email) DO UPDATE SET
+//   PostgreSQL/SQLite WITHOUT onConflict(): InvalidArgumentException (never a silent no-op)
+
+// Other conflict handling:
+->onConflict('email')->doUpdate(['name' => 'New']) // PostgreSQL/SQLite (same clause as above)
+->onConflict('email')->doNothing()                 // PostgreSQL/SQLite
+->orIgnore()                                       // INSERT IGNORE / OR IGNORE / ON CONFLICT DO NOTHING
+->replace()                                        // MySQL REPLACE / SQLite OR REPLACE
 ```
 
 ## UPDATE
