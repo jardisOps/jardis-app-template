@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "614476a481d39408e538b7fa29b3a55f",
+    "content-hash": "49e6e715b823cbea3d677f3349088fbd",
     "packages": [
         {
             "name": "jardisadapter/dbconnection",
@@ -1156,16 +1156,16 @@
         },
         {
             "name": "jardissupport/workflow",
-            "version": "v4.0.0",
+            "version": "v4.1.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/jardisSupport/workflow.git",
-                "reference": "03b2c66459e5d28193d8475d44824ba9ae559bc2"
+                "reference": "586259a4fcf81093897d6d225c73c72d7e01ce44"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/jardisSupport/workflow/zipball/03b2c66459e5d28193d8475d44824ba9ae559bc2",
-                "reference": "03b2c66459e5d28193d8475d44824ba9ae559bc2",
+                "url": "https://api.github.com/repos/jardisSupport/workflow/zipball/586259a4fcf81093897d6d225c73c72d7e01ce44",
+                "reference": "586259a4fcf81093897d6d225c73c72d7e01ce44",
                 "shasum": ""
             },
             "require": {
@@ -1213,9 +1213,9 @@
                 "docs": "https://docs.jardis.io/en/support/workflow",
                 "email": "jardisDev@headgent.com",
                 "issues": "https://github.com/jardisSupport/workflow/issues",
-                "source": "https://github.com/jardisSupport/workflow/tree/v4.0.0"
+                "source": "https://github.com/jardisSupport/workflow/tree/v4.1.0"
             },
-            "time": "2026-10-19T18:23:32+00:00"
+            "time": "2026-10-20T11:08:23+00:00"
         },
         {
             "name": "nikic/fast-route",
