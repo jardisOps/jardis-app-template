@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "3bad59df4d2fcdddb612c4510e14c905",
+    "content-hash": "614476a481d39408e538b7fa29b3a55f",
     "packages": [
         {
             "name": "jardisadapter/dbconnection",
@@ -205,16 +205,16 @@
         },
         {
             "name": "jardiscore/app",
-            "version": "v1.8.0",
+            "version": "v1.8.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/jardisCore/app.git",
-                "reference": "6cbc3e01f9cfd0bc3592a118894b0e93dd400bb9"
+                "reference": "812345a4393827fdab3a217d4c8103a12bca459d"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/jardisCore/app/zipball/6cbc3e01f9cfd0bc3592a118894b0e93dd400bb9",
-                "reference": "6cbc3e01f9cfd0bc3592a118894b0e93dd400bb9",
+                "url": "https://api.github.com/repos/jardisCore/app/zipball/812345a4393827fdab3a217d4c8103a12bca459d",
+                "reference": "812345a4393827fdab3a217d4c8103a12bca459d",
                 "shasum": ""
             },
             "require": {
@@ -237,7 +237,7 @@
                 "jardissupport/dbquery": "^1.0",
                 "jardissupport/repository": "^1.0",
                 "jardissupport/validation": "^1.0",
-                "jardissupport/workflow": "^1.0",
+                "jardissupport/workflow": "^3.0",
                 "middlewares/client-ip": "^2.1",
                 "phpstan/phpstan": "^2.0.4",
                 "phpunit/phpunit": "^11.0",
@@ -274,9 +274,9 @@
                 "docs": "https://docs.jardis.io/en/core/app",
                 "email": "jardisDev@headgent.com",
                 "issues": "https://github.com/jardisCore/app/issues",
-                "source": "https://github.com/jardisCore/app/tree/v1.8.0"
+                "source": "https://github.com/jardisCore/app/tree/v1.8.1"
             },
-            "time": "2026-10-15T18:19:43+00:00"
+            "time": "2026-10-18T19:35:29+00:00"
         },
         {
             "name": "jardiscore/kernel",
@@ -516,16 +516,16 @@
         },
         {
             "name": "jardissupport/contracts",
-            "version": "v2.13.0",
+            "version": "v2.14.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/jardisSupport/contracts.git",
-                "reference": "2f904d76fd303615022aac2f69fb2da4e36a2cf5"
+                "reference": "9666a9ddda0c904ecc25f681ff3174c789f5ad70"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/jardisSupport/contracts/zipball/2f904d76fd303615022aac2f69fb2da4e36a2cf5",
-                "reference": "2f904d76fd303615022aac2f69fb2da4e36a2cf5",
+                "url": "https://api.github.com/repos/jardisSupport/contracts/zipball/9666a9ddda0c904ecc25f681ff3174c789f5ad70",
+                "reference": "9666a9ddda0c904ecc25f681ff3174c789f5ad70",
                 "shasum": ""
             },
             "require": {
@@ -576,9 +576,9 @@
                 "docs": "https://docs.jardis.io/en/support/contracts",
                 "email": "jardisDev@headgent.com",
                 "issues": "https://github.com/jardisSupport/contracts/issues",
-                "source": "https://github.com/jardisSupport/contracts/tree/v2.13.0"
+                "source": "https://github.com/jardisSupport/contracts/tree/v2.14.0"
             },
-            "time": "2026-10-19T17:53:58+00:00"
+            "time": "2026-10-20T07:29:46+00:00"
         },
         {
             "name": "jardissupport/data",
@@ -649,21 +649,21 @@
         },
         {
             "name": "jardissupport/dbquery",
-            "version": "v1.1.5",
+            "version": "v1.2.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/jardisSupport/dbquery.git",
-                "reference": "0ab7aa54c875f3cd8354b6038c0f9bdf708bc0ef"
+                "reference": "dde0984fc081877f08fc0f7b525acafea3f3a0fd"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/jardisSupport/dbquery/zipball/0ab7aa54c875f3cd8354b6038c0f9bdf708bc0ef",
-                "reference": "0ab7aa54c875f3cd8354b6038c0f9bdf708bc0ef",
+                "url": "https://api.github.com/repos/jardisSupport/dbquery/zipball/dde0984fc081877f08fc0f7b525acafea3f3a0fd",
+                "reference": "dde0984fc081877f08fc0f7b525acafea3f3a0fd",
                 "shasum": ""
             },
             "require": {
                 "ext-pdo": "*",
-                "jardissupport/contracts": "^1.0 || ^2.0",
+                "jardissupport/contracts": "^2.14",
                 "jardissupport/dotenv": "^1.0",
                 "php": ">=8.2"
             },
@@ -709,9 +709,9 @@
                 "docs": "https://docs.jardis.io/en/support/dbquery",
                 "email": "jardisDev@headgent.com",
                 "issues": "https://github.com/jardisSupport/dbquery/issues",
-                "source": "https://github.com/jardisSupport/dbquery/tree/v1.1.5"
+                "source": "https://github.com/jardisSupport/dbquery/tree/v1.2.0"
             },
-            "time": "2026-10-02T12:29:14+00:00"
+            "time": "2026-10-20T07:34:29+00:00"
         },
         {
             "name": "jardissupport/dotenv",
@@ -839,16 +839,16 @@
         },
         {
             "name": "jardissupport/repository",
-            "version": "v1.7.0",
+            "version": "v1.8.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/jardisSupport/repository.git",
-                "reference": "79ea924d8732110bcc0d373d6e3937c168dcfe37"
+                "reference": "79353ce6f0828a74b5d84de642e9e0685cfd4a7f"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/jardisSupport/repository/zipball/79ea924d8732110bcc0d373d6e3937c168dcfe37",
-                "reference": "79ea924d8732110bcc0d373d6e3937c168dcfe37",
+                "url": "https://api.github.com/repos/jardisSupport/repository/zipball/79353ce6f0828a74b5d84de642e9e0685cfd4a7f",
+                "reference": "79353ce6f0828a74b5d84de642e9e0685cfd4a7f",
                 "shasum": ""
             },
             "require": {
@@ -898,9 +898,9 @@
                 "docs": "https://docs.jardis.io/en/support/repository",
                 "email": "jardisDev@headgent.com",
                 "issues": "https://github.com/jardisSupport/repository/issues",
-                "source": "https://github.com/jardisSupport/repository/tree/v1.7.0"
+                "source": "https://github.com/jardisSupport/repository/tree/v1.8.0"
             },
-            "time": "2026-10-19T18:21:20+00:00"
+            "time": "2026-10-19T23:36:03+00:00"
         },
         {
             "name": "jardissupport/response",
@@ -1940,16 +1940,16 @@
     "packages-dev": [
         {
             "name": "jardis/dev-skills",
-            "version": "v1.33.0",
+            "version": "v1.35.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/jardisTools/dev-skills.git",
-                "reference": "3dd8392ebdc47db9c88701c810c07fc96494437a"
+                "reference": "a5d94607aa439b76636c9909e4b8c3567ec5cda8"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/jardisTools/dev-skills/zipball/3dd8392ebdc47db9c88701c810c07fc96494437a",
-                "reference": "3dd8392ebdc47db9c88701c810c07fc96494437a",
+                "url": "https://api.github.com/repos/jardisTools/dev-skills/zipball/a5d94607aa439b76636c9909e4b8c3567ec5cda8",
+                "reference": "a5d94607aa439b76636c9909e4b8c3567ec5cda8",
                 "shasum": ""
             },
             "require": {
@@ -2006,9 +2006,9 @@
                 "docs": "https://docs.jardis.io/en/skills",
                 "email": "jardisDev@headgent.com",
                 "issues": "https://github.com/jardisTools/dev-skills/issues",
-                "source": "https://github.com/jardisTools/dev-skills/tree/v1.33.0"
+                "source": "https://github.com/jardisTools/dev-skills/tree/v1.35.0"
             },
-            "time": "2026-10-18T01:35:37+00:00"
+            "time": "2026-10-19T18:38:59+00:00"
         },
         {
             "name": "myclabs/deep-copy",
