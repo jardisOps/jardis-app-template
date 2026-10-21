@@ -181,7 +181,7 @@ Generic CRUD repository with raw-data persistence, read/write endpoint splitting
 <!-- source: jardissupport/response -->
 # jardissupport/response
 
-Response building for one request-response use case: response objects (`ContextResponse`, `DomainResponse`), failure forms (400 `ValidationFailure`, 404 `NotFound`, 409 `Conflict`, 422 `RuleViolation`), the `data` of the response envelope `{status, data, errors, meta}`, read answers (`ReadResult`, `Reference`). The door steps (input validation, actor check, failure mapping, cause logging) are part of the package. Details: `README.md`, https://docs.jardis.io/en/support/response
+Response building for one request-response use case: response objects (`ContextResponse`, `DomainResponse`), failure forms (400 `ValidationFailure`, 404 `NotFound`, 409 `Conflict`, 422 `RuleViolation`), the `data` of the response envelope `{status, data, errors, meta}`, read answers and write answers (`ReadResult`, `Reference`). The door steps (input validation, actor check, failure mapping, cause logging) and the answer closures (`Answer*`) are part of the package. Details: `README.md`, https://docs.jardis.io/en/support/response
 
 - **How:** load skill `support-response` before touching the API — it carries the usage essentials and pitfalls.
 
