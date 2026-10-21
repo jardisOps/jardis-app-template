@@ -20,6 +20,11 @@ next: []
 | `App` | The orchestrator. `__construct(Routes $routes, DomainKernelInterface $kernel, AppConfig $config, ?ResponseFactoryInterface, ?StreamFactoryInterface, ?ServerRequestFactoryInterface, ?UriFactoryInterface, ?UploadedFileFactoryInterface)` — all PSR-17 factories default to `Nyholm\Psr7\Factory\Psr17Factory`. `handle(ServerRequestInterface): ResponseInterface` (pure). `run(): void` (impure — builds request from SAPI, `handle()`s, emits). |
 | `Config\AppConfig` | `final readonly class` — `__construct(bool $debug = false, array $knownVersions = [], bool $requireSessionGuard = false)` (`list<string>`). `requireSessionGuard`: `App` throws `LogicException` at construction if a non-anonymous route has no `SessionGuardInterface` in its chain (via `Handler\Pipeline\AssertSessionGuard`). Bootstrap-injected only; never reads ENV itself (E11). |
 | `Handler\Request\ParseJsonBody` | `__invoke(ServerRequestInterface): array<array-key, mixed>` — the one JSON body parser (E7). |
+| `Handler\Request\Accept\{TransportStr,TransportInt,TransportFloat,TransportDecimal,TransportBool,TransportDate,TransportDateTime,TransportTime,BodyStr,BodyInt,BodyFloat,BodyBool,BodyDate,BodyDateTime,BodyTime}` | Request mapper, accept side: each `__invoke(mixed): ?T`, `null` = refused. `Transport*` = path/query string (validate first, coerce second; Date/DateTime/Time return the string, `TransportDecimal(string $pattern = lexical)` keeps the string). `Body*` = strict JSON type (Date/DateTime/Time return `DateTimeImmutable`, DateTime normalised to UTC). Calendar forms by `jardissupport/validation` `DateTime`. |
+| `Handler\Request\{ReadRequired, ReadTransportOptional, ReadTransportList, ReadBodyNullable}` | Request mapper, read side: `__invoke($source, string $name, callable $accept, [mixed $fallback,] array &$fields)`; collect `missing` (absent) / `type` (refused) into `$fields` (`list<{field, reason}>`), never early return; Required returns the fallback, Optional/Nullable/List see the class docs (`''`/`null` = not given for transport, `null` for body). |
+| `Handler\Request\FindUnknownKeys`, `RebaseFindings` | `unknown` finding per key not in `$known` (body order); `<path>.<field>` prefix for nested payloads. |
+| `Handler\Request\BuildRequestFindings` | `__invoke(list<{field, reason}>): InputFindings` — adds text and `messageKey` (`validation.<reason>`), the whole vocabulary (`missing`/`type`/`unknown`/fallback) is `response` `DescribeFieldFinding`; no own texts. |
+| `Handler\Response\AnswerInvalidRequest` | `__construct(ClockInterface = new SystemClock(), ...)`; `__invoke(list<{field, reason}> $fields, string $version = ''): DomainResponseInterface` — the 400 via `response` `AnswerFindings` + `TransformResponse` (meta duration/contexts/timestamp/version). |
 | `Handler\Request\ResolveVersion` | `__construct(array $knownVersions = [])` (`list<string>`). `__invoke(ServerRequestInterface): ?string` — the one reader of `X-Jardis-Version`: absent → `''` (baseline), exactly one case-sensitive known value → that value, else `null` (unknown / empty / repeated header). `App` wires it from `AppConfig::$knownVersions`. |
 | `Handler\Response\MapDomainResponse` | `__construct(ResponseFactoryInterface, StreamFactoryInterface)`. `__invoke(DomainResponseInterface): ResponseInterface` — the canonical envelope mapper (reference impl of `contract/docs/response-envelope.md`). |
 | `Handler\Response\BuildErrorResponse` | `__construct(ResponseFactoryInterface, StreamFactoryInterface)`. `__invoke(int $status, array $data = [], array $errors = [], array $meta = [], array $allowedMethods = []): ResponseInterface` — the ONE place assembling `{status,data,errors,meta}`. |
@@ -64,7 +69,8 @@ a literal `%`).
 cases: **empty raw body**, **JSON syntax error** (`JSON_THROW_ON_ERROR`), or a **decoded value that is not an
 array** (scalar/`null` JSON). Raw-Body-Invariante: rewinds the body stream before and after reading, so the
 same request's raw body can be read again afterwards (webhook-HMAC use case) and calling the parser twice is
-idempotent.
+idempotent. The decoded array goes on to the request mapper (`Read*` with an `Accept\*` closure, findings
+collected into `$fields`, `AnswerInvalidRequest` -> 400 `{@type: validation, fields: [{field, reason, message, messageKey}]}`).
 
 ## X-JARDIS-VERSION — the class-version contract
 `App` reads the request header `X-Jardis-Version` ONCE (`Handler\Request\ResolveVersion`, called by `DispatchAndRespond`
@@ -104,7 +110,7 @@ The once-written `src/App/bootstrap.php` loads it into the `'middleware'` entry 
 **Boundary:** retrofitting a standard middleware = a PSR-15 class in `jardisCore/app` plus one line in the generated `middleware.php`; a project-specific middleware = an own PSR-15 class in the project, its FQCN named in the project setting. Not a patch of the template's `index.php`. A generally useful one (CORS, request id/audit, rate limit, tenant context) is an issue in `jardisCore/app`, not project code imitating the package.
 
 ## SESSION — `RequireSession` (PSR-15, global or per route)
-Binds a request to a verified session or rejects it. Depends only on the ports of `jardissupport/contracts` ^2.11
+Binds a request to a verified session or rejects it. Depends only on the ports of `jardissupport/contracts` ^2.13
 (`AuthenticatorInterface`, `CredentialInterface`, `TenantAwareAuthResultInterface`, `RequestAttribute`) — NOT on `support/auth`.
 ```php
 use JardisCore\App\Middleware\RequireSession;
@@ -219,13 +225,17 @@ Reference: `jardissupport/contracts` → `docs/response-envelope.md`. `ResponseS
   swappable-by-injection default, never hardwired inside handler/business code (E12-symmetric).
 - Request-body size limits, Trusted-Proxy/`X-Forwarded-*`, and `display_errors=Off` are deliberately **not**
   solved by this package (N1) — named responsibilities of the surrounding webserver/FPM/proxy infrastructure.
-- Typed coercion of path/query/body parameters is the route handler's job in v1 (F8); reach for
-  `jardissupport/validation` for anything beyond trivial casts.
+- Typed coercion of path/query/body parameters: the request mapper (`Handler\Request\Accept\*` + `Read*` +
+  `AnswerInvalidRequest`) does the type check and the 400; anything beyond (business validation) is
+  `jardissupport/validation` / a Rule, not the mapper. All mapper closures are creatable without constructor arguments.
 
 ## DEPENDENCIES
 ```
 jardiscore/kernel            ^2.0
-jardissupport/contracts      ^2.11
+jardissupport/contracts      ^2.13
+jardissupport/response       ^1.2
+jardissupport/validation     ^1.5
+jardissupport/scheduling     ^1.2
 jardissupport/factory        ^1.0
 nikic/fast-route             ^1.3
 nyholm/psr7                  ^1.8
