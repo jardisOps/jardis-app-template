@@ -1,6 +1,6 @@
 ---
 name: core-app
-description: jardiscore/app v1 - the HTTP-Delivery layer for Jardis domains, a FastRoute router hidden behind an own RouterInterface, a PSR-15 middleware pipeline, the canonical DomainResponse-to-PSR-7 envelope mapper, and a DomainKernel bootstrap bridge. TRIGGER: App, Routes, Router, RouterInterface, ParseJsonBody, X-Jardis-Version, knownVersions, jardisVersion, EmitResponse, HandleThrowable, MapDomainResponse, BuildErrorResponse, jardiscore/app, response envelope, {status,data,errors,meta}, health(), auto-HEAD, middleware: when and where, RequireSession, RequireRequestAttribute, request.attributeMissing, required request attribute, 403, per-route middleware.
+description: jardiscore/app v2 - the HTTP-Delivery layer for Jardis domains, a FastRoute router hidden behind an own RouterInterface, a PSR-15 middleware pipeline, the canonical DomainResponse-to-PSR-7 envelope mapper, and a DomainKernel bootstrap bridge. TRIGGER: ReadRequestAttribute, ReadRequestAttributeStrict, AnswerUnsupportedRequest, App, Routes, Router, RouterInterface, ParseJsonBody, X-Jardis-Version, knownVersions, jardisVersion, EmitResponse, HandleThrowable, MapDomainResponse, BuildErrorResponse, jardiscore/app, response envelope, {status,data,errors,meta}, health(), auto-HEAD, middleware: when and where, RequireSession, RequireRequestAttribute, request.attributeMissing, required request attribute, 403, per-route middleware.
 user-invocable: false
 zone: post-active
 persona: D
@@ -20,11 +20,9 @@ next: []
 | `App` | The orchestrator. `__construct(Routes $routes, DomainKernelInterface $kernel, AppConfig $config, ?ResponseFactoryInterface, ?StreamFactoryInterface, ?ServerRequestFactoryInterface, ?UriFactoryInterface, ?UploadedFileFactoryInterface)` — all PSR-17 factories default to `Nyholm\Psr7\Factory\Psr17Factory`. `handle(ServerRequestInterface): ResponseInterface` (pure). `run(): void` (impure — builds request from SAPI, `handle()`s, emits). |
 | `Config\AppConfig` | `final readonly class` — `__construct(bool $debug = false, array $knownVersions = [], bool $requireSessionGuard = false)` (`list<string>`). `requireSessionGuard`: `App` throws `LogicException` at construction if a non-anonymous route has no `SessionGuardInterface` in its chain (via `Handler\Pipeline\AssertSessionGuard`). Bootstrap-injected only; never reads ENV itself (E11). |
 | `Handler\Request\ParseJsonBody` | `__invoke(ServerRequestInterface): array<array-key, mixed>` — the one JSON body parser (E7). |
-| `Handler\Request\Accept\{TransportStr,TransportInt,TransportFloat,TransportDecimal,TransportBool,TransportDate,TransportDateTime,TransportTime,BodyStr,BodyInt,BodyFloat,BodyBool,BodyDate,BodyDateTime,BodyTime}` | Request mapper, accept side: each `__invoke(mixed): ?T`, `null` = refused. `Transport*` = path/query string (validate first, coerce second; Date/DateTime/Time return the string, `TransportDecimal(string $pattern = lexical)` keeps the string). `Body*` = strict JSON type (Date/DateTime/Time return `DateTimeImmutable`, DateTime normalised to UTC). Calendar forms by `jardissupport/validation` `DateTime`. |
-| `Handler\Request\{ReadRequired, ReadTransportOptional, ReadTransportList, ReadBodyNullable}` | Request mapper, read side: `__invoke($source, string $name, callable $accept, [mixed $fallback,] array &$fields)`; collect `missing` (absent) / `type` (refused) into `$fields` (`list<{field, reason}>`), never early return; Required returns the fallback, Optional/Nullable/List see the class docs (`''`/`null` = not given for transport, `null` for body). |
-| `Handler\Request\FindUnknownKeys`, `RebaseFindings` | `unknown` finding per key not in `$known` (body order); `<path>.<field>` prefix for nested payloads. |
-| `Handler\Request\BuildRequestFindings` | `__invoke(list<{field, reason}>): InputFindings` — adds text and `messageKey` (`validation.<reason>`), the whole vocabulary (`missing`/`type`/`unknown`/fallback) is `response` `DescribeFieldFinding`; no own texts. |
-| `Handler\Response\AnswerInvalidRequest` | `__construct(ClockInterface = new SystemClock(), ...)`; `__invoke(list<{field, reason}> $fields, string $version = ''): DomainResponseInterface` — the 400 via `response` `AnswerFindings` + `TransformResponse` (meta duration/contexts/timestamp/version). |
+| `Handler\Request\ReadRequestAttribute` | `__invoke(ServerRequestInterface, string $name): string` - the request attribute as a string; absent / not a string -> `''`. Reads only (a guarded route sits behind `RequireRequestAttribute`). |
+| `Handler\Request\ReadRequestAttributeStrict` | same signature; absent / not a string / empty -> `Exception\RequestAttributeMissing` (`AppException` -> `RuntimeException`, text `Request attribute <name> is not set - the scoped route needs the session middleware.`), the error boundary answers the generic 500. For an attribute no middleware guards. |
+| `Handler\Response\AnswerUnsupportedRequest` | `__invoke(list<string> $properties): DomainResponseInterface` - `DomainResponse` 500, `data` `[]`, `errors` `['routes' => ['Request property not buildable by the generated adapter: <a, b>']]`. The route whose request the generated adapter cannot build. |
 | `Handler\Request\ResolveVersion` | `__construct(array $knownVersions = [])` (`list<string>`). `__invoke(ServerRequestInterface): ?string` — the one reader of `X-Jardis-Version`: absent → `''` (baseline), exactly one case-sensitive known value → that value, else `null` (unknown / empty / repeated header). `App` wires it from `AppConfig::$knownVersions`. |
 | `Handler\Response\MapDomainResponse` | `__construct(ResponseFactoryInterface, StreamFactoryInterface)`. `__invoke(DomainResponseInterface): ResponseInterface` — the canonical envelope mapper (reference impl of `contract/docs/response-envelope.md`). |
 | `Handler\Response\BuildErrorResponse` | `__construct(ResponseFactoryInterface, StreamFactoryInterface)`. `__invoke(int $status, array $data = [], array $errors = [], array $meta = [], array $allowedMethods = []): ResponseInterface` — the ONE place assembling `{status,data,errors,meta}`. |
@@ -36,7 +34,7 @@ next: []
 | `Middleware\RequireSession` (`implements Contract\SessionGuardInterface`, which extends `MiddlewareInterface`) | `__construct(AuthenticatorInterface $authenticator, Closure $credentialFor, ResponseFactoryInterface, StreamFactoryInterface, string $headerName = 'Authorization', string $scheme = 'Bearer')`. Session door — see SESSION below. Closures it composes: `ReadBearerToken`, `AuthenticateToken`, `ApplySession`; anonymity is read from the route attribute `DispatchAndRespond::ANONYMOUS_ATTRIBUTE`. |
 | `Middleware\RequireRequestAttribute` (`implements MiddlewareInterface`, NOT `SessionGuardInterface`) | `__construct(ResponseFactoryInterface, StreamFactoryInterface, string ...$names)`. Per-route presence check — see REQUIRED ATTRIBUTES below. Empty list / empty name -> `InvalidArgumentException`. |
 | `Data\Route` / `Data\RouteMatch` / `Data\RouteMatchStatus` | `final readonly` VOs. `Route(string $method, string $path, Closure\|RequestHandlerInterface $handler, array $middleware = [], bool $anonymous = false)` (`anonymous` is set only by `Routes::health()` and `Routes::anonymous()`). `RouteMatch` only via named constructors `found()/notFound()/methodNotAllowed()`. `RouteMatchStatus`: `Found`/`NotFound`/`MethodNotAllowed`. |
-| `Exception\AppException` (abstract), `Exception\InvalidJsonBody`, `Exception\UnresolvableHandlerResult` | `InvalidJsonBody` — empty/invalid/non-array JSON body (F8, mapped to 400). `UnresolvableHandlerResult` — handler returned neither `DomainResponseInterface` nor `ResponseInterface` (E6, propagates to generic 500). |
+| `Exception\AppException` (abstract), `Exception\InvalidJsonBody`, `Exception\RequestAttributeMissing`, `Exception\UnresolvableHandlerResult` | `InvalidJsonBody` — empty/invalid/non-array JSON body (F8, mapped to 400). `RequestAttributeMissing` — thrown by `ReadRequestAttributeStrict` (generic 500). `UnresolvableHandlerResult` — handler returned neither `DomainResponseInterface` nor `ResponseInterface` (E6, propagates to generic 500). |
 
 ## ROUTES — registration API
 ```php
@@ -69,8 +67,7 @@ a literal `%`).
 cases: **empty raw body**, **JSON syntax error** (`JSON_THROW_ON_ERROR`), or a **decoded value that is not an
 array** (scalar/`null` JSON). Raw-Body-Invariante: rewinds the body stream before and after reading, so the
 same request's raw body can be read again afterwards (webhook-HMAC use case) and calling the parser twice is
-idempotent. The decoded array goes on to the request mapper (`Read*` with an `Accept\*` closure, findings
-collected into `$fields`, `AnswerInvalidRequest` -> 400 `{@type: validation, fields: [{field, reason, message, messageKey}]}`).
+idempotent. The decoded array goes on to the request mapper of `jardissupport/response` ^1.4 (`Handler\Request\Read*` with an `Accept\*` closure, `Handler\Answer\AnswerInvalidRequest` -> 400; skill `support-response`) - no longer part of this package (2.0.0).
 
 ## X-JARDIS-VERSION — the class-version contract
 `App` reads the request header `X-Jardis-Version` ONCE (`Handler\Request\ResolveVersion`, called by `DispatchAndRespond`
@@ -225,17 +222,14 @@ Reference: `jardissupport/contracts` → `docs/response-envelope.md`. `ResponseS
   swappable-by-injection default, never hardwired inside handler/business code (E12-symmetric).
 - Request-body size limits, Trusted-Proxy/`X-Forwarded-*`, and `display_errors=Off` are deliberately **not**
   solved by this package (N1) — named responsibilities of the surrounding webserver/FPM/proxy infrastructure.
-- Typed coercion of path/query/body parameters: the request mapper (`Handler\Request\Accept\*` + `Read*` +
-  `AnswerInvalidRequest`) does the type check and the 400; anything beyond (business validation) is
-  `jardissupport/validation` / a Rule, not the mapper. All mapper closures are creatable without constructor arguments.
+- Typed coercion of path/query/body parameters and the 400 for a bad request are NOT in this package (since 2.0.0): the request mapper
+  lives in `jardissupport/response` ^1.4 (skill `support-response`); business validation is `jardissupport/validation` / a Rule.
 
 ## DEPENDENCIES
 ```
 jardiscore/kernel            ^2.0
 jardissupport/contracts      ^2.13
-jardissupport/response       ^1.2
-jardissupport/validation     ^1.5
-jardissupport/scheduling     ^1.2
+jardissupport/response       ^1.4
 jardissupport/factory        ^1.0
 nikic/fast-route             ^1.3
 nyholm/psr7                  ^1.8
