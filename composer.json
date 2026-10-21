@@ -20,7 +20,7 @@
         "jardissupport/dotenv": "^1.0",
         "jardissupport/factory": "^1.0",
         "jardissupport/repository": "^1.9",
-        "jardissupport/response": "^1.2",
+        "jardissupport/response": "^1.3",
         "jardissupport/scheduling": "^1.2",
         "jardissupport/secret": "^1.0",
         "jardissupport/validation": "^1.6",
