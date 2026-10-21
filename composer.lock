@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "43161dd3a0e1ad9787e7bec1a19274ab",
+    "content-hash": "7eaa2e32a7896f604bef298bda3ded24",
     "packages": [
         {
             "name": "jardisadapter/dbconnection",
@@ -906,16 +906,16 @@
         },
         {
             "name": "jardissupport/response",
-            "version": "v1.2.0",
+            "version": "v1.3.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/jardisSupport/response.git",
-                "reference": "37d39642a73fd8629068757cca4bd6a2408aa51d"
+                "reference": "394c7c42e279754b249c752be51655d03988415a"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/jardisSupport/response/zipball/37d39642a73fd8629068757cca4bd6a2408aa51d",
-                "reference": "37d39642a73fd8629068757cca4bd6a2408aa51d",
+                "url": "https://api.github.com/repos/jardisSupport/response/zipball/394c7c42e279754b249c752be51655d03988415a",
+                "reference": "394c7c42e279754b249c752be51655d03988415a",
                 "shasum": ""
             },
             "require": {
@@ -964,9 +964,9 @@
                 "docs": "https://docs.jardis.io/en/support/response",
                 "email": "jardisDev@headgent.com",
                 "issues": "https://github.com/jardisSupport/response/issues",
-                "source": "https://github.com/jardisSupport/response/tree/v1.2.0"
+                "source": "https://github.com/jardisSupport/response/tree/v1.3.0"
             },
-            "time": "2026-10-21T07:58:02+00:00"
+            "time": "2026-10-21T09:51:27+00:00"
         },
         {
             "name": "jardissupport/scheduling",
@@ -1943,16 +1943,16 @@
     "packages-dev": [
         {
             "name": "jardis/dev-skills",
-            "version": "v1.35.0",
+            "version": "v1.36.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/jardisTools/dev-skills.git",
-                "reference": "a5d94607aa439b76636c9909e4b8c3567ec5cda8"
+                "reference": "d7486f64c370bd92d3927ad7b38db52d05abb21b"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/jardisTools/dev-skills/zipball/a5d94607aa439b76636c9909e4b8c3567ec5cda8",
-                "reference": "a5d94607aa439b76636c9909e4b8c3567ec5cda8",
+                "url": "https://api.github.com/repos/jardisTools/dev-skills/zipball/d7486f64c370bd92d3927ad7b38db52d05abb21b",
+                "reference": "d7486f64c370bd92d3927ad7b38db52d05abb21b",
                 "shasum": ""
             },
             "require": {
@@ -2009,9 +2009,9 @@
                 "docs": "https://docs.jardis.io/en/skills",
                 "email": "jardisDev@headgent.com",
                 "issues": "https://github.com/jardisTools/dev-skills/issues",
-                "source": "https://github.com/jardisTools/dev-skills/tree/v1.35.0"
+                "source": "https://github.com/jardisTools/dev-skills/tree/v1.36.0"
             },
-            "time": "2026-10-19T18:38:59+00:00"
+            "time": "2026-10-20T07:49:39+00:00"
         },
         {
             "name": "myclabs/deep-copy",
