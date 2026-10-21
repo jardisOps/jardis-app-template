@@ -181,8 +181,9 @@ Generic CRUD repository with raw-data persistence, read/write endpoint splitting
 <!-- source: jardissupport/response -->
 # jardissupport/response
 
-Response building for one request-response use case: response objects (`ContextResponse`, `DomainResponse`), failure forms (400 `ValidationFailure`, 404 `NotFound`, 409 `Conflict`, 422 `RuleViolation`), the `data` of the response envelope `{status, data, errors, meta}`, read answers and write answers (`ReadResult`, `Reference`). The door steps (input validation, actor check, failure mapping, cause logging) and the answer closures (`Answer*`) are part of the package. Details: `README.md`, https://docs.jardis.io/en/support/response
+The answer of one request-response use case in one shape: response objects, failure forms for 400/404/409/422, the data of the `{status, data, errors, meta}` envelope, read answers (`ReadResult`, `Reference`) and the door steps in front of a use case (input check, actor check, mapping of thrown failures, logging of the 5xx cause).
 
+- **Use when:** you need to build, map or log the answer of a request-response use case, or a Jardis-style failure form and response envelope, without a process engine
 - **How:** load skill `support-response` before touching the API — it carries the usage essentials and pitfalls.
 
 <!-- source: jardissupport/scheduling -->
@@ -215,9 +216,9 @@ Composable object-graph validation with composite validators, field-level rules,
 <!-- source: jardissupport/workflow -->
 # jardissupport/workflow
 
-Multi-step business process orchestration with sequential step execution and process state management.
+Process engine for one request-response use case: node graph, routes, typed outcome (no door, no transaction).
 
-- **Use when:** you need to model and execute multi-step workflows or business processes with defined step sequences
+- **Use when:** you need to declare and run a multi-node use case with routes; the transaction around it is the door's (jardissupport/repository)
 - **How:** load skill `support-workflow` before touching the API — it carries the usage essentials and pitfalls.
 
 <!-- END jardis/dev-skills -->
