@@ -181,7 +181,7 @@ Generic CRUD repository with raw-data persistence, read/write endpoint splitting
 <!-- source: jardissupport/response -->
 # jardissupport/response
 
-The answer of one request-response use case in one shape: response objects, failure forms for 400/404/409/422, the data of the `{status, data, errors, meta}` envelope, read answers (`ReadResult`, `Reference`) and the door steps in front of a use case (input check, actor check, mapping of thrown failures, logging of the 5xx cause).
+The answer of one request-response use case in one shape: response objects, failure forms for 400/404/409/422, the data of the `{status, data, errors, meta}` envelope, read answers (`ReadResult`, `Reference`) and the door steps in front of a use case (input check, mapping of thrown failures, logging of the 5xx cause).
 
 - **Use when:** you need to build, map or log the answer of a request-response use case, or a Jardis-style failure form and response envelope, without a process engine
 - **How:** load skill `support-response` before touching the API — it carries the usage essentials and pitfalls.

@@ -23,6 +23,7 @@ TokenAuthenticator    stored token credential (ApiKey/Verification/PasswordReset
 DbTokenStore          TokenStoreInterface on DbConnectionInterface via jardissupport/dbquery (hash only)
 PasswordHasher        Argon2id/bcrypt via password_hash() builtins
 Guard                 RBAC permission check against immutable Policy
+HasRight              closure: right in a list of granted rights (Permission::matches), independent of Policy/roles
 ```
 
 ## API / SIGNATURES
@@ -68,7 +69,7 @@ new DbTokenStore(DbConnectionInterface $connection, string $table = 'auth_tokens
 ```php
 new SignedTokenAuthenticator(string $accessTokenKey, string $tenantClaim = SessionClaim::TENANT, ?Closure $clock = null)
 $a->authenticate(Credential::token($signed)): TenantAuthResult   // no store access
-// success: getSubject() 'user:42', getSubjectId() '42', getTenant() ?string (claims[tenantClaim]), getRole() ?string (claims[SessionClaim::ROLE], null if absent), getSessionReference() = sid
+// success: getSubject() 'user:42', getSubjectId() '42', getTenant() ?string (claims[tenantClaim]), getRole() ?string (claims[SessionClaim::ROLE], null if absent), getRights() list<string> (claims[SessionClaim::RIGHTS]; only a list of strings counts, else []), getSessionReference() = sid
 // failure: 'Invalid token' (form/MAC/typ/sub/sid) | 'Token expired' (authentic, exp passed) | 'Unsupported credential type'
 // Handlers: Handler/Token/SignAccessToken(key)(array $payload): string · VerifyAccessToken(key, ?clock)(string): ?array (throws TokenExpiredException)
 // Token = base64url(json) . '.' . base64url(sodium_crypto_auth(segment, key)); no header/alg; key rotation = all access tokens invalid
@@ -85,7 +86,7 @@ new TokenAuthenticator(
 )
 $a->authenticate(Credential::token($plain)): TenantAuthResult   // implements SessionAwareAuthResultInterface
 // success: isSuccess(), getSubject() 'user:42', getSubjectId() '42', getTenant() ?string,
-//          getRole() ?string (stored claim SessionClaim::ROLE), getSessionReference() = HashedToken::hashOf($plain), getReason() null
+//          getRole() ?string (stored claim SessionClaim::ROLE), getRights() list<string> (stored claim SessionClaim::RIGHTS, same rule), getSessionReference() = HashedToken::hashOf($plain), getReason() null
 // failure: getReason() 'Invalid token' | 'Token expired' | 'Token revoked' | 'Unsupported credential type'
 // Tenant claim for session tokens is set at login: $sm->create(Subject::from('42'), ['tenant' => 'acme'])
 // Transports store the result under RequestAttribute::SUBJECT / ::SUBJECT_ID / ::TENANT / ::SESSION (jardissupport/contracts >= 2.9)
@@ -109,6 +110,15 @@ new Guard(Policy $policy)
 $guard->check(SessionInterface $session, string $permission): bool
 $guard->authorize(SessionInterface $session, string $permission): void  // throws UnauthorizedException
 // metadata[SessionClaim::ROLE] accepts string or string[] — first match wins
+```
+
+### HasRight
+```php
+use JardisSupport\Auth\Handler\Authorization\HasRight;
+(new HasRight())(array $rights, string $right): bool   // list<string> of resource:action | resource:* | *
+// ['*']+any → true · ['a:b']+'a:b' → true · ['a:*']+'a:c' → true · [] → false · ['a:b']+'c:d' → false
+// unparsable right (no 'resource:action' and not '*') → InvalidArgumentException from Permission::from, unchanged
+// Typical: (new HasRight())($result->getRights(), 'sales.process:approve') with $result a TenantAuthResult
 ```
 
 ### PasswordAuthenticator
@@ -153,7 +163,7 @@ $redeemer->redeem(string $plain, TokenType $expected): HashedTokenInterface   //
 | `Credential` | readonly — `::password()`, `::apiKey()`, `::token()` |
 | `Token` | readonly — `::create(TokenType)`, `expiresIn()`, `forSubject()`, `withClaims()`, `hash()` → `HashedToken` |
 | `IssuedToken` | readonly, implements `IssuedTokenInterface` — `plain`, `hashed: HashedToken`; getters `getPlain/getHashed` |
-| `TenantAuthResult` | readonly, implements `SessionAwareAuthResultInterface` + `RoleAwareAuthResultInterface` — `::success($subject, $tenant, $sessionReference, $role)`, `getRole()` |
+| `TenantAuthResult` | readonly, implements `SessionAwareAuthResultInterface` + `RoleAwareAuthResultInterface` + `RightsAwareAuthResultInterface` — `::success($subject, $tenant, $sessionReference, $role, $rights = [])`, `getRole()`, `getRights()` |
 | `HashedToken` | readonly, implements `HashedTokenInterface` — SHA-256 hash, `revoked`, `withRevoked()` |
 | `Permission` | readonly — `::from("resource:action")`, `matches()`, wildcard support |
 | `Policy` | readonly — `::fromArray()` or `PolicyBuilder`, `isAllowed(role, permission)`, `getRoles()` |
@@ -194,12 +204,13 @@ Plain readonly data objects — no interface, no dispatcher dependency. Caller d
 | `TenantAwareAuthResultInterface` | extends `AuthResultInterface` + `getTenant(): ?string` |
 | `UserLookupInterface` | `lookup(string): ?CredentialRecordInterface` (contracts >= 2.10) |
 | `CredentialRecordInterface` | `getPasswordHash`, `getSubject`, `getClaims` |
-| `SessionClaim` | final constants `TENANT = 'tenant'`, `ROLE = 'role'` |
-| `RequestAttribute` | final constants `SUBJECT`, `SUBJECT_ID`, `TENANT`, `SESSION`, `ROLE = 'jardisRole'` |
+| `SessionClaim` | final constants `TENANT = 'tenant'`, `ROLE = 'role'`, `RIGHTS = 'rights'` (contracts >= 2.16) |
+| `RequestAttribute` | final constants `SUBJECT`, `SUBJECT_ID`, `TENANT`, `SESSION`, `ROLE = 'jardisRole'`, `RIGHTS = 'jardisRights'` |
 | `SessionManagerInterface` | `create(string $subject, array $claims)`, `refresh`, `invalidateByReference(): void`, `invalidateAll(): void` (contracts >= 2.11) |
 | `TokenIssuerInterface` / `TokenRedeemerInterface` | `issue` / `peek`, `redeem` (contracts >= 2.11) |
 | `SessionResultInterface` / `IssuedTokenInterface` | `getAccessToken/getRefreshToken/getSession` / `getPlain/getHashed` |
 | `RoleAwareAuthResultInterface` | extends `AuthResultInterface` + `getRole(): ?string` |
+| `RightsAwareAuthResultInterface` | extends `AuthResultInterface` + `getRights(): list<string>` (contracts >= 2.16) |
 | `AuthServicesInterface` | `sessions`, `tokenIssuer`, `tokenRedeemer`, `hasher` |
 | `TokenType` (enum) | `Access`, `Refresh`, `ApiKey`, `Verification`, `PasswordReset`, `Invitation` |
 | `CredentialType` (enum) | `Password`, `ApiKey`, `Token` |
