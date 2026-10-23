@@ -1,6 +1,6 @@
 ---
 name: core-app
-description: jardiscore/app v2 - the HTTP-Delivery layer for Jardis domains, a FastRoute router hidden behind an own RouterInterface, a PSR-15 middleware pipeline, the canonical DomainResponse-to-PSR-7 envelope mapper, and a DomainKernel bootstrap bridge. TRIGGER: ReadRequestAttribute, ReadRequestAttributeStrict, AnswerUnsupportedRequest, App, Routes, Router, RouterInterface, ParseJsonBody, X-Jardis-Version, knownVersions, jardisVersion, EmitResponse, HandleThrowable, MapDomainResponse, BuildErrorResponse, jardiscore/app, response envelope, {status,data,errors,meta}, health(), auto-HEAD, middleware: when and where, RequireSession, RequireRequestAttribute, request.attributeMissing, required request attribute, 403, per-route middleware.
+description: jardiscore/app v2 - the HTTP-Delivery layer for Jardis domains, a FastRoute router hidden behind an own RouterInterface, a PSR-15 middleware pipeline, the canonical DomainResponse-to-PSR-7 envelope mapper, and a DomainKernel bootstrap bridge. TRIGGER: ReadRequestAttribute, ReadRequestAttributeList, ReadRequestAttributeStrict, jardisRights, RequestAttribute::RIGHTS, AccessDeniedExceptionInterface, AnswerUnsupportedRequest, App, Routes, Router, RouterInterface, ParseJsonBody, X-Jardis-Version, knownVersions, jardisVersion, EmitResponse, HandleThrowable, MapDomainResponse, BuildErrorResponse, jardiscore/app, response envelope, {status,data,errors,meta}, health(), auto-HEAD, middleware: when and where, RequireSession, RequireRequestAttribute, request.attributeMissing, required request attribute, 403, per-route middleware.
 user-invocable: false
 zone: post-active
 persona: D
@@ -21,12 +21,13 @@ next: []
 | `Config\AppConfig` | `final readonly class` — `__construct(bool $debug = false, array $knownVersions = [], bool $requireSessionGuard = false)` (`list<string>`). `requireSessionGuard`: `App` throws `LogicException` at construction if a non-anonymous route has no `SessionGuardInterface` in its chain (via `Handler\Pipeline\AssertSessionGuard`). Bootstrap-injected only; never reads ENV itself (E11). |
 | `Handler\Request\ParseJsonBody` | `__invoke(ServerRequestInterface): array<array-key, mixed>` — the one JSON body parser (E7). |
 | `Handler\Request\ReadRequestAttribute` | `__invoke(ServerRequestInterface, string $name): string` - the request attribute as a string; absent / not a string -> `''`. Reads only (a guarded route sits behind `RequireRequestAttribute`). |
+| `Handler\Request\ReadRequestAttributeList` | `__invoke(ServerRequestInterface, string $name): ?array` (`list<string>`) - absent / `null` -> `[]`; a list of strings (also empty) -> the list; anything else (string, scalar, non-string element, associative array) -> `null` = unusable (the caller answers 401, never 500); never throws but `\Error`. For `RequestAttribute::RIGHTS`. |
 | `Handler\Request\ReadRequestAttributeStrict` | same signature; absent / not a string / empty -> `Exception\RequestAttributeMissing` (`AppException` -> `RuntimeException`, text `Request attribute <name> is not set - the scoped route needs the session middleware.`), the error boundary answers the generic 500. For an attribute no middleware guards. |
 | `Handler\Response\AnswerUnsupportedRequest` | `__invoke(list<string> $properties): DomainResponseInterface` - `DomainResponse` 500, `data` `[]`, `errors` `['routes' => ['Request property not buildable by the generated adapter: <a, b>']]`. The route whose request the generated adapter cannot build. |
 | `Handler\Request\ResolveVersion` | `__construct(array $knownVersions = [])` (`list<string>`). `__invoke(ServerRequestInterface): ?string` — the one reader of `X-Jardis-Version`: absent → `''` (baseline), exactly one case-sensitive known value → that value, else `null` (unknown / empty / repeated header). `App` wires it from `AppConfig::$knownVersions`. |
 | `Handler\Response\MapDomainResponse` | `__construct(ResponseFactoryInterface, StreamFactoryInterface)`. `__invoke(DomainResponseInterface): ResponseInterface` — the canonical envelope mapper (reference impl of `contract/docs/response-envelope.md`). |
 | `Handler\Response\BuildErrorResponse` | `__construct(ResponseFactoryInterface, StreamFactoryInterface)`. `__invoke(int $status, array $data = [], array $errors = [], array $meta = [], array $allowedMethods = []): ResponseInterface` — the ONE place assembling `{status,data,errors,meta}`. |
-| `Handler\Error\HandleThrowable` | `__construct(ResponseFactoryInterface, StreamFactoryInterface, ?LoggerInterface, AppConfig)`. `__invoke(Closure $inner, ServerRequestInterface): ResponseInterface` — outermost try/catch boundary (F9). |
+| `Handler\Error\HandleThrowable` | `__construct(ResponseFactoryInterface, StreamFactoryInterface, ?LoggerInterface, AppConfig)`. `__invoke(Closure $inner, ServerRequestInterface): ResponseInterface` — outermost try/catch boundary (F9): `InvalidJsonBody` -> 400, `AccessDeniedExceptionInterface` -> 403 (before the 500 branch), any other `Throwable` -> 500. |
 | `Handler\Error\LogThrowable` | Closure the above composes — logs via the injected PSR-3 logger, falls back to `error_log` if the logger is `null` or itself throws. |
 | `Handler\Pipeline\RunMiddlewarePipeline` | `__invoke(array $globalMiddleware, array $routeMiddleware, RequestHandlerInterface $finalHandler, ServerRequestInterface): ResponseInterface` — builds+runs the PSR-15 chain, global outer / route inner (E9). |
 | `Handler\Request\CreateServerRequest` | `__invoke(?array $server=null, ?array $headers=null, ?array $cookies=null, ?array $query=null, ?array $post=null, ?array $files=null, mixed $body=null): ServerRequestInterface` — Raw-Body-Invariante: reads `php://input` exactly once. |
@@ -89,7 +90,7 @@ from the domain manifest); this package scans no directories and knows no classe
 
 **Pluggable:** any PSR-15 `MiddlewareInterface`. `Routes::middleware($m)` = global; the verb methods (`get/post/put/patch/delete`) take trailing `MiddlewareInterface ...$middleware` = per route. There is no route-group API. Order (`Handler/Pipeline/RunMiddlewarePipeline.php`): `[...global, ...route]`, outer first, registration order within each group.
 
-**Delivered:** `Middleware\RequireSession` - reads `Authorization: Bearer <token>`, authenticates through an `AuthenticatorInterface`, else 401 envelope + `WWW-Authenticate: Bearer`. Sets `RequestAttribute::SUBJECT`, `TENANT` (absent without tenant), `ROLE` (only for a `RoleAwareAuthResultInterface` with a non-empty role, else absent), `SUBJECT_ID`, `SESSION` (last two only for a session-aware result); client-supplied values are overwritten/removed. **Also delivered:** `Middleware\RequireRequestAttribute` - per route, behind the session door: each named attribute must be a non-empty string, else 403 envelope `errors {message, messageKey: 'request.attributeMissing', context: {attribute}}` (first missing name wins); presence only, authorizes nothing, not a session guard. Anonymous: routes registered by `Routes::health()` or `Routes::anonymous()` (`Route::$anonymous`); there is no path-pattern list.
+**Delivered:** `Middleware\RequireSession` - reads `Authorization: Bearer <token>`, authenticates through an `AuthenticatorInterface`, else 401 envelope + `WWW-Authenticate: Bearer`. Sets `RequestAttribute::SUBJECT`, `TENANT` (absent without tenant), `ROLE` (only for a `RoleAwareAuthResultInterface` with a non-empty role, else absent), `RIGHTS` (only for a `RightsAwareAuthResultInterface` with a non-empty list, else absent), `SUBJECT_ID`, `SESSION` (last two only for a session-aware result); client-supplied values are overwritten/removed. **Also delivered:** `Middleware\RequireRequestAttribute` - per route, behind the session door: each named attribute must be a non-empty string, else 403 envelope `errors {message, messageKey: 'request.attributeMissing', context: {attribute}}` (first missing name wins); presence only, authorizes nothing, not a session guard. Anonymous: routes registered by `Routes::health()` or `Routes::anonymous()` (`Route::$anonymous`); there is no path-pattern list.
 
 **Where (app template):** the pipeline is the **project setting `middleware`** (Builder, `project.json`). `core/app` ships no wiring: the Builder generator emits `src/App/middleware.php` (`return static function (DomainKernelInterface $kernel): array`, regenerated on every build), which builds the PSR-15 instances itself, e.g.
 ```php
@@ -131,6 +132,7 @@ $routes->health('/health');                     // anonymous automatically
   with a non-empty tenant, `RequestAttribute::TENANT` (`jardisTenant`); no tenant → the attribute is ABSENT (never null/''). Pre-existing
   attributes of these names (e.g. a path placeholder `{jardisSubject}`) are always overwritten/removed, also on anonymous paths.
   If the result is a `RoleAwareAuthResultInterface` (contracts ^2.11, auth ^1.6) with a non-empty role, `RequestAttribute::ROLE` (`jardisRole`) is set too; else ABSENT (never null/''). It is an attribute, not a guard - core/app authorizes nothing, no new middleware. Same forgery strip.
+  If the result is a `RightsAwareAuthResultInterface` (contracts ^2.16, auth ^1.8) with a non-empty `getRights()` (`list<string>`, claim `SessionClaim::RIGHTS`), `RequestAttribute::RIGHTS` (`jardisRights`) is set too; empty list / no claim / plain result -> ABSENT (never `[]`/null). A client value (path placeholder `{jardisRights}`) is always removed first. Read it with `ReadRequestAttributeList`.
   If the result is a `SessionAwareAuthResultInterface` (contracts ^2.9, auth ^1.3) it additionally sets `RequestAttribute::SUBJECT_ID`
   (`jardisSubjectId`, bare id without `user:` prefix) and `RequestAttribute::SESSION` (`jardisSession`, reference that revokes exactly this
   session); empty/null or a plain tenant-aware result → both ABSENT. Same forgery strip as SUBJECT/TENANT.
@@ -186,6 +188,7 @@ Reference: `jardissupport/contracts` → `docs/response-envelope.md`. `ResponseS
 
 ## ERROR CONTRACT — `HandleThrowable`
 - `Exception\InvalidJsonBody` → 400, envelope `errors.message` = the exception's own (non-sensitive) message.
+- `JardisSupport\Contract\Kernel\AccessDeniedExceptionInterface` (contracts ^2.16 marker, thrown by a generated rights check) → 403, caught BEFORE the 500 branch: `{status:403, data:{"@type":"forbidden","context":{…},"messageKey":"<getMessageKey()>"}, errors:{}, meta:{}}` (empty `context` → `{}`), via `BuildErrorResponse`; not logged, the exception message never leaves. `meta` stays `{}` here; the same denial inside the domain door (`response` `MapThrowable`) carries the `meta` of the run.
 - Any other `Throwable` → 500, **generic** body (no message/class/trace) unless `AppConfig::$debug === true`
   (then `errors.message`/`errors.exception`/`errors.trace` are added). The full exception always goes to the
   injected PSR-3 logger at `error` level regardless of `$debug` — `LogThrowable` falls back to `error_log()`
@@ -228,8 +231,8 @@ Reference: `jardissupport/contracts` → `docs/response-envelope.md`. `ResponseS
 ## DEPENDENCIES
 ```
 jardiscore/kernel            ^2.0
-jardissupport/contracts      ^2.13
-jardissupport/response       ^1.4
+jardissupport/contracts      ^2.16
+jardissupport/response       ^1.5
 jardissupport/factory        ^1.0
 nikic/fast-route             ^1.3
 nyholm/psr7                  ^1.8

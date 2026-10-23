@@ -22,7 +22,7 @@ that) would only fragment the routing table this skill exists to provide.
 **Platform boundary.**
 (a) The Jardis packages are the build platform; use them first, never rebuild what they provide.
 (b) Packages and the generator are immutable for an app developer: never patch `vendor/`, never edit generated trees.
-(c) A gap in a package or the generator is reported, not rebuilt: open an issue in the affected Jardis repository (package: its GitHub repository; generator: `jardisTools/builder`; skills: `jardisTools/dev-skills`). Until it is delivered, write dev code in the process scope (Closure, Service, Query) and mark it as interim.
+(c) A gap in a package or the generator is reported, not rebuilt: open an issue in the affected Jardis repository (package: its GitHub repository; generator: `jardisTools/builder`; skills: `jardisTools/dev-skills`). There is no interim and no workaround: hand code stays in the hand-code places (`generated-code-extend` section 10) and uses Jardis artefacts only; the gap waits for its delivery. Building the capability in the package or generator first is the way of the Jardis developer.
 (d) Capability catalogs: `packages-find-existing` (packages), `design-model-capabilities` (model).
 
 The lifecycle of a Jardis project runs **packages → schema → design → code**:
@@ -47,11 +47,22 @@ The lifecycle of a Jardis project runs **packages → schema → design → code
 4. **Implement** — write the behaviour inside the generated Command/Handler/Action stubs.
    → `generated-code-extend` (plus its siblings, see the routing map below); the order of work from model to QA is its §11 "The way".
 
+   Hand code has exactly these places; the full table with allowed dependencies is `generated-code-extend` §10:
+
+   ```
+   {BC}/
+   ├── Model/{Agg}/                                 generated, never edited
+   ├── Process/{Name}/Command/Handler/Action/{Node}.php   node body (hand)
+   ├── Closure/{Name}.php                           rule / closure body (hand)
+   └── Service/{Name}.php                           Domain Service (hand)
+   App/                                             delivery only, no domain logic
+   ```
+
 #### Importing Access — login, users and tenants without modelling them
 
-Who may enter the application is a generic subdomain, not something to model by hand: the Builder ships the blueprint `access` (read `jardis://blueprints`), imported with `import_blueprint` (`design-headless-mcp`; UI: tile "Blaupause" in the Context-Map library panel). The result is a normal BC with the processes Login, Refresh, Logout, Register, Invite, AcceptInvitation and ChangePassword. Read doors, also processes (POST): ListMembers and ListOpenInvitations (session doors, owners only, at most 100 entries each), ReadInvitation (anonymous; ReadInvitation lets the invitee see the invitation before accepting, without redeeming it) and, in `tenant`, MyTenants (the tenants of the session user).
+Who may enter the application is a generic subdomain, not something to model by hand: the Builder ships the blueprint `access` (read `jardis://blueprints`), imported with `import_blueprint` (`design-headless-mcp`; UI: tile "Blaupause" in the Context-Map library panel). The result is a normal BC with the processes Login, Refresh, Logout, Register, Invite, AcceptInvitation and ChangePassword. Read doors: in `tenant` the queries Me, MyTenants, ListMembers and ListOpenInvitations, called by GET (`/access/{users|memberships|invitations}/queries/{name}`) and answering `{items, total, limit, offset}` (at most 100 entries; the session user is the scope: Me and MyTenants the user's own rows, ListMembers and ListOpenInvitations the tenant of the session, owners only); in `single` Me is a query as well, while ListMembers and ListOpenInvitations stay processes (POST, owners only, at most 100 entries). ReadInvitation is a process in both (anonymous; it lets the invitee see the invitation before accepting, without redeeming it).
 
-1. **Pick the variant.** `tenant` - users act in the name of a tenant: the entities User, Tenant, Membership (role per membership) and Invitation, plus TenantSwitch, RemoveMembership and MyTenants; the session carries the tenant as a slug. `single` - one system without tenants: the role sits on the user, no Tenant/Membership, no TenantSwitch/RemoveMembership/MyTenants.
+1. **Pick the variant.** `tenant` - users act in the name of a tenant: the entities User, Tenant, Membership (role per membership) and Invitation, plus TenantSwitch, RemoveMembership and the query MyTenants; the session carries the tenant as a slug. `single` - one system without tenants: the role sits on the user, no Tenant/Membership, no TenantSwitch/RemoveMembership/MyTenants.
 2. **Set `AUTH_TOKEN_KEY`** (base64 of exactly 32 bytes) in the process environment or the project `.env`, with a configured database (`DB_*`) whose token table exists (DDL ships in the `jardissupport/auth` package). Without the key `$kernel->auth()` is `null`; a malformed key, or a key without a configured database, throws `InvalidEnvConfigurationException` when the kernel is built. The processes call `auth()` (sessions, token issuer and redeemer, password hasher) - never `new` an auth service. → `core-kernel` ("Auth from ENV"), `support-auth`.
 3. **First admin through Register.** Register is an anonymous door: it creates the user (`tenant`: plus the tenant and an owner membership; `single`: the user with role owner). It answers 422 unless the project `.env` key `ACCESS_REGISTRATION` is `open` (a missing key means `invite-only`); the BC declares the key, write it with `save_runtime_env` block `domain`.
 4. **Invite hands over a token, it sends no mail.** Invite (session door, owners only) answers `{email, token}`; the one-time token is valid for 7 days. Deliver it yourself; the invitee calls AcceptInvitation (anonymous door) with token, password and display name. In `tenant` an invitee who already has an account confirms the existing password and joins; in `single` an existing mail is refused with 422.
