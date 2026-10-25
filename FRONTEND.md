@@ -5,7 +5,7 @@ Every build of the Jardis Builder generates two files per domain in this project
 | File | Role |
 |---|---|
 | `src/Api/{Domain}/openapi.yaml` | **The source for this recipe** — the full OpenAPI 3.1 contract of the domain's front door (all read routes, commands, processes, error shapes). Freshly generated on every build. |
-| `src/Api/{Domain}/routes.php` | The PHP side of the same contract — `public/index.php` mounts it automatically (generic mount, see there). |
+| `src/Api/{Domain}/routes.php` | The PHP side of the same contract — `src/App/BuildHttpApp.php` mounts it automatically (generic mount, see there). |
 
 The frontend derives its types from `openapi.yaml`. There is **no** Jardis-own
 client generator and no runtime code from this recipe — only types plus a
@@ -114,7 +114,8 @@ Error answers are declared per status code in each operation's `responses`; `dat
 | Status | `@type` | Schema | Fields |
 |---|---|---|---|
 | `400` | `validation` | `ValidationError` | `fields[]` of `{field, reason, message, messageKey}`; `reason` is `missing` / `invalid` / `type` / `unknown` |
-| `403` | none (`data` is `{}`) | — | `errors.messageKey` = `request.attributeMissing`, `errors.context.attribute` (the missing request attribute, e.g. `jardisTenant`), `errors.message`; `data` is `{}`. A door answers this for a request attribute it cannot run without (e.g. a tenant) — one the route reads unconditionally (for a union body only those every alternative reads); an attribute read only by one union alternative or an optional/nullable/list-nested property is not guarded up front, and when it is absent the route fails closed with `500`; without a token the answer is `401`, not `403` |
+| `401` | none (`data` is `{}`) | `MiddlewareErrorEnvelope` | No valid session: the bearer token is missing, malformed or expired. `errors.message` only; answered by the session middleware before the handler runs. The frontend sends the user to sign-in (or refreshes the session once) |
+| `403` | none (`data` is `{}`) | `MiddlewareErrorEnvelope` | Two causes, told apart by `errors.messageKey`: `access.rightMissing` — the session does not hold the right the door needs, `errors.context.right` names it (e.g. `ordering.order:create`); show a "not allowed" state, do not retry. `request.attributeMissing` — a request attribute the door cannot run without (e.g. a tenant) is missing or empty, `errors.context.attribute` names it (e.g. `jardisTenant`); one the route reads unconditionally (for a union body only those every alternative reads) — an attribute read only by one union alternative or an optional/nullable/list-nested property is not guarded up front, and when it is absent the route fails closed with `500`. Both carry `errors.message`; `data` is `{}` |
 | `404` | `notFound` | `NotFound` | `context` (the path parameters of the lookup) |
 | `409` | `concurrencyConflict` | `ConcurrencyConflict` | `reason`, `aggregate`, `context`, `violated` (see notes above) |
 | `422` | `ruleViolation` | `RuleViolation` | `rule`, `messageKey`, `context` |
@@ -131,7 +132,8 @@ declare exit keys on `404` / `409` (`anyOf` of the base shape and a `messageKey`
 ## 4. Serve the spec (optional)
 
 If the frontend (or Swagger UI) should load the spec at runtime, a single
-route in `public/index.php` next to the mount is enough:
+route in `src/App/BuildHttpApp.php` next to the mount is enough (the same
+application serves the web and `bin/console system`):
 
 ```php
 $routes->get('/openapi.yaml', static function () use ($root) {
@@ -152,7 +154,7 @@ needed at all.
 
 ## Boundaries
 
-- **Prerequisite:** `jardiscore/app ^1` (listed in this template's
+- **Prerequisite:** `jardiscore/app ^3.2` (listed in this template's
   `composer.json`) — the generated `routes.php` builds on its `Routes` API
   and envelope mapper.
 - **Auth/middleware are app territory** — the generated contract
