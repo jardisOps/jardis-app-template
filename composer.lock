@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "d175c4cd8945522c107ea6b7c5ce0252",
+    "content-hash": "9c2552d466d8a37f67d755a595d2b767",
     "packages": [
         {
             "name": "jardisadapter/dbconnection",
@@ -205,23 +205,23 @@
         },
         {
             "name": "jardiscore/app",
-            "version": "v3.2.0",
+            "version": "v3.3.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/jardisCore/app.git",
-                "reference": "96372015b740fc8b21c9c5143c7614f2646a4724"
+                "reference": "4d55884c40831c3ac091201ccef1919759c7e75c"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/jardisCore/app/zipball/96372015b740fc8b21c9c5143c7614f2646a4724",
-                "reference": "96372015b740fc8b21c9c5143c7614f2646a4724",
+                "url": "https://api.github.com/repos/jardisCore/app/zipball/4d55884c40831c3ac091201ccef1919759c7e75c",
+                "reference": "4d55884c40831c3ac091201ccef1919759c7e75c",
                 "shasum": ""
             },
             "require": {
                 "jardiscore/kernel": "^2.0",
                 "jardissupport/contracts": "^2.17",
                 "jardissupport/factory": "^1.0",
-                "jardissupport/response": "^3.0",
+                "jardissupport/response": "^3.0 || ^4.0",
                 "nikic/fast-route": "^1.3",
                 "nyholm/psr7": "^1.8",
                 "nyholm/psr7-server": "^1.1",
@@ -276,9 +276,9 @@
                 "docs": "https://docs.jardis.io/en/core/app",
                 "email": "jardisDev@headgent.com",
                 "issues": "https://github.com/jardisCore/app/issues",
-                "source": "https://github.com/jardisCore/app/tree/v3.2.0"
+                "source": "https://github.com/jardisCore/app/tree/v3.3.0"
             },
-            "time": "2026-10-25T06:44:50+00:00"
+            "time": "2026-10-25T12:16:01+00:00"
         },
         {
             "name": "jardiscore/kernel",
@@ -906,16 +906,16 @@
         },
         {
             "name": "jardissupport/response",
-            "version": "v3.0.0",
+            "version": "v4.0.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/jardisSupport/response.git",
-                "reference": "fba237b77f610efcdeb1d731a8e9f346c8350d11"
+                "reference": "7c51b06d6159aed44e7938467541a4f05c13ac53"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/jardisSupport/response/zipball/fba237b77f610efcdeb1d731a8e9f346c8350d11",
-                "reference": "fba237b77f610efcdeb1d731a8e9f346c8350d11",
+                "url": "https://api.github.com/repos/jardisSupport/response/zipball/7c51b06d6159aed44e7938467541a4f05c13ac53",
+                "reference": "7c51b06d6159aed44e7938467541a4f05c13ac53",
                 "shasum": ""
             },
             "require": {
@@ -964,9 +964,9 @@
                 "docs": "https://docs.jardis.io/en/support/response",
                 "email": "jardisDev@headgent.com",
                 "issues": "https://github.com/jardisSupport/response/issues",
-                "source": "https://github.com/jardisSupport/response/tree/v3.0.0"
+                "source": "https://github.com/jardisSupport/response/tree/v4.0.0"
             },
-            "time": "2026-10-25T02:45:22+00:00"
+            "time": "2026-10-25T12:07:23+00:00"
         },
         {
             "name": "jardissupport/scheduling",

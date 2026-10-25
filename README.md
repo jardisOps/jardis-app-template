@@ -432,7 +432,8 @@ passes the session and right checks like any browser request. The credentials of
 the system user are the ENV value `SYSTEM_SIGN_IN_SECRET` (the raw JSON body of
 the sign-in door, see `.env.example`). Output: the status on the first line, the
 body after it. Exit code `0` for a status below 400, `1` for a refused run
-(`SystemRunRefused`: no tenant, a session door that did not answer 2xx) or a
+(`SystemRunRefused`: no tenant, a session door that did not answer 2xx or whose
+answer carries no `data.access_token`, RFC 6749 section 5.1) or a
 status of 400 and above, `2` for a usage or setup error. The path is the full
 target path; the session is not signed out afterwards, it runs out at its expiry.
 
