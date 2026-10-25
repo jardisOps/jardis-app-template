@@ -170,8 +170,9 @@ needed once you pass a `group` option to `messaging()->consume()` — see
 
 | Path | What |
 |---|---|
-| `public/index.php` | front controller — hand-written, never generated |
-| `bin/console` | CLI entry point for workers, cron, one-off commands |
+| `public/index.php` | front controller — hand-written, never generated; owns the HTTP boundary only |
+| `src/App/BuildHttpApp.php` | builds the application once (kernel, versions, middleware, route mount, session revocation) — shared by `public/index.php` and `bin/console system` |
+| `bin/console` | CLI entry point for workers, cron, one-off commands; `system` runs one door call as the system user |
 | `src/` | the Builder's OutputDir. `src/App/bootstrap.php` and one folder per domain |
 | `support/` | build tooling: compose file, Makefile modules, nginx template |
 | `.env.example` | the delivered original — versioned, trivial defaults |
@@ -253,7 +254,7 @@ yours from the start:
 | `.env.example` | the template — the delivered original every clone starts from |
 | `src/{BC}/Model/` | the Builder, hermetic — overwritten on every build |
 | `src/App/bootstrap.php` | the Builder writes it **once** (`ForceOverwrite:false`); yours from that point on |
-| `public/index.php`, `bin/console` | you — never generated |
+| `public/index.php`, `bin/console`, `src/App/BuildHttpApp.php` | you — never generated |
 
 ## Wiring in a generated domain
 
@@ -265,9 +266,11 @@ yours from the start:
    `.env` there, so no path needs adjusting relative to where the generated
    file lives.
 4. Routes need no wiring: every build also writes
-   `src/Api/{Domain}/{openapi.yaml,routes.php}`, and `public/index.php`
+   `src/Api/{Domain}/{openapi.yaml,routes.php}`, and `src/App/BuildHttpApp.php`
    mounts each `routes.php` automatically with the matching facade from the
-   `bootstrap.php` array. Hand-written routes still go next to that loop.
+   `bootstrap.php` array (positional call `($routes, $facade, '', $revoke)`:
+   `$revoke` is the session revocation of the kernel's `auth()`, `null` without
+   it; a `routes.php` whose routes end a session refuses to mount without it). Hand-written routes still go next to that loop.
    The same loop-style mount collects `src/Api/*/versions.php` for the
    [versioned front door](#versioned-front-door).
 5. For typed frontend access to the emitted `openapi.yaml` contract, follow
@@ -324,7 +327,7 @@ in the domain manifest — never in this project.
 - **`src/Api/{Domain}/versions.php`:** the Builder writes it on every build
   next to `routes.php` and returns the declared list, e.g. `return ['v2'];`
   (an empty list is valid). It is generated — do not edit it.
-- **Wiring:** `public/index.php` collects every `src/Api/*/versions.php`, unites
+- **Wiring:** `src/App/BuildHttpApp.php` collects every `src/Api/*/versions.php`, unites
   the lists (unique, stable order) and passes them to `jardiscore/app` as
   `AppConfig(knownVersions: …)`. The package reads and checks the header and
   exposes the result to handlers as the request attribute `jardisVersion`
@@ -399,7 +402,7 @@ session). Log the caller out without parsing the token:
 `$sessionManager->invalidateByReference($request->getAttribute(RequestAttribute::SESSION))`
 (`invalidateAll('user:42')` still revokes every session of the subject).
 
-**Hand route, anonymous.** A route you register yourself in `public/index.php`
+**Hand route, anonymous.** A route you register yourself in `src/App/BuildHttpApp.php`
 (next to the mount loop) is not anonymous by default. A public one is:
 
 ```php
@@ -410,6 +413,28 @@ $routes->anonymous()->get('/ping', static fn (ServerRequestInterface $request): 
 `tests/Unit/FrontController/PublicIndexMiddlewareTest.php` runs the real
 `public/index.php` in a subprocess and holds the mount, the pipeline order, the
 500 startup path and the session switch.
+
+## System run (cron, jobs)
+
+One door call as a system user, without a browser:
+
+```bash
+make console ARGS='system acme GET /some/door'
+make console ARGS='system acme POST /api/v1/some/door {"a":1}'
+```
+
+`bin/console system <tenant> <METHOD> <path> [body]` loads the generated
+`src/Api/{Domain}/system.php` (the Builder writes it for a domain with a
+sign-in and a switch-tenant door; exactly one such file must exist) and runs it
+through the SAME application the front controller serves (`App\BuildHttpApp`):
+sign in, switch to the tenant, call the door with the session token — the target
+passes the session and right checks like any browser request. The credentials of
+the system user are the ENV value `SYSTEM_SIGN_IN_SECRET` (the raw JSON body of
+the sign-in door, see `.env.example`). Output: the status on the first line, the
+body after it. Exit code `0` for a status below 400, `1` for a refused run
+(`SystemRunRefused`: no tenant, a session door that did not answer 2xx) or a
+status of 400 and above, `2` for a usage or setup error. The path is the full
+target path; the session is not signed out afterwards, it runs out at its expiry.
 
 ## Upload limits
 

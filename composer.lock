@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "5f07349ece8bc44cfd3b56e413693f4a",
+    "content-hash": "d175c4cd8945522c107ea6b7c5ce0252",
     "packages": [
         {
             "name": "jardisadapter/dbconnection",
@@ -205,23 +205,23 @@
         },
         {
             "name": "jardiscore/app",
-            "version": "v2.1.2",
+            "version": "v3.2.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/jardisCore/app.git",
-                "reference": "eb37dee50710cccdc412ea47ffa9673be8fc48ec"
+                "reference": "96372015b740fc8b21c9c5143c7614f2646a4724"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/jardisCore/app/zipball/eb37dee50710cccdc412ea47ffa9673be8fc48ec",
-                "reference": "eb37dee50710cccdc412ea47ffa9673be8fc48ec",
+                "url": "https://api.github.com/repos/jardisCore/app/zipball/96372015b740fc8b21c9c5143c7614f2646a4724",
+                "reference": "96372015b740fc8b21c9c5143c7614f2646a4724",
                 "shasum": ""
             },
             "require": {
                 "jardiscore/kernel": "^2.0",
-                "jardissupport/contracts": "^2.16",
+                "jardissupport/contracts": "^2.17",
                 "jardissupport/factory": "^1.0",
-                "jardissupport/response": "^1.5 || ^2.0",
+                "jardissupport/response": "^3.0",
                 "nikic/fast-route": "^1.3",
                 "nyholm/psr7": "^1.8",
                 "nyholm/psr7-server": "^1.1",
@@ -276,9 +276,9 @@
                 "docs": "https://docs.jardis.io/en/core/app",
                 "email": "jardisDev@headgent.com",
                 "issues": "https://github.com/jardisCore/app/issues",
-                "source": "https://github.com/jardisCore/app/tree/v2.1.2"
+                "source": "https://github.com/jardisCore/app/tree/v3.2.0"
             },
-            "time": "2026-10-23T11:57:08+00:00"
+            "time": "2026-10-25T06:44:50+00:00"
         },
         {
             "name": "jardiscore/kernel",
@@ -518,16 +518,16 @@
         },
         {
             "name": "jardissupport/contracts",
-            "version": "v2.16.0",
+            "version": "v2.17.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/jardisSupport/contracts.git",
-                "reference": "ca8ade0b7bd963bfa72c884a662c0aed620edcad"
+                "reference": "c81bd3603643e782d48b08d22573f2d6239f18fd"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/jardisSupport/contracts/zipball/ca8ade0b7bd963bfa72c884a662c0aed620edcad",
-                "reference": "ca8ade0b7bd963bfa72c884a662c0aed620edcad",
+                "url": "https://api.github.com/repos/jardisSupport/contracts/zipball/c81bd3603643e782d48b08d22573f2d6239f18fd",
+                "reference": "c81bd3603643e782d48b08d22573f2d6239f18fd",
                 "shasum": ""
             },
             "require": {
@@ -578,9 +578,9 @@
                 "docs": "https://docs.jardis.io/en/support/contracts",
                 "email": "jardisDev@headgent.com",
                 "issues": "https://github.com/jardisSupport/contracts/issues",
-                "source": "https://github.com/jardisSupport/contracts/tree/v2.16.0"
+                "source": "https://github.com/jardisSupport/contracts/tree/v2.17.0"
             },
-            "time": "2026-10-21T19:44:19+00:00"
+            "time": "2026-10-25T02:35:34+00:00"
         },
         {
             "name": "jardissupport/data",
@@ -906,16 +906,16 @@
         },
         {
             "name": "jardissupport/response",
-            "version": "v2.0.0",
+            "version": "v3.0.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/jardisSupport/response.git",
-                "reference": "4795d664f33460285b9fe1b8baa6afc5938ec2f4"
+                "reference": "fba237b77f610efcdeb1d731a8e9f346c8350d11"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/jardisSupport/response/zipball/4795d664f33460285b9fe1b8baa6afc5938ec2f4",
-                "reference": "4795d664f33460285b9fe1b8baa6afc5938ec2f4",
+                "url": "https://api.github.com/repos/jardisSupport/response/zipball/fba237b77f610efcdeb1d731a8e9f346c8350d11",
+                "reference": "fba237b77f610efcdeb1d731a8e9f346c8350d11",
                 "shasum": ""
             },
             "require": {
@@ -964,9 +964,9 @@
                 "docs": "https://docs.jardis.io/en/support/response",
                 "email": "jardisDev@headgent.com",
                 "issues": "https://github.com/jardisSupport/response/issues",
-                "source": "https://github.com/jardisSupport/response/tree/v2.0.0"
+                "source": "https://github.com/jardisSupport/response/tree/v3.0.0"
             },
-            "time": "2026-10-23T01:24:05+00:00"
+            "time": "2026-10-25T02:45:22+00:00"
         },
         {
             "name": "jardissupport/scheduling",
@@ -2250,11 +2250,11 @@
         },
         {
             "name": "phpstan/phpstan",
-            "version": "2.3.1",
+            "version": "2.3.2",
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phpstan/phpstan/zipball/6155239b488e95d26d1ebd95c6b4bb294d7f09db",
-                "reference": "6155239b488e95d26d1ebd95c6b4bb294d7f09db",
+                "url": "https://api.github.com/repos/phpstan/phpstan/zipball/18bc23a0682f08591529377d271b5c4dfe9ed1dd",
+                "reference": "18bc23a0682f08591529377d271b5c4dfe9ed1dd",
                 "shasum": ""
             },
             "require": {
@@ -2310,7 +2310,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-10-08T21:09:11+00:00"
+            "time": "2026-10-24T11:36:00+00:00"
         },
         {
             "name": "phpunit/php-code-coverage",

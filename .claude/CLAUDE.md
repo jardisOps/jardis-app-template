@@ -49,7 +49,7 @@ cascade: no `.env.local`, no `.env.{APP_ENV}`; the guardrail rejects them.
 | `src/{BC}/Model/` | generator, hermetic -- overwritten on every build |
 | `src/App/bootstrap.php` | written once, then yours (ForceOverwrite:false) |
 | `src/{BC}/Closure/`, parts of `Process/` | yours |
-| `public/index.php`, `bin/console` | yours, never generated |
+| `public/index.php`, `bin/console`, `src/App/BuildHttpApp.php` | yours, never generated |
 
 A second domain does not appear in `bootstrap.php` by itself: add its facade
 line by hand.
