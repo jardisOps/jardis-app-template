@@ -154,7 +154,7 @@ needed at all.
 
 ## Boundaries
 
-- **Prerequisite:** `jardiscore/app ^3.2` (listed in this template's
+- **Prerequisite:** `jardiscore/app ^3.3` (listed in this template's
   `composer.json`) — the generated `routes.php` builds on its `Routes` API
   and envelope mapper.
 - **Auth/middleware are app territory** — the generated contract

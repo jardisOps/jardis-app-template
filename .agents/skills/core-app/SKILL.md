@@ -36,7 +36,7 @@ next: []
 | `Middleware\RequireRequestAttribute` (`implements MiddlewareInterface`, NOT `SessionGuardInterface`) | `__construct(ResponseFactoryInterface, StreamFactoryInterface, string ...$names)`. Per-route presence check — see REQUIRED ATTRIBUTES below. Empty list / empty name -> `InvalidArgumentException`. |
 | `Middleware\RequireRight` (`implements MiddlewareInterface`, NOT `SessionGuardInterface`, since 3.0.0) | `__construct(ResponseFactoryInterface, StreamFactoryInterface, string $right, Closure $hasRight)`, `$hasRight: Closure(list<string>, string): bool` (`JardisSupport\Auth\Handler\Authorization\HasRight`, `jardissupport/auth` - not required by this package). Per-route right check - see RIGHT OF A ROUTE below. Empty `$right` -> `InvalidArgumentException`. |
 | `Middleware\RevokeSessionOnSuccess` (`implements MiddlewareInterface`, NOT `SessionGuardInterface`, since 3.1.0) | `__construct(Closure $revoke)`, `$revoke: Closure(string): void` (`SessionManager::invalidateByReference`, `jardissupport/auth` - not required by this package). Per-route revocation after success - see REVOKE SESSION below. |
-| `SignedInRun` (since 3.2.0) | `__construct(App $app, AuthenticatorInterface $authenticator, Closure $credentialFor, Data\SessionDoor $signIn, Data\SessionDoor $switchTenant, string $tenantField, ?ServerRequestFactoryInterface = null, ?StreamFactoryInterface = null)`; `handle(string $tenant, string $signInBody, string $method, string $path, string $body = ''): ResponseInterface`. System run - see SYSTEM RUN below. Throws `Exception\SystemRunRefused`. |
+| `SignedInRun` (since 3.2.0; token by `ReadAccessToken` since 3.3.0) | `__construct(App $app, AuthenticatorInterface $authenticator, Closure $credentialFor, Data\SessionDoor $signIn, Data\SessionDoor $switchTenant, string $tenantField, ?ServerRequestFactoryInterface = null, ?StreamFactoryInterface = null)`; `handle(string $tenant, string $signInBody, string $method, string $path, string $body = ''): ResponseInterface`. System run - see SYSTEM RUN below. Throws `Exception\SystemRunRefused`. |
 | `Data\Route` / `Data\RouteMatch` / `Data\RouteMatchStatus` | `final readonly` VOs. `Route(string $method, string $path, Closure\|RequestHandlerInterface $handler, array $middleware = [], bool $anonymous = false)` (`anonymous` is set only by `Routes::health()` and `Routes::anonymous()`). `RouteMatch` only via named constructors `found()/notFound()/methodNotAllowed()`. `RouteMatchStatus`: `Found`/`NotFound`/`MethodNotAllowed`. |
 | `Exception\AppException` (abstract), `Exception\InvalidJsonBody`, `Exception\RequestAttributeMissing`, `Exception\UnresolvableHandlerResult` | `InvalidJsonBody` — empty/invalid/non-array JSON body (F8, mapped to 400). `RequestAttributeMissing` — thrown by `ReadRequestAttributeStrict` (generic 500). `UnresolvableHandlerResult` — handler returned neither `DomainResponseInterface` nor `ResponseInterface` (E6, propagates to generic 500). |
 
@@ -71,7 +71,7 @@ a literal `%`).
 cases: **empty raw body**, **JSON syntax error** (`JSON_THROW_ON_ERROR`), or a **decoded value that is not an
 array** (scalar/`null` JSON). Raw-Body-Invariante: rewinds the body stream before and after reading, so the
 same request's raw body can be read again afterwards (webhook-HMAC use case) and calling the parser twice is
-idempotent. The decoded array goes on to the request mapper of `jardissupport/response` ^3.0 (`Handler\Request\Read*` with an `Accept\*` closure, `Handler\Answer\AnswerInvalidRequest` -> 400; skill `support-response`) - no longer part of this package (2.0.0).
+idempotent. The decoded array goes on to the request mapper of `jardissupport/response` ^3.0 || ^4.0 (`Handler\Request\Read*` with an `Accept\*` closure, `Handler\Answer\AnswerInvalidRequest` -> 400; skill `support-response`) - no longer part of this package (2.0.0).
 
 ## X-JARDIS-VERSION — the class-version contract
 `App` reads the request header `X-Jardis-Version` ONCE (`Handler\Request\ResolveVersion`, called by `DispatchAndRespond`
@@ -189,14 +189,14 @@ $routes->post('/logout', $logout, new RevokeSessionOnSuccess($sessionManager->in
 - **Order:** behind `RequireSession` (sets the reference). Not a guard: never satisfies `requireSessionGuard`.
 
 ## SYSTEM RUN — `SignedInRun` (since 3.2.0)
-A system run (CLI, job) gets its rights like a user: sign in -> token -> switch tenant -> token -> target with `Authorization: Bearer`, every stage through `App::handle()` (so `RequireSession` + `RequireRight` judge it). Orchestrator over `Handler\System\BuildSystemRequest`, `BuildSwitchBody`, `ReadSessionToken`, `AuthenticateToken`.
+A system run (CLI, job) gets its rights like a user: sign in -> token -> switch tenant -> token -> target with `Authorization: Bearer`, every stage through `App::handle()` (so `RequireSession` + `RequireRight` judge it). Orchestrator over `Handler\System\BuildSystemRequest`, `BuildSwitchBody`, `ReadAccessToken`, `AuthenticateToken`.
 ```php
 $run = new SignedInRun($app, $authenticator, Credential::token(...), new SessionDoor('POST', '/sign-in'), new SessionDoor('POST', '/switch-tenant'), 'tenantSlug');
 $response = $run->handle('acme', '{"secret":"..."}', 'GET', '/orders');
 ```
 - **Switch body:** `{"<tenantField>": "<tenant>"}` with the sign-in token as Bearer. Target answer is returned unchanged (also 4xx).
-- **Token probe (compromise):** the ONE distinct string in the answer's `data` (recursive) the authenticator accepts; none or several -> `SystemRunRefused`. The refresh token is not accepted.
-- **`SystemRunRefused(reason, ?status)`:** empty tenant (before any request), sign-in/switch not `2xx`, no single token. No body in the message. No sign-out after the run.
+- **Token:** `data.access_token` of the session door's answer (RFC 6749 section 5.1: `access_token`, `token_type`, `expires_in`, `refresh_token`), read by `Handler\System\ReadAccessToken` (since 3.3.0; `FIELD` constant): non-empty string AND accepted by the authenticator, else `SystemRunRefused`. Other fields (`refresh_token`) are never looked at. `ReadSessionToken` (the old probe over all strings of `data`) is `@deprecated` since 3.3.0, removed in 4.0.
+- **`SystemRunRefused(reason, ?status)`:** empty tenant (before any request), sign-in/switch not `2xx`, no usable access token. No body in the message. No sign-out after the run.
 
 ## ENVELOPE CONTRACT — `{status, data, errors, meta}`
 Reference: `jardissupport/contracts` → `docs/response-envelope.md`. `ResponseStatus` (11 cases, `jardissupport/contracts`,
@@ -272,7 +272,7 @@ Reference: `jardissupport/contracts` → `docs/response-envelope.md`. `ResponseS
 ```
 jardiscore/kernel            ^2.0
 jardissupport/contracts      ^2.17
-jardissupport/response       ^3.0
+jardissupport/response       ^3.0 || ^4.0
 jardissupport/factory        ^1.0
 nikic/fast-route             ^1.3
 nyholm/psr7                  ^1.8
