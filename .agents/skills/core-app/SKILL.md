@@ -1,6 +1,6 @@
 ---
 name: core-app
-description: jardiscore/app v2 - the HTTP-Delivery layer for Jardis domains, a FastRoute router hidden behind an own RouterInterface, a PSR-15 middleware pipeline, the canonical DomainResponse-to-PSR-7 envelope mapper, and a DomainKernel bootstrap bridge. TRIGGER: ReadRequestAttribute, ReadRequestAttributeList, ReadRequestAttributeStrict, jardisRights, RequestAttribute::RIGHTS, AccessDeniedExceptionInterface, AnswerUnsupportedRequest, App, Routes, Router, RouterInterface, ParseJsonBody, X-Jardis-Version, knownVersions, jardisVersion, EmitResponse, HandleThrowable, MapDomainResponse, BuildErrorResponse, jardiscore/app, response envelope, {status,data,errors,meta}, health(), auto-HEAD, middleware: when and where, RequireSession, RequireRequestAttribute, request.attributeMissing, required request attribute, 403, per-route middleware.
+description: jardiscore/app v3 - the HTTP-Delivery layer for Jardis domains, a FastRoute router hidden behind an own RouterInterface, a PSR-15 middleware pipeline, the canonical DomainResponse-to-PSR-7 envelope mapper, and a DomainKernel bootstrap bridge. TRIGGER: ReadRequestAttribute, ReadRequestAttributeList, ReadRequestAttributeStrict, jardisRights, RequestAttribute::RIGHTS, RequireRight, access.rightMissing, HasRight, RevokeSessionOnSuccess, SignedInRun, SystemRunRefused, SessionDoor, system run, invalidateByReference, logout, revoke session, AnswerUnsupportedRequest, App, Routes, Router, RouterInterface, ParseJsonBody, X-Jardis-Version, knownVersions, jardisVersion, EmitResponse, HandleThrowable, MapDomainResponse, BuildErrorResponse, jardiscore/app, response envelope, {status,data,errors,meta}, health(), auto-HEAD, middleware: when and where, RequireSession, RequireRequestAttribute, request.attributeMissing, required request attribute, 403, per-route middleware.
 user-invocable: false
 zone: post-active
 persona: D
@@ -27,13 +27,16 @@ next: []
 | `Handler\Request\ResolveVersion` | `__construct(array $knownVersions = [])` (`list<string>`). `__invoke(ServerRequestInterface): ?string` — the one reader of `X-Jardis-Version`: absent → `''` (baseline), exactly one case-sensitive known value → that value, else `null` (unknown / empty / repeated header). `App` wires it from `AppConfig::$knownVersions`. |
 | `Handler\Response\MapDomainResponse` | `__construct(ResponseFactoryInterface, StreamFactoryInterface)`. `__invoke(DomainResponseInterface): ResponseInterface` — the canonical envelope mapper (reference impl of `contract/docs/response-envelope.md`). |
 | `Handler\Response\BuildErrorResponse` | `__construct(ResponseFactoryInterface, StreamFactoryInterface)`. `__invoke(int $status, array $data = [], array $errors = [], array $meta = [], array $allowedMethods = []): ResponseInterface` — the ONE place assembling `{status,data,errors,meta}`. |
-| `Handler\Error\HandleThrowable` | `__construct(ResponseFactoryInterface, StreamFactoryInterface, ?LoggerInterface, AppConfig)`. `__invoke(Closure $inner, ServerRequestInterface): ResponseInterface` — outermost try/catch boundary (F9): `InvalidJsonBody` -> 400, `AccessDeniedExceptionInterface` -> 403 (before the 500 branch), any other `Throwable` -> 500. |
+| `Handler\Error\HandleThrowable` | `__construct(ResponseFactoryInterface, StreamFactoryInterface, ?LoggerInterface, AppConfig)`. `__invoke(Closure $inner, ServerRequestInterface): ResponseInterface` — outermost try/catch boundary (F9): `InvalidJsonBody` -> 400, any other `Throwable` -> 500 (no exception type is answered 403 since 3.0.0). |
 | `Handler\Error\LogThrowable` | Closure the above composes — logs via the injected PSR-3 logger, falls back to `error_log` if the logger is `null` or itself throws. |
 | `Handler\Pipeline\RunMiddlewarePipeline` | `__invoke(array $globalMiddleware, array $routeMiddleware, RequestHandlerInterface $finalHandler, ServerRequestInterface): ResponseInterface` — builds+runs the PSR-15 chain, global outer / route inner (E9). |
 | `Handler\Request\CreateServerRequest` | `__invoke(?array $server=null, ?array $headers=null, ?array $cookies=null, ?array $query=null, ?array $post=null, ?array $files=null, mixed $body=null): ServerRequestInterface` — Raw-Body-Invariante: reads `php://input` exactly once. |
 | `Handler\Response\EmitResponse` | `__invoke(ServerRequestInterface, ResponseInterface): void` — status line, headers, `Content-Length`, body (suppressed for HEAD, RFC 7231 §4.3.2). Never throws; best-effort 500 fallback on internal failure. |
 | `Middleware\RequireSession` (`implements Contract\SessionGuardInterface`, which extends `MiddlewareInterface`) | `__construct(AuthenticatorInterface $authenticator, Closure $credentialFor, ResponseFactoryInterface, StreamFactoryInterface, string $headerName = 'Authorization', string $scheme = 'Bearer')`. Session door — see SESSION below. Closures it composes: `ReadBearerToken`, `AuthenticateToken`, `ApplySession`; anonymity is read from the route attribute `DispatchAndRespond::ANONYMOUS_ATTRIBUTE`. |
 | `Middleware\RequireRequestAttribute` (`implements MiddlewareInterface`, NOT `SessionGuardInterface`) | `__construct(ResponseFactoryInterface, StreamFactoryInterface, string ...$names)`. Per-route presence check — see REQUIRED ATTRIBUTES below. Empty list / empty name -> `InvalidArgumentException`. |
+| `Middleware\RequireRight` (`implements MiddlewareInterface`, NOT `SessionGuardInterface`, since 3.0.0) | `__construct(ResponseFactoryInterface, StreamFactoryInterface, string $right, Closure $hasRight)`, `$hasRight: Closure(list<string>, string): bool` (`JardisSupport\Auth\Handler\Authorization\HasRight`, `jardissupport/auth` - not required by this package). Per-route right check - see RIGHT OF A ROUTE below. Empty `$right` -> `InvalidArgumentException`. |
+| `Middleware\RevokeSessionOnSuccess` (`implements MiddlewareInterface`, NOT `SessionGuardInterface`, since 3.1.0) | `__construct(Closure $revoke)`, `$revoke: Closure(string): void` (`SessionManager::invalidateByReference`, `jardissupport/auth` - not required by this package). Per-route revocation after success - see REVOKE SESSION below. |
+| `SignedInRun` (since 3.2.0) | `__construct(App $app, AuthenticatorInterface $authenticator, Closure $credentialFor, Data\SessionDoor $signIn, Data\SessionDoor $switchTenant, string $tenantField, ?ServerRequestFactoryInterface = null, ?StreamFactoryInterface = null)`; `handle(string $tenant, string $signInBody, string $method, string $path, string $body = ''): ResponseInterface`. System run - see SYSTEM RUN below. Throws `Exception\SystemRunRefused`. |
 | `Data\Route` / `Data\RouteMatch` / `Data\RouteMatchStatus` | `final readonly` VOs. `Route(string $method, string $path, Closure\|RequestHandlerInterface $handler, array $middleware = [], bool $anonymous = false)` (`anonymous` is set only by `Routes::health()` and `Routes::anonymous()`). `RouteMatch` only via named constructors `found()/notFound()/methodNotAllowed()`. `RouteMatchStatus`: `Found`/`NotFound`/`MethodNotAllowed`. |
 | `Exception\AppException` (abstract), `Exception\InvalidJsonBody`, `Exception\RequestAttributeMissing`, `Exception\UnresolvableHandlerResult` | `InvalidJsonBody` — empty/invalid/non-array JSON body (F8, mapped to 400). `RequestAttributeMissing` — thrown by `ReadRequestAttributeStrict` (generic 500). `UnresolvableHandlerResult` — handler returned neither `DomainResponseInterface` nor `ResponseInterface` (E6, propagates to generic 500). |
 
@@ -68,7 +71,7 @@ a literal `%`).
 cases: **empty raw body**, **JSON syntax error** (`JSON_THROW_ON_ERROR`), or a **decoded value that is not an
 array** (scalar/`null` JSON). Raw-Body-Invariante: rewinds the body stream before and after reading, so the
 same request's raw body can be read again afterwards (webhook-HMAC use case) and calling the parser twice is
-idempotent. The decoded array goes on to the request mapper of `jardissupport/response` ^1.4 (`Handler\Request\Read*` with an `Accept\*` closure, `Handler\Answer\AnswerInvalidRequest` -> 400; skill `support-response`) - no longer part of this package (2.0.0).
+idempotent. The decoded array goes on to the request mapper of `jardissupport/response` ^3.0 (`Handler\Request\Read*` with an `Accept\*` closure, `Handler\Answer\AnswerInvalidRequest` -> 400; skill `support-response`) - no longer part of this package (2.0.0).
 
 ## X-JARDIS-VERSION — the class-version contract
 `App` reads the request header `X-Jardis-Version` ONCE (`Handler\Request\ResolveVersion`, called by `DispatchAndRespond`
@@ -158,6 +161,43 @@ $routes->get('/projects', $handler, new RequireRequestAttribute($psr17, $psr17, 
 - **Order:** behind the middleware that sets the attribute; with no token the session door answers 401 first. A path placeholder `{jardisTenant}` cannot satisfy it (`ApplySession` strips it).
 - **Not a guard:** does not implement `SessionGuardInterface` -> never satisfies `requireSessionGuard`. 404/405 unchanged (runs only on a matched route).
 
+## RIGHT OF A ROUTE — `RequireRight` (PSR-15, per route, since 3.0.0)
+The rights of the session (`RequestAttribute::RIGHTS`, list of `resource:action`) must hold the right of the route. Orchestrator: `ReadRequestAttributeList` -> injected check -> pass on or 403.
+```php
+use JardisCore\App\Middleware\RequireRight;
+use JardisSupport\Auth\Handler\Authorization\HasRight;
+
+$hasRight = (new HasRight())->__invoke(...);
+$routes->middleware($requireSession);
+$routes->get('/orders', $handler, new RequireRight($psr17, $psr17, 'sales.order:read', $hasRight));
+```
+- **403:** `{"status":403,"data":{},"errors":{"message":"Right \"sales.order:read\" is missing.","messageKey":"access.rightMissing" (const `MESSAGE_KEY`),"context":{"right":"sales.order:read"}},"meta":{}}`; handler not called. Superuser `*` and `resource:*` pass (via `HasRight`).
+- **Fail-closed:** RIGHTS absent, not a list of strings, or a check throwing `InvalidArgumentException` (unparsable right) -> the same 403, never 200/500.
+- **Order:** behind `RequireSession` (guest -> 401 there, not here). Not a guard: never satisfies `requireSessionGuard`. A path placeholder `{jardisRights}` cannot grant a right.
+
+## REVOKE SESSION — `RevokeSessionOnSuccess` (PSR-15, per route, since 3.1.0)
+Logout / tenant switch: the session of the request is revoked once the route answered successfully. Orchestrator: handler first -> `ReadRequestAttribute` (`RequestAttribute::SESSION`) -> injected closure -> response unchanged.
+```php
+use JardisCore\App\Middleware\RevokeSessionOnSuccess;
+
+$routes->middleware($requireSession);
+$routes->post('/logout', $logout, new RevokeSessionOnSuccess($sessionManager->invalidateByReference(...)));
+```
+- **Revokes** only for status `2xx` AND a non-empty string session reference: `$revoke($reference)` once. Not `2xx` or no reference -> nothing is revoked.
+- **No swallowing:** an exception from `$revoke` leaves the middleware (error boundary). The response is never changed.
+- **Effect:** at the next refresh (the refresh token fails); the access token already issued stays valid until its `exp`.
+- **Order:** behind `RequireSession` (sets the reference). Not a guard: never satisfies `requireSessionGuard`.
+
+## SYSTEM RUN — `SignedInRun` (since 3.2.0)
+A system run (CLI, job) gets its rights like a user: sign in -> token -> switch tenant -> token -> target with `Authorization: Bearer`, every stage through `App::handle()` (so `RequireSession` + `RequireRight` judge it). Orchestrator over `Handler\System\BuildSystemRequest`, `BuildSwitchBody`, `ReadSessionToken`, `AuthenticateToken`.
+```php
+$run = new SignedInRun($app, $authenticator, Credential::token(...), new SessionDoor('POST', '/sign-in'), new SessionDoor('POST', '/switch-tenant'), 'tenantSlug');
+$response = $run->handle('acme', '{"secret":"..."}', 'GET', '/orders');
+```
+- **Switch body:** `{"<tenantField>": "<tenant>"}` with the sign-in token as Bearer. Target answer is returned unchanged (also 4xx).
+- **Token probe (compromise):** the ONE distinct string in the answer's `data` (recursive) the authenticator accepts; none or several -> `SystemRunRefused`. The refresh token is not accepted.
+- **`SystemRunRefused(reason, ?status)`:** empty tenant (before any request), sign-in/switch not `2xx`, no single token. No body in the message. No sign-out after the run.
+
 ## ENVELOPE CONTRACT — `{status, data, errors, meta}`
 Reference: `jardissupport/contracts` → `docs/response-envelope.md`. `ResponseStatus` (11 cases, `jardissupport/contracts`,
 `JardisSupport\Contract\Kernel\ResponseStatus`) maps 1:1 to the HTTP code:
@@ -188,7 +228,7 @@ Reference: `jardissupport/contracts` → `docs/response-envelope.md`. `ResponseS
 
 ## ERROR CONTRACT — `HandleThrowable`
 - `Exception\InvalidJsonBody` → 400, envelope `errors.message` = the exception's own (non-sensitive) message.
-- `JardisSupport\Contract\Kernel\AccessDeniedExceptionInterface` (contracts ^2.16 marker, thrown by a generated rights check) → 403, caught BEFORE the 500 branch: `{status:403, data:{"@type":"forbidden","context":{…},"messageKey":"<getMessageKey()>"}, errors:{}, meta:{}}` (empty `context` → `{}`), via `BuildErrorResponse`; not logged, the exception message never leaves. `meta` stays `{}` here; the same denial inside the domain door (`response` `MapThrowable`) carries the `meta` of the run.
+- No exception type is answered 403 (since 3.0.0; the access-denied branch of the boundary is gone): the right of a route is checked by `RequireRight`. An exception that carries a message key and a context but no known type is an unknown exception -> 500.
 - Any other `Throwable` → 500, **generic** body (no message/class/trace) unless `AppConfig::$debug === true`
   (then `errors.message`/`errors.exception`/`errors.trace` are added). The full exception always goes to the
   injected PSR-3 logger at `error` level regardless of `$debug` — `LogThrowable` falls back to `error_log()`
@@ -226,13 +266,13 @@ Reference: `jardissupport/contracts` → `docs/response-envelope.md`. `ResponseS
 - Request-body size limits, Trusted-Proxy/`X-Forwarded-*`, and `display_errors=Off` are deliberately **not**
   solved by this package (N1) — named responsibilities of the surrounding webserver/FPM/proxy infrastructure.
 - Typed coercion of path/query/body parameters and the 400 for a bad request are NOT in this package (since 2.0.0): the request mapper
-  lives in `jardissupport/response` ^1.4 (skill `support-response`); business validation is `jardissupport/validation` / a Rule.
+  lives in `jardissupport/response` ^3.0 (skill `support-response`); business validation is `jardissupport/validation` / a Rule.
 
 ## DEPENDENCIES
 ```
 jardiscore/kernel            ^2.0
-jardissupport/contracts      ^2.16
-jardissupport/response       ^1.5
+jardissupport/contracts      ^2.17
+jardissupport/response       ^3.0
 jardissupport/factory        ^1.0
 nikic/fast-route             ^1.3
 nyholm/psr7                  ^1.8

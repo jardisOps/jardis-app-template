@@ -10,20 +10,30 @@
 
 declare(strict_types=1);
 
+use App\BuildHttpApp;
 use App\Console\DbImport;
+use App\Console\SystemRun;
 use JardisCore\Kernel\Bootstrap\BuildDomainKernelFromEnv;
 
 require dirname(__DIR__) . '/vendor/autoload.php';
 
 $root = dirname(__DIR__);
 $bootstrap = $root . '/src/App/bootstrap.php';
+$command = $argv[1] ?? 'list';
+
+// `system` builds the whole application itself (App\BuildHttpApp, the one place
+// shared with public/index.php) — it must not boot the kernel a second time
+// here. Arguments and src/Api/*/system.php are checked before anything boots.
+// Logic and exit codes: App\Console\SystemRun.
+if ($command === 'system') {
+    exit((new SystemRun())($root, array_slice($argv, 2), static fn (): array => (new BuildHttpApp())($root)));
+}
 
 $app = is_file($bootstrap)
     ? require $bootstrap
     : ['kernel' => (new BuildDomainKernelFromEnv())($root)];
 
 $kernel = $app['kernel'];
-$command = $argv[1] ?? 'list';
 
 switch ($command) {
     case 'list':
@@ -32,6 +42,9 @@ switch ($command) {
         echo "  kernel    which services the kernel resolved\n";
         echo "  db:import [file]   no file: set up the whole database (package SQL, then all BC schemas);\n";
         echo "                     file: run one SQL schema file (path relative to the project root)\n";
+        echo "  system <tenant> <METHOD> <path> [body]\n";
+        echo "            one door call as the system user (src/Api/*/system.php, ENV SYSTEM_SIGN_IN_SECRET);\n";
+        echo "            prints status and body, exit 1 on a refused run or a status of 400 and above\n";
         exit(0);
 
     case 'kernel':
