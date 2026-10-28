@@ -20,11 +20,11 @@
         "jardissupport/dotenv": "^1.0",
         "jardissupport/factory": "^1.0",
         "jardissupport/repository": "^1.9",
-        "jardissupport/response": "^4.0",
+        "jardissupport/response": "^4.1",
         "jardissupport/scheduling": "^1.2",
         "jardissupport/secret": "^1.0",
         "jardissupport/validation": "^1.6",
-        "jardissupport/workflow": "^5.0",
+        "jardissupport/workflow": "^5.1",
         "nyholm/psr7": "^1.8"
     },
     "require-dev": {
