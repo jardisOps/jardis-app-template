@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "9c2552d466d8a37f67d755a595d2b767",
+    "content-hash": "7d5f3538ea4b8d99af1246303302894f",
     "packages": [
         {
             "name": "jardisadapter/dbconnection",
@@ -906,16 +906,16 @@
         },
         {
             "name": "jardissupport/response",
-            "version": "v4.0.0",
+            "version": "v4.1.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/jardisSupport/response.git",
-                "reference": "7c51b06d6159aed44e7938467541a4f05c13ac53"
+                "reference": "ffd7f744a179f032cb12410b4b74aa7a8a5625c4"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/jardisSupport/response/zipball/7c51b06d6159aed44e7938467541a4f05c13ac53",
-                "reference": "7c51b06d6159aed44e7938467541a4f05c13ac53",
+                "url": "https://api.github.com/repos/jardisSupport/response/zipball/ffd7f744a179f032cb12410b4b74aa7a8a5625c4",
+                "reference": "ffd7f744a179f032cb12410b4b74aa7a8a5625c4",
                 "shasum": ""
             },
             "require": {
@@ -964,9 +964,9 @@
                 "docs": "https://docs.jardis.io/en/support/response",
                 "email": "jardisDev@headgent.com",
                 "issues": "https://github.com/jardisSupport/response/issues",
-                "source": "https://github.com/jardisSupport/response/tree/v4.0.0"
+                "source": "https://github.com/jardisSupport/response/tree/v4.1.0"
             },
-            "time": "2026-10-25T12:07:23+00:00"
+            "time": "2026-10-28T13:50:19+00:00"
         },
         {
             "name": "jardissupport/scheduling",
@@ -1159,16 +1159,16 @@
         },
         {
             "name": "jardissupport/workflow",
-            "version": "v5.0.0",
+            "version": "v5.1.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/jardisSupport/workflow.git",
-                "reference": "1c13309a9d1f3cebdb0bac689e4ee4d31777e94c"
+                "reference": "2702d7c0aac33ede34891c3b8ccb6a68a34195ed"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/jardisSupport/workflow/zipball/1c13309a9d1f3cebdb0bac689e4ee4d31777e94c",
-                "reference": "1c13309a9d1f3cebdb0bac689e4ee4d31777e94c",
+                "url": "https://api.github.com/repos/jardisSupport/workflow/zipball/2702d7c0aac33ede34891c3b8ccb6a68a34195ed",
+                "reference": "2702d7c0aac33ede34891c3b8ccb6a68a34195ed",
                 "shasum": ""
             },
             "require": {
@@ -1216,9 +1216,9 @@
                 "docs": "https://docs.jardis.io/en/support/workflow",
                 "email": "jardisDev@headgent.com",
                 "issues": "https://github.com/jardisSupport/workflow/issues",
-                "source": "https://github.com/jardisSupport/workflow/tree/v5.0.0"
+                "source": "https://github.com/jardisSupport/workflow/tree/v5.1.0"
             },
-            "time": "2026-10-23T01:23:59+00:00"
+            "time": "2026-10-28T13:48:16+00:00"
         },
         {
             "name": "nikic/fast-route",
@@ -1943,16 +1943,16 @@
     "packages-dev": [
         {
             "name": "jardis/dev-skills",
-            "version": "v1.38.1",
+            "version": "v1.42.5",
             "source": {
                 "type": "git",
                 "url": "https://github.com/jardisTools/dev-skills.git",
-                "reference": "413e855460c80d40ca68cd40cbd3e661ee2110c9"
+                "reference": "c9d5d3d328aa3311708fed7bc2ef967634e7f42d"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/jardisTools/dev-skills/zipball/413e855460c80d40ca68cd40cbd3e661ee2110c9",
-                "reference": "413e855460c80d40ca68cd40cbd3e661ee2110c9",
+                "url": "https://api.github.com/repos/jardisTools/dev-skills/zipball/c9d5d3d328aa3311708fed7bc2ef967634e7f42d",
+                "reference": "c9d5d3d328aa3311708fed7bc2ef967634e7f42d",
                 "shasum": ""
             },
             "require": {
@@ -2009,9 +2009,9 @@
                 "docs": "https://docs.jardis.io/en/skills",
                 "email": "jardisDev@headgent.com",
                 "issues": "https://github.com/jardisTools/dev-skills/issues",
-                "source": "https://github.com/jardisTools/dev-skills/tree/v1.38.1"
+                "source": "https://github.com/jardisTools/dev-skills/tree/v1.42.5"
             },
-            "time": "2026-10-23T06:24:23+00:00"
+            "time": "2026-10-27T18:20:21+00:00"
         },
         {
             "name": "myclabs/deep-copy",
@@ -2250,11 +2250,11 @@
         },
         {
             "name": "phpstan/phpstan",
-            "version": "2.3.2",
+            "version": "2.3.3",
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phpstan/phpstan/zipball/18bc23a0682f08591529377d271b5c4dfe9ed1dd",
-                "reference": "18bc23a0682f08591529377d271b5c4dfe9ed1dd",
+                "url": "https://api.github.com/repos/phpstan/phpstan/zipball/4b57dc8ca7456b635d1661845f44bc060b02c6b0",
+                "reference": "4b57dc8ca7456b635d1661845f44bc060b02c6b0",
                 "shasum": ""
             },
             "require": {
@@ -2310,7 +2310,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-10-24T11:36:00+00:00"
+            "time": "2026-10-27T14:06:26+00:00"
         },
         {
             "name": "phpunit/php-code-coverage",
