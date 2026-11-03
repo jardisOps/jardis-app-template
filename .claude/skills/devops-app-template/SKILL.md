@@ -1,7 +1,11 @@
 ---
 name: devops-app-template
-description: The Docker runtime scaffold for Jardis domains from devops/jardis-app-template — nginx + php-fpm + CLI on the headgent images, opt-in services via compose profiles (MariaDB/Postgres, Redis, RabbitMQ, Kafka, Mailpit, worker), ONE root .env in blocks (stack, nginx, and the eight kernel blocks) created from the versioned .env.example, runs unconfigured on SQLite with /health answering 200. Use when starting a new Jardis project, adding a service to a stack, wiring builder output into a runtime, or asking what the delivered template already provides. TRIGGER: jardis-app-template, app template, COMPOSE_PROFILES, .env blocks, .env.example, Auslieferungszustand, make start, /health, secret guardrail, make encrypt, generate-key-file, secret.key, worker service.
+description: "Docker runtime scaffold for Jardis domains (devops/jardis-app-template): nginx + php-fpm + CLI, opt-in services via compose profiles, one root .env, runs on SQLite with /health 200. Use when starting a Jardis project, adding a stack service, or wiring builder output into a runtime."
 ---
+
+## Triggers
+
+The Docker runtime scaffold for Jardis domains from devops/jardis-app-template — nginx + php-fpm + CLI on the headgent images, opt-in services via compose profiles (MariaDB/Postgres, Redis, RabbitMQ, Kafka, Mailpit, worker), ONE root .env in blocks (stack, nginx, and the eight kernel blocks) created from the versioned .env.example, runs unconfigured on SQLite with /health answering 200. Use when starting a new Jardis project, adding a service to a stack, wiring builder output into a runtime, or asking what the delivered template already provides. TRIGGER: jardis-app-template, app template, COMPOSE_PROFILES, .env blocks, .env.example, Auslieferungszustand, make start, /health, secret guardrail, make encrypt, generate-key-file, secret.key, worker service.
 
 # Jardis app template (devops/jardis-app-template)
 
