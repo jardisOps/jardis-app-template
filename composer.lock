@@ -906,16 +906,16 @@
         },
         {
             "name": "jardissupport/response",
-            "version": "v4.2.0",
+            "version": "v4.2.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/jardisSupport/response.git",
-                "reference": "51ffef37e49774dd936f0bb7e54c80336b348855"
+                "reference": "60d031557b2b4090ca31fcfcfea88347d43d2aa6"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/jardisSupport/response/zipball/51ffef37e49774dd936f0bb7e54c80336b348855",
-                "reference": "51ffef37e49774dd936f0bb7e54c80336b348855",
+                "url": "https://api.github.com/repos/jardisSupport/response/zipball/60d031557b2b4090ca31fcfcfea88347d43d2aa6",
+                "reference": "60d031557b2b4090ca31fcfcfea88347d43d2aa6",
                 "shasum": ""
             },
             "require": {
@@ -964,9 +964,9 @@
                 "docs": "https://docs.jardis.io/en/support/response",
                 "email": "jardisDev@headgent.com",
                 "issues": "https://github.com/jardisSupport/response/issues",
-                "source": "https://github.com/jardisSupport/response/tree/v4.2.0"
+                "source": "https://github.com/jardisSupport/response/tree/v4.2.1"
             },
-            "time": "2026-11-02T20:23:59+00:00"
+            "time": "2026-11-03T10:26:35+00:00"
         },
         {
             "name": "jardissupport/scheduling",
@@ -1159,16 +1159,16 @@
         },
         {
             "name": "jardissupport/workflow",
-            "version": "v5.2.0",
+            "version": "v5.2.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/jardisSupport/workflow.git",
-                "reference": "b1b4769c2b3c8ac2044509b59fb8d58f8599c721"
+                "reference": "b273403ad597bd5a526a9825ebdd7d487b0e631a"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/jardisSupport/workflow/zipball/b1b4769c2b3c8ac2044509b59fb8d58f8599c721",
-                "reference": "b1b4769c2b3c8ac2044509b59fb8d58f8599c721",
+                "url": "https://api.github.com/repos/jardisSupport/workflow/zipball/b273403ad597bd5a526a9825ebdd7d487b0e631a",
+                "reference": "b273403ad597bd5a526a9825ebdd7d487b0e631a",
                 "shasum": ""
             },
             "require": {
@@ -1216,9 +1216,9 @@
                 "docs": "https://docs.jardis.io/en/support/workflow",
                 "email": "jardisDev@headgent.com",
                 "issues": "https://github.com/jardisSupport/workflow/issues",
-                "source": "https://github.com/jardisSupport/workflow/tree/v5.2.0"
+                "source": "https://github.com/jardisSupport/workflow/tree/v5.2.1"
             },
-            "time": "2026-11-02T20:22:52+00:00"
+            "time": "2026-11-03T10:24:37+00:00"
         },
         {
             "name": "nikic/fast-route",
@@ -1943,16 +1943,16 @@
     "packages-dev": [
         {
             "name": "jardis/dev-skills",
-            "version": "v1.45.1",
+            "version": "v1.45.3",
             "source": {
                 "type": "git",
                 "url": "https://github.com/jardisTools/dev-skills.git",
-                "reference": "d24ed87dba922b8cbf2f7e1307f70ea8451cff5c"
+                "reference": "4088a492bbc4cae479658247d2d7d8bae69485da"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/jardisTools/dev-skills/zipball/d24ed87dba922b8cbf2f7e1307f70ea8451cff5c",
-                "reference": "d24ed87dba922b8cbf2f7e1307f70ea8451cff5c",
+                "url": "https://api.github.com/repos/jardisTools/dev-skills/zipball/4088a492bbc4cae479658247d2d7d8bae69485da",
+                "reference": "4088a492bbc4cae479658247d2d7d8bae69485da",
                 "shasum": ""
             },
             "require": {
@@ -2009,9 +2009,9 @@
                 "docs": "https://docs.jardis.io/en/skills",
                 "email": "jardisDev@headgent.com",
                 "issues": "https://github.com/jardisTools/dev-skills/issues",
-                "source": "https://github.com/jardisTools/dev-skills/tree/v1.45.1"
+                "source": "https://github.com/jardisTools/dev-skills/tree/v1.45.3"
             },
-            "time": "2026-11-03T09:04:35+00:00"
+            "time": "2026-11-03T10:35:28+00:00"
         },
         {
             "name": "myclabs/deep-copy",
