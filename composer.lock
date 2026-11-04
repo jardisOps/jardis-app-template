@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "49089b4ce6282c7f51367dace05fab67",
+    "content-hash": "9cbfc287a481e39aba6b441f8def1caa",
     "packages": [
         {
             "name": "jardisadapter/dbconnection",
@@ -1943,16 +1943,16 @@
     "packages-dev": [
         {
             "name": "jardis/dev-skills",
-            "version": "v1.45.3",
+            "version": "v1.45.5",
             "source": {
                 "type": "git",
                 "url": "https://github.com/jardisTools/dev-skills.git",
-                "reference": "4088a492bbc4cae479658247d2d7d8bae69485da"
+                "reference": "cc1c028f402dd520a21e13d07e4536cd32ad631a"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/jardisTools/dev-skills/zipball/4088a492bbc4cae479658247d2d7d8bae69485da",
-                "reference": "4088a492bbc4cae479658247d2d7d8bae69485da",
+                "url": "https://api.github.com/repos/jardisTools/dev-skills/zipball/cc1c028f402dd520a21e13d07e4536cd32ad631a",
+                "reference": "cc1c028f402dd520a21e13d07e4536cd32ad631a",
                 "shasum": ""
             },
             "require": {
@@ -2009,9 +2009,9 @@
                 "docs": "https://docs.jardis.io/en/skills",
                 "email": "jardisDev@headgent.com",
                 "issues": "https://github.com/jardisTools/dev-skills/issues",
-                "source": "https://github.com/jardisTools/dev-skills/tree/v1.45.3"
+                "source": "https://github.com/jardisTools/dev-skills/tree/v1.45.5"
             },
-            "time": "2026-11-03T10:35:28+00:00"
+            "time": "2026-11-04T08:13:50+00:00"
         },
         {
             "name": "myclabs/deep-copy",
