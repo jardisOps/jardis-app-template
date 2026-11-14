@@ -1,12 +1,16 @@
 ---
 name: core-kernel
-description: jardiscore/kernel v2 - the immutable DomainKernel (12 nullable/typed accessors + container(), incl. eventListenerRegistry, messaging, auth) plus the optional Bootstrap-Packer BuildDomainKernelFromEnv (projectRoot-based: ONE `<projectRoot>/.env` plus its cascade, or an `.env`-formatted string; process environment always wins; secret key from APP_SECRET_KEY or `<projectRoot>/support/secret.key`; auth() from AUTH_TOKEN_KEY). DomainApp/BoundedContext/ServiceRegistry/Response pipeline were removed (Kernel-Entkopplung 2026-07) - the generated {Domain}Context now carries handle()/context()/resource()/payload()/version()/result(). TRIGGER: DomainKernel, DomainKernelInterface, projectRoot, BuildDomainKernelFromEnv, Bootstrap-Packer, eventListenerRegistry, messaging(), auth(), AUTH_TOKEN_KEY, .env im Root, envContent string mode, APP_SECRET_KEY, secret.key, InvalidEnvConfigurationException. Formerly (now generated, not in this package): DomainApp, BoundedContext, ServiceRegistry, SharedRegistry, ContextResponse, DomainResponse.
+description: jardiscore/kernel v2 - the immutable DomainKernel plus the optional ENV packer BuildDomainKernelFromEnv (one project-root .env + cascade). Use when building a DomainKernel, configuring .env/APP_SECRET_KEY/AUTH_TOKEN_KEY, or touching eventListenerRegistry, messaging(), auth(), http(), mail().
 user-invocable: false
 zone: post-active
 persona: C
 prerequisites: [foundation-architecture, foundation-patterns]
-next: [generated-code-extend, core-app]
+next: [generated-code-extend, core-app, support-response]
 ---
+
+## Triggers
+
+jardiscore/kernel v2 - the immutable DomainKernel (14 nullable/typed accessors + container(), incl. eventListenerRegistry, messaging, auth, http, mail) plus the optional Bootstrap-Packer BuildDomainKernelFromEnv (projectRoot-based: ONE `<projectRoot>/.env` plus its cascade, or an `.env`-formatted string; process environment always wins; secret key from APP_SECRET_KEY or `<projectRoot>/support/secret.key`; auth() from AUTH_TOKEN_KEY). DomainApp/BoundedContext/ServiceRegistry/Response pipeline were removed (Kernel-Entkopplung 2026-07) - the generated {Domain}Context now carries handle()/context()/resource()/payload()/version()/result(). TRIGGER: DomainKernel, DomainKernelInterface, projectRoot, BuildDomainKernelFromEnv, Bootstrap-Packer, eventListenerRegistry, messaging(), auth(), http(), mail(), HttpServiceInterface, MailServiceInterface, AUTH_TOKEN_KEY, .env im Root, envContent string mode, APP_SECRET_KEY, secret.key, InvalidEnvConfigurationException. Formerly (now generated, not in this package): DomainApp, BoundedContext, ServiceRegistry, SharedRegistry, ContextResponse, DomainResponse.
 
 # KERNEL_COMPONENT_SKILL
 > `jardiscore/kernel` v2 | NS: `JardisCore\Kernel` | PHP 8.2+
@@ -15,21 +19,20 @@ next: [generated-code-extend, core-app]
 
 `jardiscore/kernel` is now a pure **Application-layer offering**, outside the
 hexagonal inner rings. The former domain-side classes are **deleted**:
-`DomainApp`, `ServiceRegistry`, `BoundedContext`, `Response/*`
-(`ContextResponse`, `DomainResponse`, `DomainResponseTransformer`,
-`ResponseStatus`). What replaced them:
+`DomainApp`, `ServiceRegistry`, `BoundedContext`, `Response/*`. What replaced them:
 
 - **The Jardis Builder now generates** the domain's Context body
-  (`{Domain}Context`, 1:1-structural port of the former `BoundedContext` —
+  (`{Domain}Context`, carries
   `handle()`/`context()` (now `protected`), `resource()/payload()/version()/
-  result()`) and the **Response-Trio** (`ContextResponse`/`DomainResponse`/
-  `DomainResponseTransformer`) per domain, under `{Domain}\Response\`. See
-  the `generated-code-extend` skill for that generated-code contract — this
-  package does **not** define those classes anymore.
+  result()`). Answers are built from the package `jardissupport/response`
+  (`ContextResponse`, `TransformResponse`, `BuildResponseData`, `ProjectOutcome`;
+  envelope `{status,data,errors,meta}`, process answers carry `@outcome`) — see
+  the `support-response` skill. See the `generated-code-extend` skill for the
+  generated-code contract — this package does **not** define those classes.
 - **Shared vocabulary moved to `jardissupport/contracts`:** `ResponseStatus`
   (enum), `GeneratedContextInterface` (the D5 marker every generated
-  `{Domain}Context` implements), `DomainKernelInterface` (13 methods incl.
-  `container()`, `eventListenerRegistry()`, `messaging()` and `auth()`).
+  `{Domain}Context` implements), `DomainKernelInterface` (15 methods incl.
+  `container()`, `eventListenerRegistry()`, `messaging()`, `auth()`, `http()` and `mail()`).
 - **This package keeps exactly two things:** the immutable `DomainKernel`
   (implements `DomainKernelInterface`) and an optional ENV-driven packer
   (`Bootstrap\BuildDomainKernelFromEnv`) that builds one. Generated domains
@@ -88,14 +91,14 @@ Second breaking wave, tracked in `docs/env-konfiguration/` (repo
 Bootstrap\BuildDomainKernelFromEnv (optional ENV packer, one invokable class)
     → packs
 DomainKernel implements DomainKernelInterface (immutable,
-                                                constructor injection, 13 methods)
+                                                constructor injection, 15 methods)
     ↓ passed to
 new {Domain}($kernel)               ← generated Domain facade (final, JardisCore-free)
     ↓ new {BC}($kernel)              ← generated BC facade, extends {Domain}Context
 {Domain}Context                     ← GENERATED per domain (generated-code-extend skill)
     handle()/context() (Kernel-Naht, protected) · resource()/payload()/version()/result()
     ↓ result()
-ContextResponse (GENERATED) → DomainResponseTransformer (GENERATED) → DomainResponse (GENERATED)
+ContextResponseInterface → jardissupport/response (TransformResponse, ProjectOutcome) → DomainResponseInterface
 ```
 
 Everything below the `DomainKernel` line is generated per domain by the
@@ -105,7 +108,7 @@ Jardis Builder, not provided by this package.
 
 | Class | Responsibility | Status |
 |-------|---------------|--------|
-| `DomainKernel` | Immutable, constructor injection, implements `DomainKernelInterface` (13 methods). `container()` → `Factory` | **current** |
+| `DomainKernel` | Immutable, constructor injection, implements `DomainKernelInterface` (15 methods). `container()` → `Factory` | **current** |
 | `Bootstrap\BuildDomainKernelFromEnv` | Optional ENV packer. One invokable class (`__invoke(string $projectRoot): DomainKernel`), no static factory | **current** |
 | `Bootstrap\LazyAuthServices` | Proxy that builds the auth services on first use (the token store needs the DB connection, resolving it may open it) | **current** |
 | `Bootstrap\Handler\*` (15 classes) | Closures the packer composes: `BuildConnectionFromEnv`, `ExtractPdoFromConnection`, `ProvideWriterPdo`, `MemoizeProvider`, `BuildRedisFromEnv` (a lazy `Closure(): Redis` provider), `BuildCacheFromEnv`, `BuildLoggerFromEnv`, `BuildEventListenerProviderFromEnv`, `BuildEventDispatcherFromProvider`, `BuildHttpClientFromEnv`, `BuildMailerFromEnv`, `BuildFilesystemFromEnv`, `BuildMessagingFromEnv`, `BuildAuthServicesFromEnv`; plus normalization helpers `NormalizeEnvBool`, `IsEnvValueUnset` | **current** |
@@ -116,7 +119,7 @@ Jardis Builder, not provided by this package.
 | `DomainApp` | Lazy kernel bootstrap, ClassVersion hooks, service sharing, `kernel()`/`handle()` | **deleted** — no replacement class; the generated Domain facade is `final` and holds only the `DomainKernel` |
 | `BoundedContext` | Use-case handler base (`handle()`/`context()`, Factory + ClassVersion) | **deleted** — the generated `{Domain}Context` carries this role (`generated-code-extend`) |
 | `ServiceRegistry` | Static first-write-wins service sharing | **deleted** — no replacement; sharing is now explicit (same `DomainKernel` instance) |
-| `ContextResponse` / `DomainResponse` / `DomainResponseTransformer` / `ResponseStatus` | Response pipeline | **deleted from this package** — generated per domain under `{Domain}\Response\`; `ResponseStatus` moved to `jardissupport/contracts` |
+| `ContextResponse` / `DomainResponse` / `DomainResponseTransformer` / `ResponseStatus` | Response pipeline | **deleted from this package** — responses come from `jardissupport/response` (4.2); `ResponseStatus` and the response interfaces live in `jardissupport/contracts` |
 
 ## Eine `.env` im Root (v2.4.0) — what changed
 
@@ -185,7 +188,9 @@ $kernel = new DomainKernel(
     filesystem: $filesystemService,      // ?FilesystemServiceInterface
     env: ['db_host' => 'localhost'],     // array — private ENV, file-only (no $_ENV fallback)
     messaging: $messagingService,        // ?MessagingServiceInterface
-    auth: $authServices,                 // ?AuthServicesInterface — last constructor param
+    auth: $authServices,                 // ?AuthServicesInterface
+    http: $httpService,                  // ?HttpServiceInterface — kernel 2.9.0 (contracts >= 2.19)
+    mail: $mailService,                  // ?MailServiceInterface — last constructor param
 );
 
 $ecommerce = new Ecommerce($kernel);     // {Domain} facade, generated by Jardis — no extends
@@ -206,9 +211,11 @@ $ecommerce = new Ecommerce($kernel);     // {Domain} facade, generated by Jardis
 | `filesystem()` | `?FilesystemServiceInterface` | |
 | `messaging()` | `?MessagingServiceInterface` | **added with env-konfiguration R4** — publish/consume across kafka/rabbitmq/redis, see dedicated section below |
 | `auth()` | `?AuthServicesInterface` | **added with kernel 2.6.0 (contracts >= 2.11)** — `sessions()` / `tokenIssuer()` / `tokenRedeemer()` / `hasher()` from `jardissupport/auth`; packer builds it from `AUTH_TOKEN_KEY`, see "Auth from ENV" below |
+| `http()` | `?HttpServiceInterface` | **added with kernel 2.9.0 (contracts >= 2.19)** — ready-made `get`/`delete`/`head`/`post`/`put`/`patch` (JSON bodies) for domain code, no adapter import; see "http() and mail()" below |
+| `mail()` | `?MailServiceInterface` | **added with kernel 2.9.0 (contracts >= 2.19)** — one ready-made `sendMail($to, $subject, $text, $html, $options)`; see "http() and mail()" below |
 
 `DomainKernel` builds nothing and reads no ENV itself — a pure, immutable
-consumer. All 12 services come via constructor; there is no lazy bootstrap,
+consumer. All 14 services come via constructor; there is no lazy bootstrap,
 no `kernel()` hook (that was `DomainApp`'s job — gone).
 
 ### Multi-domain sharing is still explicit
@@ -316,8 +323,10 @@ Builder — see `generated-code-extend` for the full contract:
   `version()`/`result()`, and `classVersion()`/`classVersionConfig()`.
   `implements JardisSupport\Contract\Kernel\GeneratedContextInterface` (the D5
   marker) — **no `extends BoundedContext`**, no package base class at all.
-- **`{Domain}\Response\`** — the generated Response-Trio (`ContextResponse`,
-  `DomainResponse`, `DomainResponseTransformer`). `ResponseStatus` itself lives in
+- **Responses** — no generated Response classes: `{Domain}Context::result()`
+  returns a `ContextResponseInterface` (implemented by `ContextResponse` from
+  `jardissupport/response`) and `transformer()` a `TransformResponse`; process
+  doors answer through `ProjectOutcome` (`@outcome`). `ResponseStatus` lives in
   `jardissupport/contracts`.
 - **The Domain facade** (e.g. `Ecommerce`) is `final class`, holds only the
   `DomainKernel` (`DomainKernelInterface $kernel`), and self-registers every
@@ -328,10 +337,10 @@ If you are extending or wiring **generated** code, read `generated-code-extend`
 `DomainKernel`.
 
 HTTP-Delivery für den DomainKernel (FastRoute-Router, PSR-15-Pipeline, kanonischer
-`DomainResponse`→PSR-7-Mapper): siehe `core-app` (`jardiscore/app`).
+`DomainResponseInterface`→PSR-7-Mapper): siehe `core-app` (`jardiscore/app`).
 
 ## RULES
-- `DomainKernel` is purely immutable — builds nothing, only consumes. All 11
+- `DomainKernel` is purely immutable — builds nothing, only consumes. All 14
   services are constructor-injected; there is no post-construction mutation.
 - No static shared state anywhere in this package (the former
   `ServiceRegistry` is gone) — sharing across domains means passing the same
@@ -361,7 +370,7 @@ HTTP-Delivery für den DomainKernel (FastRoute-Router, PSR-15-Pipeline, kanonisc
 
 ## DEPENDENCIES
 ```
-jardissupport/contracts     ^2.0
+jardissupport/contracts     ^2.19
 jardissupport/classversion  ^1.0
 jardissupport/dotenv        ^1.2
 jardissupport/factory       ^1.0
@@ -374,6 +383,35 @@ psr/http-client             ^1.0
 # jardisadapter/{cache,dbconnection,eventdispatcher,filesystem,http,logger,mailer,messaging}
 # ext-redis, ext-rdkafka, ext-amqp
 ```
+
+## http() and mail() (v2.9.0)
+
+Domain code (node/closure bodies, `{BC}/Service/`) reaches HTTP and mail through
+the kernel contract only — **no `JardisAdapter\*` import**:
+
+```php
+$kernel->http()->post('https://hooks.example.test/orders', ['order' => 'A-1001'], ['X-Source' => 'shop']);
+$kernel->mail()->sendMail('buyer@example.test', 'Order A-1001', 'Your order was placed.', null, ['from' => 'shop@example.test']);
+```
+
+- `http()` is `JardisSupport\Contract\Http\HttpServiceInterface`: `get`,
+  `delete`, `head` (uri, headers) and `post`, `put`, `patch` (uri, data array
+  encoded as JSON, headers); returns a PSR-7 response. 4xx/5xx is a normal
+  response, only a failed transport throws `ClientExceptionInterface`.
+- `mail()` is `JardisSupport\Contract\Mailer\MailServiceInterface`:
+  `sendMail(string|list<string> $to, $subject, ?$text, ?$html, array $options)`;
+  neither text nor HTML → `InvalidArgumentException`, transfer failure →
+  `MailerExceptionInterface`.
+- `httpClient()` (PSR-18, arbitrary requests) and `mailer()` (composed
+  messages with attachments) stay as they are.
+- **Packer:** no second build. The instance behind `httpClient()` / `mailer()` is
+  passed as `http` / `mail` too when it implements the service contract
+  (`jardisadapter/http` / `mailer` >= 1.1 — same object, `assertSame` holds),
+  else `null`. composer `conflict` `<1.1` stops an old adapter from leaving the
+  accessor silently `null`. No adapter or no `MAIL_HOST` → `null`.
+- A hand-built `DomainKernel` takes the services via the new **last** named
+  constructor params `http:` / `mail:`; `httpClient:` alone does not fill `http()`.
+- Anyone implementing `DomainKernelInterface` (fakes) must add both methods.
 
 ## Auth from ENV (v2.6.0)
 

@@ -1,6 +1,6 @@
 ---
 name: generated-code-workflow-api
-description: Process door and engine API behind Process-Designer-generated use-case orchestrators (workflow 5.2, response 4.2, repository transaction bracket). Use when working with generated process handlers, node classes, NodeResult routes, answerFrom/@outcome, or failure forms.
+description: Process door and engine API behind Process-Designer-generated use-case orchestrators (workflow 5.3, response 4.3, repository transaction bracket). Use when working with generated process handlers, node classes, NodeResult routes, answerFrom/@outcome, or failure forms.
 zone: post-active
 persona: C
 profile: jardis
@@ -10,9 +10,9 @@ next: []
 
 ## Triggers
 
-Process door and engine API behind Process-Designer-generated use-case orchestrators (`workflow` 5.2 engine, `response` 4.2 door steps, `repository` transaction bracket) — generated handler as the one door class (`ValidateInput`, `RunOwnedTransaction`, `ProcessRunner`, `definition()` with `answerFrom([Node::class => 'outcome', …])`, `AnswerOutcome`, the answer field `@outcome`), the typed run view `{Name}Context` with one getter per node, node classes `extends {Domain}Context` with `__invoke({Name}Context): NodeResult`, six routes plus reject, `read()` / `handle()` / `tenant` and `user` of the process input inside a node, call (`MapResponseInto`), sub-process (`MapResponse`/`MapResponseInto`), rule (hermetic) and event nodes, the object value of `gives`, rule modes, strict routing, transaction bracket with savepoints, failure forms with envelope data and message keys, 5xx cause logged by the door.
+Process door and engine API behind Process-Designer-generated use-case orchestrators (`workflow` 5.3 engine, `response` 4.3 door steps, `repository` transaction bracket) — generated handler as the one door class (`ValidateInput`, `RunOwnedTransaction`, `ProcessRunner`, `definition()` with `answerFrom([Node::class => 'outcome', …])`, `AnswerOutcome`, the answer field `@outcome`), the typed run view `{Name}Context` with one getter per node, node classes `extends {Domain}Context` with `__invoke({Name}Context): NodeResult`, six routes plus reject, `read()` / `handle()` / `tenant` and `user` of the process input inside a node, call (`MapResponseInto`), external call to another system (`DecodeAnswer`, `MapExternalResponse`), sub-process (`MapResponse`/`MapResponseInto`), rule (hermetic) and event nodes, the object value of `gives`, rule modes, strict routing, transaction bracket with savepoints, failure forms with envelope data and message keys, 5xx cause logged by the door.
 
-> Applies to `workflow` 5.2 (engine only, no session knowledge in its API) and `response` 4.2, and the generator of that release, whose handler is the door built from `response` and `repository` steps. Truth for the APIs: skills `support-workflow` (engine), `support-response` (door steps, failure forms, envelope data), `support-repository` (transaction bracket).
+> Applies to `workflow` 5.3 (engine only, no session knowledge in its API) and `response` 4.3, and the generator of that release, whose handler is the door built from `response` and `repository` steps. Truth for the APIs: skills `support-workflow` (engine), `support-response` (door steps, failure forms, envelope data), `support-repository` (transaction bracket).
 
 The Process-Designer handler (`<Name>Handler.php`, generated under `{BC}/Process/{Name}/`) is the **door** of the process: it checks the input (`ValidateInput`, only where the input carries a rule), checks the required kernel resources (`RequireResource`, one line per `requires` name), opens the transaction bracket `RunOwnedTransaction` around `ProcessRunner::run($definition, $input, $nodeFactory, $depth)` and answers through the `response` closures (`AnswerFindings`, `AnswerOutcome`, `AnswerThrowable`, `LogFailure`). It is ONE class: the graph is its private method `definition()`, there is no run-step class and no definition class next to it. The door itself computes nothing: it chains these calls and branches on what they hand back. The runner is the engine only: it walks the `ProcessDefinition`, builds each node through the factory, invokes it and answers with one `ProcessOutcome` (status, response object, errors, events, message key, context). It validates nothing, opens no transaction, answers no 5xx and knows no session: who calls is decided in front of the door by the route middleware (`RequireSession`, `RequireRight` of `core/app` 3.2, set in the generated `routes.php`); the door fills the fields `tenant` and `user` of the process input from the request attributes, a node reads them as `$ctx->input()->tenant` / `->user`. Handler and facades check no right themselves. Knowing this API is mandatory for node bodies and for `App/**` delivery code around the handler.
 
@@ -91,13 +91,14 @@ public function __invoke(LendBookContext $ctx): NodeResult
 | In a node body | Use |
 |---|---|
 | `$ctx->input()` | the typed process input |
-| `$ctx->input()->tenant` / `->user` | tenant and bare user id of the signed-in user, filled by the door from the request attributes (fields of the process input, only in a world with login; `tenant` required (403) only when the process reaches a tenant-marked aggregate, `user` never); sub-process and call nodes hand them on; read them, never take them from a client field |
+| `$ctx->input()->tenant` / `->user` | tenant and bare user id of the signed-in user, filled by the door from the request attributes (fields of the process input, only in a world with login; `tenant` required (403) only when the process reaches a tenant-marked aggregate, `user` never); sub-process and call nodes hand them on unchanged (a column the model fills from `user` holds that bare id, whatever its name; another value there is a finding on the model, not a task of the node); read them, never take them from a client field |
 | `$ctx-><node>()` | typed getter per node, generated in `{Name}Context` over `latest()`: the type is what the node `gives` (a read aggregate: `{Agg}Response`; an identifier: the `{Command}Response` of the call; a scalar value: `bool`/`int`/`string`…; an object value: its `{Name}{Value}` class; always nullable, `null` until the node ran); the raw access stays (`latest($node)`, `all($node)`, `previous()`, `iteration($node)`, `chain()`, `depth()`) |
 | `$this->read(Handler::class, $filter): ReadResult` | read through an own-BC query handler: `->first()`, `->items()`, `->total()`, `->isEmpty()`; a handler of another BC throws `LogicException` (M9) |
+| `$this->context(Get{Agg}By{Key}Handler::class, $query)(): DomainResponseInterface` | the read base of an own-BC aggregate (`ById`, `ByIds`, `By{Key}`, `By{Key}s`): the whole aggregate with its children; a key without a record answers a success with empty data (`getData() === []`), never a 404 (§5, read node) |
 | `$this->handle(Class::class)` | any class through the kernel seam (aggregate write facade, closure, `Identity`, `SystemClock`); this is also how the factory builds nodes |
 
 ```php
-$onLoan = $this->read(GetLoanListHandler::class, new LoanListFilter(isbn: $isbn, limit: 1))->first();
+$onLoan = $this->read(GetLoanListHandler::class, $this->handle(LoanListFilter::class, isbn: $isbn, limit: 1))->first();
 
 return $onLoan === null
     ? NodeResult::route(Route::OnTrue)
@@ -121,6 +122,23 @@ There are no free slots; results sit in the chain and nothing is handed on from 
 
 **Call node, aggregate command.** `$this->handle(Loan::class)->createLoan(new CommandLoan(...))` returns a `DomainResponseInterface`; `(new MapResponseInto())($response, CreateLoanResponse::class)` maps it: 2xx becomes `ok(<typed object>)` (the `{Command}Response` the getter of this node returns), 4xx a `reject` with the callee's plain context, every other status throws. `MapResponse` is the same mapping without the typed object (`ok(array)`).
 
+**Read node, one aggregate by its key.** A node whose task is to fetch an aggregate of the own BC, with the key at hand (process input or an earlier answer), reads the read base and not a declared query: the point read answers the whole aggregate with its children, and `MapResponseInto` hands it on as the `{Agg}Response` the getter of this node returns. A key without a record is a success with empty data; the 404 is the node's own (declared in `rejects`). Model: `reads: [{query: loanByLoanNumber}]`, `gives: {kind: aggregate, aggregate: Loan}`. A tenant-marked aggregate takes `tenant: $ctx->input()->tenant` as the first argument of the query class.
+
+```php
+$loanNumber = $ctx->input()->loanNumber;
+$response = $this->context(
+    GetLoanByLoanNumberHandler::class,
+    $this->handle(LoanByLoanNumber::class, loanNumber: $loanNumber)
+)();
+if ($response->isSuccess() && $response->getData() === []) {
+    return NodeResult::reject(ResponseStatus::NotFound, 'lending.loan.notFound', ['loanNumber' => $loanNumber]);
+}
+
+return (new MapResponseInto())($response, LoanResponse::class);
+```
+
+A declared query is the wrong means here. It is a paginated list of flat rows of its declared columns and never fills an aggregate, so `->first()` of it is a row: no children, not the type the getter returns. A query leads to an aggregate only when the key is not known: query, key of the row, read base.
+
 **Sub-process node.** The stub carries the whole call; only the input mapping is yours (the node body). The node runs the inner process through the inner door (`$this->context(<Inner>Handler::class, <input>, depth: $ctx->depth() + 1)()`; the sub-input carries `tenant`/`user` from the outer input, filled by the generator) and hands the `DomainResponseInterface` it answers to `MapResponseInto` (the class is the object value the node `gives`, derived from the `gives` of the end nodes of the inner process) or, for an inner process without own fields, to `MapResponse`:
 
 ```php
@@ -134,6 +152,8 @@ return (new MapResponseInto())($response, NotifyMemberResult::class);
 ```
 
 `MapResponse` / `MapResponseInto` (`JardisSupport\Workflow\Handler\Node\`) is the one mapping, never map a response by hand: success is `ok(...)` (`MapResponse`: the data array; `MapResponseInto`: an object of the class you name) with the Domain events of the inner run (its Internal events stay behind); a 4xx rejects again with the SAME status and the callee's plain context (so the outer wire form equals the inner one) or, when you pass a `Route` as second argument, routes there (a Dev decision); a 5xx throws a `CalleeFailureException` (the inner door has already reported the cause, the outer door does not log it again).
+
+**External-Call node (another system or another Jardis domain).** The Service body reads the reply with `DecodeAnswer` (package `response`) and maps it with `MapExternalResponse` (package `workflow`), never with `MapResponse`: 2xx, 400, 404, 409 and 422 are the answer of the node as for `MapResponse`; 401, 403, 405, every 5xx and every status outside the response form throw `ExternalFailureException`, which carries no `ReportedFailureExceptionInterface` marker, so the door logs it and answers 500. Recipe with the code: `generated-code-recipes` §2 Recipe 2.
 
 **Rule node.** Hermetic: the generator writes the whole body (it is rebuilt on every build, do not edit). It calls each rule of the chain through `$this->handle(Rule::class)(...)`, short-circuits, and on a violation returns `reject(ResponseStatus::RuleViolation, $messageKey, ['rule' => ..., ...context])` (422), else `route(OnTrue)`. `ruleMode($node, RuleMode::Guard)` (default) ends the run on a violation; `RuleMode::Decision` turns a 422 into `Route::OnFalse` and the process goes on there. Which Closure backs the node and how its inputs are bound is Designer territory (`generated-code-extend`, the Closure catalog).
 
