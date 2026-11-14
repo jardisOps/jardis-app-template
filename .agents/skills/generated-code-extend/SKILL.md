@@ -4,7 +4,7 @@ description: "Extending Designer-generated code: hermetic `{BC}/Model/{Agg}/` tr
 zone: post-active
 persona: C
 profile: jardis
-prerequisites: []
+prerequisites: [generated-code-request-path]
 next: [generated-code-versioning, generated-code-workflow-api, generated-code-recipes, generated-code-wire-transport]
 ---
 
@@ -27,10 +27,10 @@ Extending Designer-generated code — the whole `{BC}/Model/{Agg}/` tree is Gene
 | V3 | Never bypass `handle()` |
 | V4 | No logic in Command / Query Handler Orchestrators — logic belongs in Actions |
 | V5 | Never access Aggregate internals from outside — only via AggregateHandler |
-| V6 | No foreign-BC internals — a foreign BC is reached only through its doors (`{Agg}Read` reads; writes go through `process()` or a command door at `domain` or wider, `{BC}::{command}()`), from a node body or a Domain Service, e.g. through a modelled **Cross-BC-Call** node (generator emits the Service scaffolding, §1); a foreign aggregate, repository or SQL is prohibited |
+| V6 | No foreign-BC internals — a foreign BC of the own domain is reached only through its doors (`{Agg}Read` reads; writes go through `process()` or a command door at `domain` or wider, `{BC}::{command}()`), from a node body or a Domain Service, e.g. through a modelled **Cross-BC-Call** node (generator emits the Service scaffolding, §1); a foreign aggregate, repository or SQL is prohibited; another domain is reached only over HTTP through an External-Call node |
 | V7 | No traits, no `abstract` (except Exception hierarchies) |
 | V8 | Never skip validation in Command → Entity → Aggregate chain |
-| V9 | No persistence in Domain Services — a Domain Service writes nothing in its own BC (own BC read-only, M9); a foreign BC is written only through its doors at `domain` or wider (`process()` or a command door) |
+| V9 | No persistence in Domain Services — a Domain Service writes nothing in its own BC (own BC read-only, M9); a foreign BC of the own domain is written only through its doors at `domain` or wider (`process()` or a command door); another domain only over HTTP through an External-Call node |
 | V10 | No state in `{Domain}Context` subclasses (transient per call) — the generated base class of the Context family (§1) |
 | V11 | No business methods on Entities |
 | V12 | The `data` payload is an array (flat at the root), the handler returns `DomainResponseInterface` — not a typed DTO; read answers carry their children as `{Child}Response` objects (`->`, see the read-base table in §1). ⚠️ **Precision:** the generator also emits one `{Agg}/Command/Response/{Command}Response.php` per command — a plain data class carrying the reference values (root identifier + affected child reference) the handler writes into `$this->result()->setData([...])`. **Inside vs. outside:** inside the BC (handler, write facade, a process node through `handle()`/`context()`) the command answer additionally carries the root `id` when the root has a public key, so a node can pass it on without re-reading; outside (`{BC}::{command}()`, `routes.php`, OpenAPI, cross-BC) `ProjectAnswer` projects the answer onto `{Command}Response` — there no `id` as long as a key exists; without a key `id` is the identifier, inside and outside. That class is a **contract type**, published so a client can be typed against the write door; it is **not** a return type. The handler signature stays `DomainResponseInterface`, its payload stays the array, and nothing about the dispatch changes — **do not rewrite a handler to return one of these classes.** They are hermetic like the rest of the tree (never edit), and derived from the same source the handler body is rendered from, so they cannot drift from what the handler actually writes. A process door is projected differently: `{BC}Process::{name}()` cuts its answer with `ProjectOutcome`, one `OutcomeForm` per outcome. |
@@ -72,6 +72,6 @@ The order of work for a change to a Jardis domain. Each step has one skill; do n
 1. **Model.** Express the change in the model first (schema, aggregate, process, queries, closures), through the authoring doors. → `design-headless-mcp`, `design-draft-schema`.
 2. **Check.** Validate the model before building; fix findings in the model, never in the output. → `design-headless-mcp` (the `validate_*` tools).
 3. **Build.** Generate the code; the hermetic tree is overwritten on every build (§2). → `design-headless-mcp`.
-4. **Hand code.** Fill the stubs the build produced — node bodies, Closure/Rule bodies, `{BC}/Service/` — at the places of §10, using only Jardis artefacts. What the model cannot express is a missing Jardis capability: build it in the package or generator (when working on Jardis itself) or report it as an issue (when working on an app), then wait — no substitute in the project. → this skill, §5 and §6; recipes in `generated-code-recipes`.
+4. **Hand code.** Fill the stubs the build produced — node bodies, Closure/Rule bodies, `{BC}/Service/` — at the places of §10, using only Jardis artefacts. What the model cannot express is a missing Jardis capability: build it in the package or generator (when working on Jardis itself) or report it as an issue (when working on an app). No substitute in the project outside the places of §10; hand code at such a place that covers the gap is counted once by its kind, and the same kind a second time is parked (§10). → this skill, §5 and §6; recipes in `generated-code-recipes`.
 5. **Tests.** Test behaviour through the doors, with the generated scaffold. → `foundation-testing` §6.
 6. **QA.** Run the gates of the project profile, model checks first, then the gates. → `process-run-stage` §7.

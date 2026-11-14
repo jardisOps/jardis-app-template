@@ -1,6 +1,6 @@
 ---
 name: support-contracts
-description: All Jardis interface contracts in one package — ports for Auth, ClassVersion, Connection, Data, DbConnection, DbQuery, DotEnv, EventListener, Filesystem, Identity, Kernel, Mailer, Messaging, Repository, Scheduling, Secret, Validation, Workflow. Use when type-hinting against a Jardis port, importing ResponseStatus/EventScope/PkStrategy, resolving JardisSupport\Contract\* namespaces, or deciding between package name jardissupport/contracts (plural) and namespace JardisSupport\Contract (singular).
+description: All Jardis interface contracts in one package — ports for Auth, ClassVersion, Connection, Data, DbConnection, DbQuery, DotEnv, EventListener, Filesystem, Http, Identity, Kernel, Mailer, Messaging, Repository, Scheduling, Secret, Validation, Workflow. Use when type-hinting against a Jardis port, importing ResponseStatus/EventScope/PkStrategy, resolving JardisSupport\Contract\* namespaces, or deciding between package name jardissupport/contracts (plural) and namespace JardisSupport\Contract (singular).
 user-invocable: false
 zone: post-active
 persona: C
@@ -28,7 +28,7 @@ Contracts only — interfaces, enums, `final readonly` value objects and excepti
 implementation code**; the only tests are contract-shape conformance tests (reflection on signatures). Implementations live in the adapter/support packages; this package
 is the port layer that keeps the hexagonal dependency direction honest across the ecosystem.
 
-124 contracts across 18 namespaces under `src/`.
+127 contracts across 19 namespaces under `src/`.
 
 ## CONTRACT GROUPS
 | Namespace | # | Contracts | Implemented by |
@@ -42,9 +42,10 @@ is the port layer that keeps the hexagonal dependency direction honest across th
 | `DotEnv` | 1 | `DotEnvInterface` | `support-dotenv` |
 | `EventListener` | 1 | `EventListenerRegistryInterface` — registration side, paired with the PSR-14 dispatcher | `adapter-eventdispatcher` |
 | `Filesystem` | 6 | `FilesystemInterface`, `FilesystemReaderInterface`, `FilesystemWriterInterface`, `FilesystemServiceInterface`, `FileInfoInterface`, `FilesystemExceptionInterface` | `adapter-filesystem` |
+| `Http` | 1 | `HttpServiceInterface` (since 2.19; `get/delete/head(string $uri, array $headers = [])`, `post/put/patch(string $uri, array $data = [], array $headers = [])`, all `: Psr\Http\Message\ResponseInterface`; `$data` = JSON body; 4xx/5xx come back as a response, `ClientExceptionInterface` only on transport failure; reached via `DomainKernelInterface::http(): ?HttpServiceInterface`, `null` = not configured) | `adapter-http` |
 | `Identity` | 12 | **DEPRECATED since 2.11.0** (generic subdomain, replaced by the Builder blueprint "Access"; nothing removed, removal only in the next major) — `UserStatus` (enum `Active`/`Disabled`); read-only entities `UserInterface` (`getId/getEmail/getDisplayName/getStatus/getCreatedAt`, no hash), `TenantInterface` (`getId/getSlug/getName/getCreatedAt`), `MembershipInterface` (`getUserId/getTenantId/getRole/getCreatedAt`), `GroupInterface` (`getId/getTenantId/getName/getCreatedAt`), `InvitationInterface` (`getId/getTenantId/getEmail/getRole/getTokenHash/getExpiresAt/getAcceptedAt/getRevokedAt/getCreatedAt`); stores `UserStoreInterface` (`store($user, $passwordHash)`, `updateStatus`, `updatePasswordHash`, `findById`, `findByEmail`, `passwordHashOf`), `TenantStoreInterface` (`store`, `findById`, `findBySlug`), `MembershipStoreInterface` (`store`, `updateRole`, `remove`, `find`, `listForUser`, `listForTenant`), `GroupStoreInterface` (`store`, `findById`, `findByName`, `listForTenant`), `GroupMemberStoreInterface` (`add`, `remove`, `removeUserFromTenantGroups`, `listMembers`, `isMember`), `InvitationStoreInterface` (`store`, `findByTokenHash`, `findPending`, `listPendingForTenant`, `markAccepted(id, at): bool` CAS, `markRevoked`) | `support-identity` (jardissupport/identity) |
 | `Kernel` | 12 | `DomainKernelInterface`, `GeneratedContextInterface`, `ContextResponseInterface`, `DomainResponseInterface`, `EventScope` (enum), `ResponseStatus` (enum), `ConcurrencyConflictExceptionInterface`, `ValidationExceptionInterface`, `AccessDeniedExceptionInterface` (deprecated since 2.17.0, removal in contracts 3), `ReportedFailureExceptionInterface`, `OutcomeInterface`, `AnswerableOutcomeInterface` | `core-kernel` + generated domain |
-| `Mailer` | 4 | `MailerInterface`, `MailMessageInterface`, `MailTransportInterface`, `MailerExceptionInterface` | `adapter-mailer` |
+| `Mailer` | 5 | `MailerInterface`, `MailMessageInterface`, `MailTransportInterface`, `MailerExceptionInterface`, `MailServiceInterface` (since 2.19; `sendMail(string|array $to, string $subject, ?string $text = null, ?string $html = null, array $options = []): void`, `$options` = `array{from?, fromName?, cc?, bcc?, replyTo?, headers?}`; no text and no HTML → `\InvalidArgumentException`, transfer failure → `MailerExceptionInterface`; reached via `DomainKernelInterface::mail(): ?MailServiceInterface`, `null` = not configured) | `adapter-mailer` |
 | `Messaging` | 10 | `MessagePublisherInterface`, `MessageConsumerInterface`, `PublisherInterface`, `ConsumerInterface`, `MessageHandlerInterface`, `MessagingServiceInterface` + `Exception\{MessageException, ConnectionException, ConsumerException, PublishException}` | `adapter-messaging` |
 | `Repository` | 6 | `RepositoryInterface`, `PrimaryKey\PkStrategy` (enum), `Exception\{PersistException, RecordNotFoundException, UniqueViolationException, TransientConflictException}` | `support-repository` |
 | `Scheduling` | 5 | `ScheduleInterface`, `ScheduledTaskInterface`, `CronExpressionInterface`, `ConstraintInterface`, `ScheduleViolation` (final readonly) | `support-scheduling` |
@@ -59,8 +60,8 @@ is the port layer that keeps the hexagonal dependency direction honest across th
 ## PSR BOUNDARY
 PSR interfaces are **not** re-declared here — they are required as dependencies and used directly:
 `psr/container` (PSR-11), `psr/simple-cache` (PSR-16), `psr/log` (PSR-3),
-`psr/event-dispatcher` (PSR-14), `psr/http-client` (PSR-18), `psr/clock` (PSR-20), plus `ext-pdo`.
-Jardis declares its own contract only where no PSR exists (Mailer, Filesystem, Messaging,
+`psr/event-dispatcher` (PSR-14), `psr/http-client` (PSR-18), `psr/http-message` (PSR-7), `psr/clock` (PSR-20), plus `ext-pdo`.
+Jardis declares its own contract only where no PSR exists (Mailer, Http service, Filesystem, Messaging,
 Repository, DbQuery, Workflow, Auth, …).
 
 ## ENUMS YOU WILL ACTUALLY IMPORT
@@ -85,9 +86,10 @@ use JardisSupport\Contract\Auth\RequestAttribute;  // final constants: SUBJECT, 
 ```
 
 ## KERNEL CONTRACTS — GENERATED-CODE SURFACE
-- `DomainKernelInterface` — the DomainKernel contract: 13 accessors (12 nullable/typed service
-  accessors plus `container()`), among them `auth(): ?AuthServicesInterface` (2.11; adding it
-  obliges every kernel implementor to implement it), and `eventListenerRegistry():
+- `DomainKernelInterface` — the DomainKernel contract: 15 methods (`projectRoot()`, `env()`, `container()` plus
+  12 nullable/typed service accessors), among them `auth(): ?AuthServicesInterface` (2.11) and
+  `http(): ?HttpServiceInterface` / `mail(): ?MailServiceInterface` (2.19; adding them
+  obliges every kernel implementor to implement them; `httpClient()`/`mailer()` unchanged), and `eventListenerRegistry():
   ?EventListenerRegistryInterface`, the registration counterpart to `eventDispatcher()` (without a
   registry, event routing simply stays inactive), and `messaging(): ?MessagingServiceInterface`
   (added v2.0.0). `projectRoot(): string` was renamed from `domainRoot()` in v2.0.0 (BREAKING) —
