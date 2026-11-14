@@ -13,7 +13,7 @@ next: []
 
 ## ARCHITECTURE
 ```
-HttpClient (Orchestrator, implements ClientInterface)
+HttpClient (Orchestrator, implements ClientInterface + HttpServiceInterface)
   Transformers (Request → Request, only when configured):
     BaseUrl        (baseUrl != null)
     DefaultHeaders (defaultHeaders != [])
@@ -47,6 +47,10 @@ $client->put(string $uri, array $data = [], array $headers = []): ResponseInterf
 $client->patch(string $uri, array $data = [], array $headers = []): ResponseInterface  // JSON
 $client->delete(string $uri, array $headers = []): ResponseInterface
 $client->head(string $uri, array $headers = []): ResponseInterface
+
+// The six calls above fulfil JardisSupport\Contract\Http\HttpServiceInterface
+// (jardissupport/contracts ^2.19): domain code type-hints the contract, reached via $kernel->http().
+// 4xx/5xx = response, only transport failure throws.
 
 // PSR-18 full control
 $client->sendRequest(RequestInterface $request): ResponseInterface
@@ -95,6 +99,8 @@ catch (NetworkException $e) { $e->getRequest(); }
 ```
 
 ## KERNEL INTEGRATION
+Service contract: `HttpClient implements HttpServiceInterface` (`JardisSupport\Contract\Http`, contracts ^2.19) — domain code calls `$kernel->http()->get/post/…` and imports only the contract + PSR-7. Other body forms: `$kernel->httpClient()` (PSR-18).
+
 `jardiscore/foundation` is deleted, including its `HttpClientHandler`. The successor lives in `jardiscore/kernel`: `JardisCore\Kernel\Bootstrap\Handler\BuildHttpClientFromEnv`, packed by the Bootstrap-Packer `Bootstrap\BuildDomainKernelFromEnv`. Access via the Koffer: `$kernel->httpClient(): ?ClientInterface` (`DomainKernel.php:91`).
 
 ENV variables consumed by `BuildHttpClientFromEnv` (`.env` keys are case-insensitive — `BuildDomainKernelFromEnv.php:83` lowercases before lookup; verified against `core/kernel/src/Bootstrap/Handler/BuildHttpClientFromEnv.php`):
@@ -121,5 +127,5 @@ $client = new HttpClient(..., transport: function (RequestInterface $req, Client
 - Logging/caching: Decorator on `ClientInterface` in the caller — never inside the package.
 
 ## DEPENDENCIES
-- `psr/http-client ^1.0`, `psr/http-factory ^1.0`, `psr/http-message ^2.0`, `ext-curl`
+- `jardissupport/contracts ^2.19`, `psr/http-client ^1.0`, `psr/http-factory ^1.0`, `psr/http-message ^2.0`, `ext-curl`
 - Bundled PSR-7/PSR-17: `src/Message/` (`Psr17Factory`, `Request`, `Response`, `Stream`, `Uri`) — no external PSR-7 in require.

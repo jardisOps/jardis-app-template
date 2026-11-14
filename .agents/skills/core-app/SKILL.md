@@ -1,12 +1,16 @@
 ---
 name: core-app
-description: jardiscore/app v3 - the HTTP-Delivery layer for Jardis domains, a FastRoute router hidden behind an own RouterInterface, a PSR-15 middleware pipeline, the canonical DomainResponse-to-PSR-7 envelope mapper, and a DomainKernel bootstrap bridge. TRIGGER: ReadRequestAttribute, ReadRequestAttributeList, ReadRequestAttributeStrict, jardisRights, RequestAttribute::RIGHTS, RequireRight, access.rightMissing, HasRight, RevokeSessionOnSuccess, SignedInRun, SystemRunRefused, SessionDoor, system run, invalidateByReference, logout, revoke session, AnswerUnsupportedRequest, App, Routes, Router, RouterInterface, ParseJsonBody, X-Jardis-Version, knownVersions, jardisVersion, EmitResponse, HandleThrowable, MapDomainResponse, BuildErrorResponse, jardiscore/app, response envelope, {status,data,errors,meta}, health(), auto-HEAD, middleware: when and where, RequireSession, RequireRequestAttribute, request.attributeMissing, required request attribute, 403, per-route middleware.
+description: "jardiscore/app v3 - HTTP-Delivery layer for Jardis domains: FastRoute router behind RouterInterface, PSR-15 middleware pipeline, DomainResponse-to-PSR-7 envelope mapper, kernel bootstrap bridge. Use when wiring routes, middleware, RequireRight, X-Jardis-Version."
 user-invocable: false
 zone: post-active
 persona: D
 prerequisites: [foundation-architecture, foundation-patterns, core-kernel]
 next: []
 ---
+
+## Triggers
+
+jardiscore/app v3 - the HTTP-Delivery layer for Jardis domains, a FastRoute router hidden behind an own RouterInterface, a PSR-15 middleware pipeline, the canonical DomainResponse-to-PSR-7 envelope mapper, and a DomainKernel bootstrap bridge. TRIGGER: ReadRequestAttribute, ReadRequestAttributeList, ReadRequestAttributeStrict, jardisRights, RequestAttribute::RIGHTS, RequireRight, access.rightMissing, HasRight, RevokeSessionOnSuccess, SignedInRun, SystemRunRefused, SessionDoor, system run, invalidateByReference, logout, revoke session, AnswerUnsupportedRequest, App, Routes, Router, RouterInterface, ParseJsonBody, X-Jardis-Version, knownVersions, jardisVersion, EmitResponse, HandleThrowable, MapDomainResponse, BuildErrorResponse, jardiscore/app, response envelope, {status,data,errors,meta}, health(), auto-HEAD, middleware: when and where, RequireSession, RequireRequestAttribute, request.attributeMissing, required request attribute, 403, per-route middleware.
 
 # APP_COMPONENT_SKILL
 > `jardiscore/app` | NS: `JardisCore\App` | PHP 8.3+
