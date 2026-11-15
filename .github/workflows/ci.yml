@@ -177,6 +177,15 @@ jobs:
           make db-import SCHEMA=support/tests/db-import-smoke.sql
           make db-import SCHEMA=support/tests/db-import-smoke.sql
 
+      - name: db-reset smoke
+        run: |
+          # SQLite default, idempotent; content checks live in tests/Unit/App/Console/DbResetTest.php.
+          make help | grep -q '^ *db-reset '
+          make db-import SCHEMA=support/tests/db-import-smoke.sql
+          make db-reset
+          make db-reset
+          if make console ARGS="db:reset x"; then echo "must fail"; exit 1; fi
+
       - name: Start the delivery stack
         run: make start
 

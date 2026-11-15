@@ -81,40 +81,33 @@ final class DbImport
         return $this->importAll($pdo, $projectRoot, $driver);
     }
 
+    /**
+     * Whether a whole-database import would find at least one schema for the driver —
+     * the same discovery and the same refusals as the import itself, nothing is executed.
+     * Failures are reported on the error stream; a caller that must not change the
+     * database before an import is certain to find its input (db:reset) asks first.
+     */
+    public function canImportAll(string $projectRoot, string $driver): bool
+    {
+        return $this->plan($projectRoot, $driver) !== null;
+    }
+
     private function importAll(PDO $pdo, string $projectRoot, string $driver): int
     {
-        $root = realpath($projectRoot);
-        if ($root === false) {
-            return $this->fail('project root not found');
+        $plan = $this->plan($projectRoot, $driver);
+        if ($plan === null) {
+            return 1;
         }
 
-        try {
-            $found = $this->discover($root, $driver);
-        } catch (\RuntimeException $e) {
-            return $this->fail($e->getMessage());
-        }
-        if ($found === null) {
-            return $this->fail(sprintf('driver "%s" has no schema dialect', $driver));
-        }
-
-        foreach ($found['skipped'] as $directory) {
+        foreach ($plan['skipped'] as $directory) {
             fwrite($this->out, sprintf(
                 "skipped %s: no %s schema\n",
-                substr($directory, strlen($root) + 1),
+                substr($directory, strlen($plan['root']) + 1),
                 $driver,
             ));
         }
 
-        if ($found['files'] === []) {
-            return $this->fail(sprintf(
-                'no schema found for driver "%s" (vendor/jardis*/<package>/resources/sql/%s.sql,'
-                . ' .jardis/.../Schema.<dialect>.sql)',
-                $driver,
-                $driver,
-            ));
-        }
-
-        foreach ($found['files'] as $file) {
+        foreach ($plan['files'] as $file) {
             $result = $this->importFile($pdo, $file['path'], $file['label']);
             if ($result !== 0) {
                 return $result;
@@ -122,6 +115,46 @@ final class DbImport
         }
 
         return 0;
+    }
+
+    /**
+     * @return array{root: string, files: list<array{path: string, label: string}>, skipped: list<string>}|null
+     *         null after the failure has been reported
+     */
+    private function plan(string $projectRoot, string $driver): ?array
+    {
+        $root = realpath($projectRoot);
+        if ($root === false) {
+            $this->fail('project root not found');
+
+            return null;
+        }
+
+        try {
+            $found = $this->discover($root, $driver);
+        } catch (\RuntimeException $e) {
+            $this->fail($e->getMessage());
+
+            return null;
+        }
+        if ($found === null) {
+            $this->fail(sprintf('driver "%s" has no schema dialect', $driver));
+
+            return null;
+        }
+
+        if ($found['files'] === []) {
+            $this->fail(sprintf(
+                'no schema found for driver "%s" (vendor/jardis*/<package>/resources/sql/%s.sql,'
+                . ' .jardis/.../Schema.<dialect>.sql)',
+                $driver,
+                $driver,
+            ));
+
+            return null;
+        }
+
+        return ['root' => $root] + $found;
     }
 
     /**
