@@ -136,7 +136,27 @@ refused; in the whole-database run foreign-dialect files are skipped. Notes:
 - PostgreSQL expects `DB_DATABASE` to exist already.
 - A second run is idempotent (`CREATE … IF NOT EXISTS`); a script that is not
   idempotent fails loudly with its file name. There is no migration and no
-  DROP behaviour.
+  DROP behaviour — `db-import` never deletes anything.
+
+### Datenbank zurücksetzen
+
+```sh
+make db-reset
+```
+
+**Deletes ALL DATA, without a confirmation prompt — the caller decides.** It drops
+every table and view of the project's own database (SQLite: the database file,
+MySQL/MariaDB: `DB_DATABASE`, PostgreSQL: the current schema; nothing outside it)
+and then runs exactly `make db-import` without `SCHEMA` (package SQL, then all BC
+schemas), so the result is the empty schema state. Foreign keys do not get in the
+way: SQLite `PRAGMA foreign_keys` and MySQL `FOREIGN_KEY_CHECKS` are switched off
+around the drops and restored to their previous value; PostgreSQL drops without
+`CASCADE` in one transaction (views first, then all tables in one statement) and rolls
+back if an object outside the current schema depends on them. Without a schema for the
+driver nothing is dropped. The line
+`dropped <n> table(s), <m> view(s)` precedes the import lines; the first failure
+exits with code 1 and a `db:reset: …` (or `db:import: …`) message. Underneath it is
+`bin/console db:reset` (no argument); via MCP: `run_make_target {target: "db-reset"}`.
 #### Database queue schema
 
 `MESSAGING_TRANSPORT=database` needs the event tables in place first — the
