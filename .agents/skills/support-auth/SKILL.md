@@ -1,6 +1,6 @@
 ---
 name: support-auth
-description: Session management, password hashing, RBAC, password and token authentication (subject + tenant), SQL token store, events.
+description: Session management, password hashing, rights check, password and token authentication (subject + tenant), SQL token store, events.
 user-invocable: false
 zone: post-active
 persona: C
@@ -22,8 +22,7 @@ SignedTokenAuthenticator signed access token (no store) → subject + subject id
 TokenAuthenticator    stored token credential (ApiKey/Verification/PasswordReset/issued) → verified session: subject + subject id + tenant + session reference (TenantAuthResult)
 DbTokenStore          TokenStoreInterface on DbConnectionInterface via jardissupport/dbquery (hash only)
 PasswordHasher        Argon2id/bcrypt via password_hash() builtins
-Guard                 RBAC permission check against immutable Policy
-HasRight              closure: right in a list of granted rights (Permission::matches), independent of Policy/roles
+HasRight              closure: right in a list of granted rights (Permission::matches)
 ```
 
 ## API / SIGNATURES
@@ -103,15 +102,6 @@ $hasher->verify(string $password, string $hash): bool
 $hasher->needsRehash(string $hash): bool
 ```
 
-### Guard
-```php
-new Guard(Policy $policy)
-
-$guard->check(SessionInterface $session, string $permission): bool
-$guard->authorize(SessionInterface $session, string $permission): void  // throws UnauthorizedException
-// metadata[SessionClaim::ROLE] accepts string or string[] — first match wins
-```
-
 ### HasRight
 ```php
 use JardisSupport\Auth\Handler\Authorization\HasRight;
@@ -166,8 +156,6 @@ $redeemer->redeem(string $plain, TokenType $expected): HashedTokenInterface   //
 | `TenantAuthResult` | readonly, implements `SessionAwareAuthResultInterface` + `RoleAwareAuthResultInterface` + `RightsAwareAuthResultInterface` — `::success($subject, $tenant, $sessionReference, $role, $rights = [])`, `getRole()`, `getRights()` |
 | `HashedToken` | readonly, implements `HashedTokenInterface` — SHA-256 hash, `revoked`, `withRevoked()` |
 | `Permission` | readonly — `::from("resource:action")`, `matches()`, wildcard support |
-| `Policy` | readonly — `::fromArray()` or `PolicyBuilder`, `isAllowed(role, permission)`, `getRoles()` |
-| `PolicyBuilder` | mutable — `role()->allow()->deny()->includes()->build()` |
 
 ## EVENTS (`src/Data/Event/`)
 Plain readonly data objects — no interface, no dispatcher dependency. Caller dispatches.
@@ -188,14 +176,12 @@ Plain readonly data objects — no interface, no dispatcher dependency. Caller d
 | `InvalidCredentialException` | extends `AuthenticationException` |
 | `TokenExpiredException` | extends `AuthenticationException` |
 | `TokenRevokedException` | extends `AuthenticationException` |
-| `UnauthorizedException` | extends `RuntimeException`, NOT `AuthenticationException` |
 
 ## CONTRACTS (`jardissupport/contracts`)
 | Interface | Methods |
 |-----------|---------|
 | `TokenStoreInterface` | `store`, `find`, `revoke`, `revokeAllForSubject`, `deleteExpired` — `DbTokenStore` ships; or implement your own |
 | `PasswordHasherInterface` | `hash`, `verify`, `needsRehash` |
-| `GuardInterface` | `check`, `authorize` |
 | `AuthenticatorInterface` | `authenticate(CredentialInterface): AuthResultInterface` |
 | `SessionInterface` | `getSubject`, `getTokenHash`, `getExpiresAt` (`?DateTimeImmutable`, null = no expiry), `isExpired`, `getMetadata` |
 | `HashedTokenInterface` | `getHash`, `getType`, `getSubject`, `getClaims`, `getExpiresAt`, `getCreatedAt`, `isExpired`, `isRevoked` |
@@ -215,19 +201,5 @@ Plain readonly data objects — no interface, no dispatcher dependency. Caller d
 | `TokenType` (enum) | `Access`, `Refresh`, `ApiKey`, `Verification`, `PasswordReset`, `Invitation` |
 | `CredentialType` (enum) | `Password`, `ApiKey`, `Token` |
 
-## USAGE — RBAC
-```php
-$policy = Policy::create()
-    ->role('admin')->allow('*')
-    ->role('editor')->allow('article:read', 'article:write')->deny('article:delete')
-    ->role('moderator')->includes('editor')->allow('comment:delete')
-    ->build();
-
-$guard = new Guard($policy);
-$guard->check($session, 'article:write');     // bool
-$guard->authorize($session, 'article:write'); // void or UnauthorizedException
-```
-
 ## RULES
 - Events created and returned, never dispatched internally. Public error messages stay generic; details only in Events.
-- `deny` overrides `allow`; role inheritance via `includes()`.

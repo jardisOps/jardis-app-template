@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "4f775aad37d1c0754024cb81657d5966",
+    "content-hash": "78d3b238dfe218b404f7b4d3ee9d6db1",
     "packages": [
         {
             "name": "jardisadapter/dbconnection",
@@ -392,16 +392,16 @@
         },
         {
             "name": "jardissupport/auth",
-            "version": "v1.8.0",
+            "version": "v2.0.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/jardisSupport/auth.git",
-                "reference": "9e75e8d8ec07bad66153000dbf29aebaf900d72a"
+                "reference": "3af1db52331b915f4a462305115f999e447c2be9"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/jardisSupport/auth/zipball/9e75e8d8ec07bad66153000dbf29aebaf900d72a",
-                "reference": "9e75e8d8ec07bad66153000dbf29aebaf900d72a",
+                "url": "https://api.github.com/repos/jardisSupport/auth/zipball/3af1db52331b915f4a462305115f999e447c2be9",
+                "reference": "3af1db52331b915f4a462305115f999e447c2be9",
                 "shasum": ""
             },
             "require": {
@@ -432,7 +432,7 @@
                     "email": "jardisDev@headgent.com"
                 }
             ],
-            "description": "Signed access tokens and opaque refresh tokens with SQL token store and token authentication (subject + tenant), session handling, password hashing, and role-based access control for PHP DDD applications — framework-free, no JWT, no third-party runtime dependencies beyond PHP built-ins and the Jardis contracts and dbquery packages",
+            "description": "Signed access tokens and opaque refresh tokens with SQL token store and token authentication (subject + tenant), session handling, password hashing, and rights checks against token claims for PHP DDD applications — framework-free, no JWT, no third-party runtime dependencies beyond PHP built-ins and the Jardis contracts and dbquery packages",
             "homepage": "https://jardis.io",
             "keywords": [
                 "Authentication",
@@ -445,7 +445,6 @@
                 "jardis",
                 "password-hashing",
                 "php",
-                "rbac",
                 "security",
                 "session",
                 "token"
@@ -454,9 +453,9 @@
                 "docs": "https://docs.jardis.io/en/support/auth",
                 "email": "jardisDev@headgent.com",
                 "issues": "https://github.com/jardisSupport/auth/issues",
-                "source": "https://github.com/jardisSupport/auth/tree/v1.8.0"
+                "source": "https://github.com/jardisSupport/auth/tree/v2.0.0"
             },
-            "time": "2026-10-21T19:47:33+00:00"
+            "time": "2026-11-16T19:23:52+00:00"
         },
         {
             "name": "jardissupport/classversion",
