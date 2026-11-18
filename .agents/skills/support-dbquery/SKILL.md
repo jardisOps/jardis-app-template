@@ -136,6 +136,11 @@ use JardisSupport\DbQuery\Data\Expression;
 ->where('price')->greater(Expression::raw('cost * 1.19'))
 ->set('updated_at', Expression::raw('NOW()'))
 ->where(Expression::raw('YEAR(created)'))->equals(2024)
+
+// Typed factories (no raw text)
+->where(Expression::integer(1))->equals($sub)               // 1 = (subquery with LIMIT 1)
+->where('o.user_id')->equals(Expression::column('u.id'))    // column, dialect-quoted, also right of the operator
+// column() takes only `ident` or `alias.ident`; anything else throws InvalidArgumentException
 ```
 
 ## INSERT

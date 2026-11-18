@@ -103,7 +103,8 @@ imports, in this order and each in sorted order,
 1. the SQL of every installed Jardis package — the file named after the driver
    in `vendor/jardis*/<package>/resources/sql/` (`mysql.sql`, `pgsql.sql`,
    `sqlite.sql`; read from `vendor`, never copied), e.g. `auth_tokens` of
-   `jardissupport/auth`;
+   `jardissupport/auth` and `acl_entries` (the per-record access entries) of
+   `jardissupport/acl`;
 2. every BC schema `.jardis/<Domain>/<Subdomain>/<BC>/Schema.<dialect>.sql` of
    that driver (written by the Builder's `build`; one file per BC directory).
 
@@ -307,6 +308,14 @@ and the generated front door lean on: `jardisadapter/dbconnection` (the
 `DbConnectionInterface` that `DbTokenStore` needs), `jardisadapter/http` and
 `jardisadapter/filesystem`. They stay inert until configured — the kernel
 still degrades an unconfigured adapter to `null`.
+
+`jardissupport/acl` (the per-record access entries that a Builder-generated
+record protection reads and writes; table `acl_entries`, created by
+`make db-import` from the package SQL) is preinstalled the same way. Until it
+is registered at Packagist it comes from the public GitHub repository
+`https://github.com/jardisSupport/acl` through the `repositories` entry
+(`type: vcs`) of this template's `composer.json`; that entry is removed once
+the package resolves from Packagist.
 
 The other `jardisadapter/*` packages (`cache`, `eventdispatcher`, `logger`,
 `mailer`, `messaging`) are optional and NOT preinstalled, matching "every
