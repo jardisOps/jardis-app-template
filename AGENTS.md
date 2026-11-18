@@ -106,6 +106,14 @@ Immutable infrastructure holder (the DomainKernel) for Jardis-generated domains,
 - **How:** load skill `core-kernel` before touching the API — it carries the usage essentials and pitfalls.
   Full reference: https://docs.jardis.io/en/core/kernel
 
+<!-- source: jardissupport/acl -->
+# jardissupport/acl
+
+Per-record access entries (information kind, record, group, level) on a SQL table — grant, revoke, level lookup, three-valued access check, group reassignment, dbquery filters that restrict a record query to visible records, and backfill of existing records. No HTTP layer, no group or user model, no framework coupling, no transaction of its own. Three Orchestrators following the Closure-Orchestrator Pattern: `AclStore`, `AclFilter`, `AclBackfill`.
+
+- **How:** load skill `support-acl` before touching the API — it carries the usage essentials and pitfalls.
+  Full reference: https://docs.jardis.io/en/support/acl
+
 <!-- source: jardissupport/auth -->
 # jardissupport/auth
 

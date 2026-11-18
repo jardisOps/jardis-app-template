@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "78d3b238dfe218b404f7b4d3ee9d6db1",
+    "content-hash": "f148be5a1e740e48e1e937ce9992d21c",
     "packages": [
         {
             "name": "jardisadapter/dbconnection",
@@ -206,21 +206,21 @@
         },
         {
             "name": "jardiscore/app",
-            "version": "v3.3.1",
+            "version": "v3.5.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/jardisCore/app.git",
-                "reference": "4eba2ea61672b3d5ae18235f94f51830f3963f00"
+                "reference": "1d2454336dbc694b44458b3bff1ca7ba42bbc2bf"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/jardisCore/app/zipball/4eba2ea61672b3d5ae18235f94f51830f3963f00",
-                "reference": "4eba2ea61672b3d5ae18235f94f51830f3963f00",
+                "url": "https://api.github.com/repos/jardisCore/app/zipball/1d2454336dbc694b44458b3bff1ca7ba42bbc2bf",
+                "reference": "1d2454336dbc694b44458b3bff1ca7ba42bbc2bf",
                 "shasum": ""
             },
             "require": {
                 "jardiscore/kernel": "^2.0",
-                "jardissupport/contracts": "^2.17",
+                "jardissupport/contracts": "^2.22",
                 "jardissupport/factory": "^1.0",
                 "jardissupport/response": "^3.0 || ^4.0",
                 "nikic/fast-route": "^1.3",
@@ -234,7 +234,7 @@
             },
             "require-dev": {
                 "ext-pdo": "*",
-                "jardissupport/auth": "^1.8",
+                "jardissupport/auth": "^2.0",
                 "jardissupport/data": "^1.0",
                 "jardissupport/dbquery": "^1.0",
                 "jardissupport/repository": "^1.0",
@@ -277,22 +277,22 @@
                 "docs": "https://docs.jardis.io/en/core/app",
                 "email": "jardisDev@headgent.com",
                 "issues": "https://github.com/jardisCore/app/issues",
-                "source": "https://github.com/jardisCore/app/tree/v3.3.1"
+                "source": "https://github.com/jardisCore/app/tree/v3.5.0"
             },
-            "time": "2026-11-03T19:08:23+00:00"
+            "time": "2026-11-18T13:59:39+00:00"
         },
         {
             "name": "jardiscore/kernel",
-            "version": "v2.9.0",
+            "version": "v2.9.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/jardisCore/kernel.git",
-                "reference": "01434ad6da05a186cd2586f010d4a6446b75ad00"
+                "reference": "05c1849aab4f1e414f644df6fae34204ac7d364a"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/jardisCore/kernel/zipball/01434ad6da05a186cd2586f010d4a6446b75ad00",
-                "reference": "01434ad6da05a186cd2586f010d4a6446b75ad00",
+                "url": "https://api.github.com/repos/jardisCore/kernel/zipball/05c1849aab4f1e414f644df6fae34204ac7d364a",
+                "reference": "05c1849aab4f1e414f644df6fae34204ac7d364a",
                 "shasum": ""
             },
             "require": {
@@ -330,7 +330,7 @@
                 "jardisadapter/logger": "^1.1",
                 "jardisadapter/mailer": "^1.1",
                 "jardisadapter/messaging": "^1.1.1",
-                "jardissupport/auth": "^1.7",
+                "jardissupport/auth": "^2.0",
                 "jardissupport/secret": "^1.1",
                 "phpstan/phpstan": "2.1.56",
                 "phpunit/phpunit": "11.5.55",
@@ -348,7 +348,7 @@
                 "jardisadapter/logger": "For log handlers (File, Console, Redis, Database, etc.) via the Bootstrap-Packer; requires ^1.1 (lazy Redis provider)",
                 "jardisadapter/mailer": "For SMTP mailer with STARTTLS, AUTH, HTML/text, attachments via the Bootstrap-Packer; requires ^1.1 (MailServiceInterface, feeds mail())",
                 "jardisadapter/messaging": "For Kafka/RabbitMQ/Redis/Database messaging via the Bootstrap-Packer; requires ^1.1.1 (fromDbConnection provider)",
-                "jardissupport/auth": "For the auth() accessor (signed access tokens, SQL token store) via the Bootstrap-Packer; needs AUTH_TOKEN_KEY and jardisadapter/dbconnection ^1.4; requires ^1.7 (Session fulfils contracts >= 2.16)",
+                "jardissupport/auth": "For the auth() accessor (signed access tokens, SQL token store) via the Bootstrap-Packer; needs AUTH_TOKEN_KEY and jardisadapter/dbconnection ^1.4; works with ^1.7 and ^2.0 (Session fulfils contracts >= 2.16)",
                 "jardissupport/secret": "For decrypting secret(...) ENV values via the Bootstrap-Packer; the key comes from the APP_SECRET_KEY process environment variable or from <projectRoot>/support/secret.key"
             },
             "type": "library",
@@ -386,22 +386,89 @@
                 "docs": "https://docs.jardis.io/en/core/kernel",
                 "email": "jardisDev@headgent.com",
                 "issues": "https://github.com/jardisCore/kernel/issues",
-                "source": "https://github.com/jardisCore/kernel/tree/v2.9.0"
+                "source": "https://github.com/jardisCore/kernel/tree/v2.9.2"
             },
-            "time": "2026-11-13T16:29:24+00:00"
+            "time": "2026-11-16T20:22:23+00:00"
         },
         {
-            "name": "jardissupport/auth",
-            "version": "v2.0.0",
+            "name": "jardissupport/acl",
+            "version": "v0.2.0",
             "source": {
                 "type": "git",
-                "url": "https://github.com/jardisSupport/auth.git",
-                "reference": "3af1db52331b915f4a462305115f999e447c2be9"
+                "url": "https://github.com/jardisSupport/acl.git",
+                "reference": "eccb9a5ac80a5c65567aa26e598c751366c34f9b"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/jardisSupport/auth/zipball/3af1db52331b915f4a462305115f999e447c2be9",
-                "reference": "3af1db52331b915f4a462305115f999e447c2be9",
+                "url": "https://api.github.com/repos/jardisSupport/acl/zipball/eccb9a5ac80a5c65567aa26e598c751366c34f9b",
+                "reference": "eccb9a5ac80a5c65567aa26e598c751366c34f9b",
+                "shasum": ""
+            },
+            "require": {
+                "jardissupport/contracts": "^2.21",
+                "jardissupport/dbquery": "^1.3.1",
+                "jardissupport/repository": "^1.10",
+                "php": ">=8.3"
+            },
+            "require-dev": {
+                "jardisadapter/dbconnection": "^1.2",
+                "phpstan/phpstan": "2.2.3",
+                "phpunit/phpunit": "10.5.63",
+                "squizlabs/php_codesniffer": "3.13.6"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "JardisSupport\\Acl\\": "src/"
+                }
+            },
+            "autoload-dev": {
+                "psr-4": {
+                    "JardisSupport\\Acl\\Tests\\": "tests/"
+                }
+            },
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Jardis Development",
+                    "email": "jardisDev@headgent.com"
+                }
+            ],
+            "description": "Per-record access entries (information kind, record, group, level) on a SQL table for PHP DDD applications — grant, revoke, level lookup and group reassignment built from jardissupport/dbquery and jardissupport/repository, framework-free, no transaction of its own",
+            "homepage": "https://jardis.io",
+            "keywords": [
+                "access-control",
+                "acl",
+                "authorization",
+                "domain-driven-design",
+                "headgent",
+                "hexagonal-architecture",
+                "jardis",
+                "permissions",
+                "php"
+            ],
+            "support": {
+                "issues": "https://github.com/jardisSupport/acl/issues",
+                "docs": "https://docs.jardis.io/en/support/acl",
+                "email": "jardisDev@headgent.com",
+                "source": "https://github.com/jardisSupport/acl/tree/v0.2.0"
+            },
+            "time": "2026-11-18T07:55:49+00:00"
+        },
+        {
+            "name": "jardissupport/auth",
+            "version": "v2.0.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/jardisSupport/auth.git",
+                "reference": "f31320f41945ce6e69f817d73b9c050e182a4748"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/jardisSupport/auth/zipball/f31320f41945ce6e69f817d73b9c050e182a4748",
+                "reference": "f31320f41945ce6e69f817d73b9c050e182a4748",
                 "shasum": ""
             },
             "require": {
@@ -453,9 +520,9 @@
                 "docs": "https://docs.jardis.io/en/support/auth",
                 "email": "jardisDev@headgent.com",
                 "issues": "https://github.com/jardisSupport/auth/issues",
-                "source": "https://github.com/jardisSupport/auth/tree/v2.0.0"
+                "source": "https://github.com/jardisSupport/auth/tree/v2.0.1"
             },
-            "time": "2026-11-16T19:23:52+00:00"
+            "time": "2026-11-16T20:21:40+00:00"
         },
         {
             "name": "jardissupport/classversion",
@@ -521,16 +588,16 @@
         },
         {
             "name": "jardissupport/contracts",
-            "version": "v2.19.0",
+            "version": "v2.22.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/jardisSupport/contracts.git",
-                "reference": "619fe9105b6644034d36280b79c8200a9de4dfe7"
+                "reference": "3c145d5cef8e159894a46483c37f7d2f284dda42"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/jardisSupport/contracts/zipball/619fe9105b6644034d36280b79c8200a9de4dfe7",
-                "reference": "619fe9105b6644034d36280b79c8200a9de4dfe7",
+                "url": "https://api.github.com/repos/jardisSupport/contracts/zipball/3c145d5cef8e159894a46483c37f7d2f284dda42",
+                "reference": "3c145d5cef8e159894a46483c37f7d2f284dda42",
                 "shasum": ""
             },
             "require": {
@@ -585,9 +652,9 @@
                 "docs": "https://docs.jardis.io/en/support/contracts",
                 "email": "jardisDev@headgent.com",
                 "issues": "https://github.com/jardisSupport/contracts/issues",
-                "source": "https://github.com/jardisSupport/contracts/tree/v2.19.0"
+                "source": "https://github.com/jardisSupport/contracts/tree/v2.22.0"
             },
-            "time": "2026-11-13T16:20:46+00:00"
+            "time": "2026-11-18T13:54:15+00:00"
         },
         {
             "name": "jardissupport/data",
@@ -658,16 +725,16 @@
         },
         {
             "name": "jardissupport/dbquery",
-            "version": "v1.2.0",
+            "version": "v1.3.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/jardisSupport/dbquery.git",
-                "reference": "dde0984fc081877f08fc0f7b525acafea3f3a0fd"
+                "reference": "f4c8bf1083ffa712ded2ebceca48f4a2946e84cb"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/jardisSupport/dbquery/zipball/dde0984fc081877f08fc0f7b525acafea3f3a0fd",
-                "reference": "dde0984fc081877f08fc0f7b525acafea3f3a0fd",
+                "url": "https://api.github.com/repos/jardisSupport/dbquery/zipball/f4c8bf1083ffa712ded2ebceca48f4a2946e84cb",
+                "reference": "f4c8bf1083ffa712ded2ebceca48f4a2946e84cb",
                 "shasum": ""
             },
             "require": {
@@ -718,9 +785,9 @@
                 "docs": "https://docs.jardis.io/en/support/dbquery",
                 "email": "jardisDev@headgent.com",
                 "issues": "https://github.com/jardisSupport/dbquery/issues",
-                "source": "https://github.com/jardisSupport/dbquery/tree/v1.2.0"
+                "source": "https://github.com/jardisSupport/dbquery/tree/v1.3.1"
             },
-            "time": "2026-10-20T07:34:29+00:00"
+            "time": "2026-11-17T23:03:50+00:00"
         },
         {
             "name": "jardissupport/dotenv",
@@ -913,16 +980,16 @@
         },
         {
             "name": "jardissupport/response",
-            "version": "v4.3.0",
+            "version": "v4.4.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/jardisSupport/response.git",
-                "reference": "8aeabfd70bebafa2a31c975a4f15cd5efc73b3d6"
+                "reference": "95aea3ea3a8c6ef74d6584593571048222da4d7b"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/jardisSupport/response/zipball/8aeabfd70bebafa2a31c975a4f15cd5efc73b3d6",
-                "reference": "8aeabfd70bebafa2a31c975a4f15cd5efc73b3d6",
+                "url": "https://api.github.com/repos/jardisSupport/response/zipball/95aea3ea3a8c6ef74d6584593571048222da4d7b",
+                "reference": "95aea3ea3a8c6ef74d6584593571048222da4d7b",
                 "shasum": ""
             },
             "require": {
@@ -971,9 +1038,9 @@
                 "docs": "https://docs.jardis.io/en/support/response",
                 "email": "jardisDev@headgent.com",
                 "issues": "https://github.com/jardisSupport/response/issues",
-                "source": "https://github.com/jardisSupport/response/tree/v4.3.0"
+                "source": "https://github.com/jardisSupport/response/tree/v4.4.0"
             },
-            "time": "2026-11-13T16:31:31+00:00"
+            "time": "2026-11-17T22:18:07+00:00"
         },
         {
             "name": "jardissupport/scheduling",
@@ -1950,16 +2017,16 @@
     "packages-dev": [
         {
             "name": "jardis/dev-skills",
-            "version": "v1.50.1",
+            "version": "v1.50.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/jardisTools/dev-skills.git",
-                "reference": "582d93d862952fd70dddeac38df3a6edce29ff79"
+                "reference": "0b6a80493772a4d217931e8b5b8a08031bb5cf3c"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/jardisTools/dev-skills/zipball/582d93d862952fd70dddeac38df3a6edce29ff79",
-                "reference": "582d93d862952fd70dddeac38df3a6edce29ff79",
+                "url": "https://api.github.com/repos/jardisTools/dev-skills/zipball/0b6a80493772a4d217931e8b5b8a08031bb5cf3c",
+                "reference": "0b6a80493772a4d217931e8b5b8a08031bb5cf3c",
                 "shasum": ""
             },
             "require": {
@@ -2016,9 +2083,9 @@
                 "docs": "https://docs.jardis.io/en/skills",
                 "email": "jardisDev@headgent.com",
                 "issues": "https://github.com/jardisTools/dev-skills/issues",
-                "source": "https://github.com/jardisTools/dev-skills/tree/v1.50.1"
+                "source": "https://github.com/jardisTools/dev-skills/tree/v1.50.2"
             },
-            "time": "2026-11-14T17:06:57+00:00"
+            "time": "2026-11-16T20:20:42+00:00"
         },
         {
             "name": "myclabs/deep-copy",
@@ -2257,11 +2324,11 @@
         },
         {
             "name": "phpstan/phpstan",
-            "version": "2.3.5",
+            "version": "2.3.6",
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phpstan/phpstan/zipball/645a1bd6bead15fc1b8474137467961d0fa30a79",
-                "reference": "645a1bd6bead15fc1b8474137467961d0fa30a79",
+                "url": "https://api.github.com/repos/phpstan/phpstan/zipball/00cedebb76cc82c1592414fa4f616cefdccda16f",
+                "reference": "00cedebb76cc82c1592414fa4f616cefdccda16f",
                 "shasum": ""
             },
             "require": {
@@ -2317,7 +2384,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-11-03T12:14:22+00:00"
+            "time": "2026-11-15T19:58:26+00:00"
         },
         {
             "name": "phpunit/php-code-coverage",

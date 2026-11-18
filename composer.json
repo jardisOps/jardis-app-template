@@ -3,6 +3,12 @@
     "description": "Docker-based project template for Jardis domains: nginx + php-fpm, generated code in src/",
     "type": "project",
     "license": "proprietary",
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "https://github.com/jardisSupport/acl"
+        }
+    ],
     "require": {
         "php": ">=8.3",
         "ext-bcmath": "*",
@@ -10,17 +16,18 @@
         "jardisadapter/dbconnection": "^1.4.1",
         "jardisadapter/filesystem": "^1.0",
         "jardisadapter/http": "^1.1",
-        "jardiscore/app": "^3.3",
+        "jardiscore/app": "^3.5",
         "jardiscore/kernel": "^2.9",
+        "jardissupport/acl": "^0.2",
         "jardissupport/auth": "^2.0",
         "jardissupport/classversion": "^1.0",
-        "jardissupport/contracts": "^2.19",
+        "jardissupport/contracts": "^2.22",
         "jardissupport/data": "^1.6",
-        "jardissupport/dbquery": "^1.2",
+        "jardissupport/dbquery": "^1.3.1",
         "jardissupport/dotenv": "^1.0",
         "jardissupport/factory": "^1.0",
         "jardissupport/repository": "^1.9.1",
-        "jardissupport/response": "^4.3",
+        "jardissupport/response": "^4.4",
         "jardissupport/scheduling": "^1.2",
         "jardissupport/secret": "^1.0",
         "jardissupport/validation": "^1.8",
