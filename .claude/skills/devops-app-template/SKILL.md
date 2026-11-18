@@ -73,9 +73,12 @@ project root.
 ## Sessions, middleware and upload limits
 
 Preinstalled: `jardiscore/app` >= 1.5 (`RequireSession`, `MiddlewareFactory`),
-`jardissupport/contracts` >= 2.9, `jardissupport/auth` >= 1.4 and the adapters
-`jardisadapter/dbconnection` (what `DbTokenStore` needs), `http`, `filesystem`
-(template v1.24.0). The app-wide pipeline is **not** hand-written in the
+`jardissupport/contracts` >= 2.9, `jardissupport/auth` >= 1.4,
+`jardissupport/acl` (per-record access entries, table `acl_entries`; until its
+Packagist registration it comes from GitHub through the `repositories` entry
+of `composer.json`) and the adapters `jardisadapter/dbconnection` (what
+`DbTokenStore` needs), `http`, `filesystem` (template v1.24.0). The app-wide
+pipeline is **not** hand-written in the
 template: it is the Builder project setting `middleware` (never set =
 `["session"]`, `[]` = none; project classes by FQCN with
 `__construct(DomainKernelInterface $kernel)` or no constructor). The Builder
@@ -99,7 +102,9 @@ and the skills `core-app` and `design-headless-mcp` for the setting.
   the mount prefix.
 
 Create the token table once: `make db-import
-SCHEMA=vendor/jardissupport/auth/resources/sql/<mysql|pgsql|sqlite>.sql`.
+SCHEMA=vendor/jardissupport/auth/resources/sql/<mysql|pgsql|sqlite>.sql`
+(plain `make db-import` creates `auth_tokens` and `acl_entries` — the package
+SQL of every installed Jardis package — together with the BC schemas).
 Handlers read `RequestAttribute::SUBJECT` / `::TENANT` (tenant absent, never
 null, when the token has none) and `::SUBJECT_ID` / `::SESSION`
 (`$sessionManager->invalidateByReference($request->getAttribute(
