@@ -315,7 +315,10 @@ record protection reads and writes; table `acl_entries`, created by
 is registered at Packagist it comes from the public GitHub repository
 `https://github.com/jardisSupport/acl` through the `repositories` entry
 (`type: vcs`) of this template's `composer.json`; that entry is removed once
-the package resolves from Packagist.
+the package resolves from Packagist. An existing `acl_entries` does not switch to
+the index of a newer `acl` by itself (`make db-import` only creates what is
+missing); how to replace the old index is described under "The Table" in the
+README of `jardissupport/acl`.
 
 The other `jardisadapter/*` packages (`cache`, `eventdispatcher`, `logger`,
 `mailer`, `messaging`) are optional and NOT preinstalled, matching "every

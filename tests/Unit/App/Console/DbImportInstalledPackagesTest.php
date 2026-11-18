@@ -55,5 +55,9 @@ final class DbImportInstalledPackagesTest extends TestCase
         $tables = $statement->fetchAll(PDO::FETCH_COLUMN);
         self::assertContains('acl_entries', $tables);
         self::assertContains('auth_tokens', $tables);
+
+        $indexes = $pdo->query("SELECT name FROM sqlite_master WHERE type='index' AND tbl_name='acl_entries'");
+        self::assertNotFalse($indexes);
+        self::assertContains('idx_acl_entries_group_record', $indexes->fetchAll(PDO::FETCH_COLUMN));
     }
 }
