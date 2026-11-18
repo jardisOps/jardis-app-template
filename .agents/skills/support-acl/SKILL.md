@@ -30,7 +30,7 @@ Three dialect files, all `CREATE ... IF NOT EXISTS`; default table name `acl_ent
 | `level` | `SMALLINT NOT NULL` | `INTEGER NOT NULL` | 1 = view, 2 = edit, 3 = all |
 
 - **Primary key:** `(kind, record_id, group_id)` — one entry per group and record.
-- **Index `idx_acl_entries_group`:** `(kind, group_id, level, record_id)` — serves `AclFilter` and `levelOf`/`check`.
+- **Index `idx_acl_entries_group_record`:** `(kind, group_id, record_id, level)` — serves `AclFilter` and `levelOf`/`check`.
 - **Index `idx_acl_entries_group_id`:** `(group_id)` — serves `hasEntriesOfGroup` and `reassignGroup` (search by group alone).
 - MySQL: `ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`, indexes inline as `KEY`; PostgreSQL and SQLite: `CREATE INDEX IF NOT EXISTS` after the table.
 - The package does not run the DDL. An existing table gets a new index only when the application adds it (`CREATE TABLE IF NOT EXISTS` leaves an existing table unchanged).
@@ -70,13 +70,12 @@ public const int COUNT_CAP = 10000;
 
 new AclFilter(string $table = 'acl_entries')
 
-public function rowCondition(int $kind, array $groups, AccessLevel $min, string $keyColumn): DbQueryBuilderInterface
-public function recordIds(int $kind, array $groups, AccessLevel $min): DbQueryBuilderInterface
+public function existsQuery(int $kind, array $groups, AccessLevel $min, string $keyColumn): DbQueryBuilderInterface
 ```
-- `rowCondition`: single-value subquery (`SELECT 1 ... LIMIT 1`) bound to the key column of the outer row; use as `->where(Expression::integer(1))->equals($filter->rowCondition(...))`. Name the key column with the outer alias (`d.id`) when its bare name also exists in the entry table (`kind`, `record_id`, `group_id`, `level`).
-- `recordIds`: key set (`SELECT DISTINCT record_id`) for `->where('d.id')->in($filter->recordIds(...))`; an empty group list yields `1=0` (sees nothing).
-- `COUNT_CAP` (since 0.2.0): fixed limit of the capped total of a filtered list — count as `where(key)->in(recordIds(...))`, sorted like the page, `limit(AclFilter::COUNT_CAP + 1)`, `COUNT(*)` from outside; above the cap the answer reports `COUNT_CAP` with a capped marker (`jardissupport/response` `ReadResult::ofCappedList`). Never hard-code the number.
-- Both give the same set as `AclStore::levelOf`. Needs `jardissupport/dbquery` ≥ 1.3.1 (a subquery value is inlined in every condition, so the filter may stand behind other conditions).
+- `existsQuery`: subquery `SELECT 1 FROM <table> WHERE kind = ? AND record_id = <outer key> AND group_id IN (...) AND level >= ?` (no limit, no distinct; the key column is compared via `Expression::column`, not bound); use as `->exists($filter->existsQuery(...))`. Name the key column with the outer alias (`d.id`) when its bare name also exists in the entry table (`kind`, `record_id`, `group_id`, `level`). An empty group list yields `1=0` (sees nothing).
+- Existing table: drop `idx_acl_entries_group` and create `idx_acl_entries_group_record` `(kind, group_id, record_id, level)` (see README "Existing tables are not upgraded").
+- `COUNT_CAP` (since 0.2.0): fixed limit of the capped total of a filtered list — count inside as `SELECT 1` with the conditions of the page (incl. `exists(existsQuery(...))`), no column list, no sorting, `limit(AclFilter::COUNT_CAP + 1)`, `COUNT(*)` outside; above the cap the answer reports `COUNT_CAP` with a capped marker (`jardissupport/response` `ReadResult::ofCappedList`). Never hard-code the number.
+- The filter gives the same set as `AclStore::levelOf`. Needs `jardissupport/dbquery` ≥ 1.3.1 (a subquery value is inlined in every condition, so the filter may stand behind other conditions).
 
 ### AclBackfill
 `final class AclBackfill`
@@ -133,7 +132,7 @@ match ($store->check(7, 1001, [9], AccessLevel::Edit)) {
 
 $filter = new AclFilter();
 $rows = (new DbQuery())->select('d.*')->from('documents', 'd')
-    ->where(Expression::integer(1))->equals($filter->rowCondition(7, [9], AccessLevel::View, 'd.id'));
+    ->exists($filter->existsQuery(7, [9], AccessLevel::View, 'd.id'));
 ```
 
 ## RULES

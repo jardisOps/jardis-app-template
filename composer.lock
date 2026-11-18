@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "f148be5a1e740e48e1e937ce9992d21c",
+    "content-hash": "37fd26e434e031d7c4d0e9eaf59022cb",
     "packages": [
         {
             "name": "jardisadapter/dbconnection",
@@ -392,16 +392,16 @@
         },
         {
             "name": "jardissupport/acl",
-            "version": "v0.2.0",
+            "version": "v0.3.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/jardisSupport/acl.git",
-                "reference": "eccb9a5ac80a5c65567aa26e598c751366c34f9b"
+                "reference": "d1c4a65208ec04bd72ec7536e65fbbc42674c0dc"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/jardisSupport/acl/zipball/eccb9a5ac80a5c65567aa26e598c751366c34f9b",
-                "reference": "eccb9a5ac80a5c65567aa26e598c751366c34f9b",
+                "url": "https://api.github.com/repos/jardisSupport/acl/zipball/d1c4a65208ec04bd72ec7536e65fbbc42674c0dc",
+                "reference": "d1c4a65208ec04bd72ec7536e65fbbc42674c0dc",
                 "shasum": ""
             },
             "require": {
@@ -453,9 +453,9 @@
                 "issues": "https://github.com/jardisSupport/acl/issues",
                 "docs": "https://docs.jardis.io/en/support/acl",
                 "email": "jardisDev@headgent.com",
-                "source": "https://github.com/jardisSupport/acl/tree/v0.2.0"
+                "source": "https://github.com/jardisSupport/acl/tree/v0.3.0"
             },
-            "time": "2026-11-18T07:55:49+00:00"
+            "time": "2026-11-18T21:04:16+00:00"
         },
         {
             "name": "jardissupport/auth",
