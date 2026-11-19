@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "ecbdfc85d40998cfc18cbb1ce60467f4",
+    "content-hash": "b90ec2aad84301a5c170a5ff02f98448",
     "packages": [
         {
             "name": "jardisadapter/dbconnection",
@@ -422,11 +422,7 @@
                     "JardisSupport\\Acl\\": "src/"
                 }
             },
-            "autoload-dev": {
-                "psr-4": {
-                    "JardisSupport\\Acl\\Tests\\": "tests/"
-                }
-            },
+            "notification-url": "https://packagist.org/downloads/",
             "license": [
                 "MIT"
             ],
@@ -439,20 +435,20 @@
             "description": "Per-record access entries (information kind, record, group, level) on a SQL table for PHP DDD applications — grant, revoke, level lookup and group reassignment built from jardissupport/dbquery and jardissupport/repository, framework-free, no transaction of its own",
             "homepage": "https://jardis.io",
             "keywords": [
+                "Headgent",
                 "access-control",
                 "acl",
                 "authorization",
                 "domain-driven-design",
-                "headgent",
                 "hexagonal-architecture",
                 "jardis",
                 "permissions",
                 "php"
             ],
             "support": {
-                "issues": "https://github.com/jardisSupport/acl/issues",
                 "docs": "https://docs.jardis.io/en/support/acl",
                 "email": "jardisDev@headgent.com",
+                "issues": "https://github.com/jardisSupport/acl/issues",
                 "source": "https://github.com/jardisSupport/acl/tree/v1.0.0"
             },
             "time": "2026-11-19T19:35:31+00:00"
