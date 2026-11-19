@@ -3,12 +3,6 @@
     "description": "Docker-based project template for Jardis domains: nginx + php-fpm, generated code in src/",
     "type": "project",
     "license": "proprietary",
-    "repositories": [
-        {
-            "type": "vcs",
-            "url": "https://github.com/jardisSupport/acl"
-        }
-    ],
     "require": {
         "php": ">=8.3",
         "ext-bcmath": "*",
