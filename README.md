@@ -311,11 +311,8 @@ still degrades an unconfigured adapter to `null`.
 
 `jardissupport/acl` (the per-record access entries that a Builder-generated
 record protection reads and writes; table `acl_entries`, created by
-`make db-import` from the package SQL) is preinstalled the same way. Until it
-is registered at Packagist it comes from the public GitHub repository
-`https://github.com/jardisSupport/acl` through the `repositories` entry
-(`type: vcs`) of this template's `composer.json`; that entry is removed once
-the package resolves from Packagist. An existing `acl_entries` does not switch to
+`make db-import` from the package SQL) is preinstalled the same way and comes
+from Packagist like every other package. An existing `acl_entries` does not switch to
 the index of a newer `acl` by itself (`make db-import` only creates what is
 missing); how to replace the old index is described under "The Table" in the
 README of `jardissupport/acl`.

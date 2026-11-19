@@ -74,9 +74,7 @@ project root.
 
 Preinstalled: `jardiscore/app` >= 1.5 (`RequireSession`, `MiddlewareFactory`),
 `jardissupport/contracts` >= 2.9, `jardissupport/auth` >= 1.4,
-`jardissupport/acl` (per-record access entries, table `acl_entries`; until its
-Packagist registration it comes from GitHub through the `repositories` entry
-of `composer.json`) and the adapters `jardisadapter/dbconnection` (what
+`jardissupport/acl` (per-record access entries, table `acl_entries`) and the adapters `jardisadapter/dbconnection` (what
 `DbTokenStore` needs), `http`, `filesystem` (template v1.24.0). The app-wide
 pipeline is **not** hand-written in the
 template: it is the Builder project setting `middleware` (never set =
