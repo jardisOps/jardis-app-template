@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "b90ec2aad84301a5c170a5ff02f98448",
+    "content-hash": "c4177352e9ac8a393b02bf2b88567d89",
     "packages": [
         {
             "name": "jardisadapter/dbconnection",
@@ -721,16 +721,16 @@
         },
         {
             "name": "jardissupport/dbquery",
-            "version": "v1.3.1",
+            "version": "v1.4.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/jardisSupport/dbquery.git",
-                "reference": "f4c8bf1083ffa712ded2ebceca48f4a2946e84cb"
+                "reference": "59ee2aa1328a0af360c9f061174de34766df9adc"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/jardisSupport/dbquery/zipball/f4c8bf1083ffa712ded2ebceca48f4a2946e84cb",
-                "reference": "f4c8bf1083ffa712ded2ebceca48f4a2946e84cb",
+                "url": "https://api.github.com/repos/jardisSupport/dbquery/zipball/59ee2aa1328a0af360c9f061174de34766df9adc",
+                "reference": "59ee2aa1328a0af360c9f061174de34766df9adc",
                 "shasum": ""
             },
             "require": {
@@ -781,9 +781,9 @@
                 "docs": "https://docs.jardis.io/en/support/dbquery",
                 "email": "jardisDev@headgent.com",
                 "issues": "https://github.com/jardisSupport/dbquery/issues",
-                "source": "https://github.com/jardisSupport/dbquery/tree/v1.3.1"
+                "source": "https://github.com/jardisSupport/dbquery/tree/v1.4.0"
             },
-            "time": "2026-11-17T23:03:50+00:00"
+            "time": "2026-11-22T08:14:19+00:00"
         },
         {
             "name": "jardissupport/dotenv",
