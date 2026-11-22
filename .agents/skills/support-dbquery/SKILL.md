@@ -85,6 +85,10 @@ use JardisSupport\DbQuery\Data\LikePattern;
 ->fullJoin('profiles p', 'p.user_id = u.id')  // PostgreSQL only — InvalidArgumentException on MySQL/SQLite
 ->crossJoin('categories c')
 ->innerJoin($subquery, 'sq.id = t.id', 'sq')  // subquery join
+// ON as text stays raw (never quoted). Column pairs are quoted per dialect (reserved words, camelCase):
+->innerJoin('users', Expression::joinOn([['group.tenantId', 'user.tenantId'], ['group.id', 'user.groupId']]), 'user')
+// Expression::joinOn(list<[left, right]>): string - each side ident or alias.ident, joined with AND;
+// empty list / malformed pair / non-identifier throws InvalidArgumentException. SELECT, UPDATE, DELETE.
 ```
 
 ## SUBQUERIES
