@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "c4177352e9ac8a393b02bf2b88567d89",
+    "content-hash": "1e5fb048e5320899bf4b0168cdbe9795",
     "packages": [
         {
             "name": "jardisadapter/dbconnection",
@@ -976,16 +976,16 @@
         },
         {
             "name": "jardissupport/response",
-            "version": "v4.4.0",
+            "version": "v4.5.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/jardisSupport/response.git",
-                "reference": "95aea3ea3a8c6ef74d6584593571048222da4d7b"
+                "reference": "88f8160435becf16e8f59ccf6ed6f9c1e5b0985e"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/jardisSupport/response/zipball/95aea3ea3a8c6ef74d6584593571048222da4d7b",
-                "reference": "95aea3ea3a8c6ef74d6584593571048222da4d7b",
+                "url": "https://api.github.com/repos/jardisSupport/response/zipball/88f8160435becf16e8f59ccf6ed6f9c1e5b0985e",
+                "reference": "88f8160435becf16e8f59ccf6ed6f9c1e5b0985e",
                 "shasum": ""
             },
             "require": {
@@ -1034,9 +1034,9 @@
                 "docs": "https://docs.jardis.io/en/support/response",
                 "email": "jardisDev@headgent.com",
                 "issues": "https://github.com/jardisSupport/response/issues",
-                "source": "https://github.com/jardisSupport/response/tree/v4.4.0"
+                "source": "https://github.com/jardisSupport/response/tree/v4.5.0"
             },
-            "time": "2026-11-17T22:18:07+00:00"
+            "time": "2026-11-23T00:00:52+00:00"
         },
         {
             "name": "jardissupport/scheduling",
