@@ -15,3 +15,10 @@ db-import: ## Set up the database (package SQL + all BC schemas); SCHEMA=<path r
 db-reset: ## Delete ALL DATA (drop every table and view), then set the database up again from the schema like db-import
 	$(DOCKER_COMPOSE) run --rm --no-deps phpcli php /app/bin/console db:reset
 .PHONY: db-reset
+
+# Gives every record of a protected table that holds no access entry yet its
+# entry (the generated src/Api/*/backfill.php). Same one-off `run` form as
+# db-import. Safe to repeat: a second pass writes nothing.
+access-backfill: ## Give every record without an access entry its entry (generated backfill.php); safe to run again
+	$(DOCKER_COMPOSE) run --rm --no-deps phpcli php /app/bin/console access:backfill
+.PHONY: access-backfill

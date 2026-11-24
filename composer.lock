@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "8669ab9dc8ca18137906e24f035aad4e",
+    "content-hash": "d4b0dd87a891bfceedcbdf8efcba96a4",
     "packages": [
         {
             "name": "jardisadapter/dbconnection",
@@ -206,16 +206,16 @@
         },
         {
             "name": "jardiscore/app",
-            "version": "v3.6.0",
+            "version": "v3.7.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/jardisCore/app.git",
-                "reference": "5d839e90c396647314c0b3186b72adc0d4c8bc03"
+                "reference": "91d06bf9b16c4c5c4d382373cc112bdbbbf0b243"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/jardisCore/app/zipball/5d839e90c396647314c0b3186b72adc0d4c8bc03",
-                "reference": "5d839e90c396647314c0b3186b72adc0d4c8bc03",
+                "url": "https://api.github.com/repos/jardisCore/app/zipball/91d06bf9b16c4c5c4d382373cc112bdbbbf0b243",
+                "reference": "91d06bf9b16c4c5c4d382373cc112bdbbbf0b243",
                 "shasum": ""
             },
             "require": {
@@ -277,9 +277,9 @@
                 "docs": "https://docs.jardis.io/en/core/app",
                 "email": "jardisDev@headgent.com",
                 "issues": "https://github.com/jardisCore/app/issues",
-                "source": "https://github.com/jardisCore/app/tree/v3.6.0"
+                "source": "https://github.com/jardisCore/app/tree/v3.7.0"
             },
-            "time": "2026-11-23T15:44:42+00:00"
+            "time": "2026-11-24T16:30:01+00:00"
         },
         {
             "name": "jardiscore/kernel",
@@ -392,16 +392,16 @@
         },
         {
             "name": "jardissupport/acl",
-            "version": "v1.0.0",
+            "version": "v1.1.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/jardisSupport/acl.git",
-                "reference": "f23b9c74641238f31d241efd3e11fd3877577274"
+                "reference": "7212f6777b3ae752e03119797f8abf8252d6fb9b"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/jardisSupport/acl/zipball/f23b9c74641238f31d241efd3e11fd3877577274",
-                "reference": "f23b9c74641238f31d241efd3e11fd3877577274",
+                "url": "https://api.github.com/repos/jardisSupport/acl/zipball/7212f6777b3ae752e03119797f8abf8252d6fb9b",
+                "reference": "7212f6777b3ae752e03119797f8abf8252d6fb9b",
                 "shasum": ""
             },
             "require": {
@@ -449,9 +449,9 @@
                 "docs": "https://docs.jardis.io/en/support/acl",
                 "email": "jardisDev@headgent.com",
                 "issues": "https://github.com/jardisSupport/acl/issues",
-                "source": "https://github.com/jardisSupport/acl/tree/v1.0.0"
+                "source": "https://github.com/jardisSupport/acl/tree/v1.1.0"
             },
-            "time": "2026-11-19T19:35:31+00:00"
+            "time": "2026-11-24T22:21:57+00:00"
         },
         {
             "name": "jardissupport/auth",
