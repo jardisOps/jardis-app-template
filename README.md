@@ -466,6 +466,45 @@ answer carries no `data.access_token`, RFC 6749 section 5.1) or a
 status of 400 and above, `2` for a usage or setup error. The path is the full
 target path; the session is not signed out afterwards, it runs out at its expiry.
 
+## Access backfill (records without an access entry)
+
+A domain with protected tables (Sichtschutz) lets every new record carry an
+access entry. Records that existed before the protection was switched on hold
+none and stay invisible. One command gives them their entry:
+
+```bash
+make access-backfill
+# or: make console ARGS='access:backfill'
+```
+
+`bin/console access:backfill` (no argument) loads the generated
+`src/Api/{Domain}/backfill.php` (exactly one such file must exist) and calls it
+with the kernel of the console. The file does the work in ONE transaction; the
+command only prints. Each record gets the group of its creator, else the
+fallback group of its tenant. Records that already hold an entry are never
+touched, so a second run writes nothing.
+
+Output: while the pass runs, one line per page
+`<table>: <written> written, <toFallback> to fallback, <skipped> skipped`
+(running totals of that table); at the end one line per table with five
+numbers
+`<table>: <written> written, <toFallback> to fallback, <skipped> skipped, <withCreator> with creator, <resolved> resolved`.
+
+| Exit | Meaning |
+|---|---|
+| `0` | the pass finished (the result lines are printed) |
+| `1` | the prelude process of the project setting answered 400 or above (status on the first line, body after it), or the pass threw (`<Class>: <message>` on the error output, e.g. `BackfillUnresolved`, `RepeatAborted`); the transaction of the pass is rolled back |
+| `2` | usage or setup error: argument given, no `src/Api/*/backfill.php`, several of them, or a file that returns no closure |
+
+After a refused pass (prelude answer of 400 or above, `BackfillUnresolved`) the
+error output ends with `Next step: check the prelude in the project settings or
+set a fallback group, then run access:backfill again.`
+
+A leftover record whose creator cannot be resolved to a group, in a tenant
+without a fallback group, stays without an entry. A later run then sees only
+such records (the others already hold an entry), no creator resolves, and the
+run is refused with `BackfillUnresolved` again until the fallback group is set.
+
 ## Upload limits
 
 `upload_max_filesize` and `post_max_size` are `12M` in every PHP container of
