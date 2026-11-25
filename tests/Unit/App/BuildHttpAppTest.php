@@ -14,8 +14,9 @@ use PHPUnit\Framework\TestCase;
 /**
  * The application is built once for the front controller and `bin/console
  * system`. Held here: the session revocation handed to a mounted routes.php
- * (positional fourth argument, `null` without auth()) and that a routes.php
- * without the parameter still mounts.
+ * (positional fourth argument, `null` without auth()), the kernel handed as
+ * positional fifth argument, and that a routes.php with three or four
+ * parameters still mounts (PHP ignores the surplus argument).
  */
 final class BuildHttpAppTest extends TestCase
 {
@@ -98,8 +99,11 @@ PHP);
 
         $seen = $GLOBALS['__buildHttpAppSeen'];
         self::assertIsArray($seen);
-        self::assertCount(4, $seen);
+        // Five since the kernel became the fifth positional argument; a file
+        // declaring four parameters ignores it, the call itself passes five.
+        self::assertCount(5, $seen);
         self::assertNull($seen[3]);
+        self::assertSame($GLOBALS['__buildHttpAppKernel'], $seen[4]);
     }
 
     public function testARoutesFileWithoutTheRevocationParameterStillMounts(): void
@@ -111,5 +115,33 @@ PHP);
 
         self::assertInstanceOf(App::class, $built['app']);
         self::assertIsArray($GLOBALS['__buildHttpAppSeen']);
+    }
+
+    public function testARoutesFileWithTheKernelParameterGetsTheAppKernel(): void
+    {
+        $sessions = $this->createStub(SessionManagerInterface::class);
+        $GLOBALS['__buildHttpAppKernel'] = $this->kernel($sessions);
+        $this->files('JardisCore\App\Routes $routes, object $domain, string $prefix = \'\', ?Closure $revokeSession = null, ?\JardisSupport\Contract\Kernel\DomainKernelInterface $kernel = null');
+
+        $built = (new BuildHttpApp())($this->root);
+
+        $seen = $GLOBALS['__buildHttpAppSeen'];
+        self::assertIsArray($seen);
+        self::assertCount(5, $seen);
+        self::assertInstanceOf(\Closure::class, $seen[3]);
+        self::assertSame($built['kernel'], $seen[4]);
+    }
+
+    public function testWithoutAuthTheFourthIsNullAndTheFifthIsTheKernel(): void
+    {
+        $GLOBALS['__buildHttpAppKernel'] = $this->kernel(null);
+        $this->files('JardisCore\App\Routes $routes, object $domain, string $prefix = \'\', ?Closure $revokeSession = null, ?\JardisSupport\Contract\Kernel\DomainKernelInterface $kernel = null');
+
+        $built = (new BuildHttpApp())($this->root);
+
+        $seen = $GLOBALS['__buildHttpAppSeen'];
+        self::assertIsArray($seen);
+        self::assertNull($seen[3]);
+        self::assertSame($built['kernel'], $seen[4]);
     }
 }

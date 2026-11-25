@@ -133,18 +133,24 @@ final class BuildHttpApp
         /**
          * Generic mount for Builder-emitted domain routes. Every build writes
          * src/Api/{Domain}/routes.php (contract: `return function (Routes $routes,
-         * {Domain} $domain, string $prefix = '', ?Closure $revokeSession = null):
-         * void` — the fourth parameter exists only in a domain with
-         * session-revoking routes). The facade key in the bootstrap array is the
-         * lcfirst'd domain name — the same name the Api/ directory carries, so
-         * the mount derives it from the path. Zero matches before the first build
-         * is fine: the app keeps running unconfigured and /health answers 200.
+         * {Domain} $domain, string $prefix = '', ?Closure $revokeSession = null,
+         * ?DomainKernelInterface $kernel = null): void` — the fourth parameter
+         * exists only in a domain with session-revoking routes, the fifth only in
+         * a domain with routes that read their target from the request body: such
+         * a file declares `?DomainKernelInterface $kernel = null` and gets the
+         * kernel from bootstrap.php, the very one the app runs on). The facade key
+         * in the bootstrap array is the lcfirst'd domain name — the same name the
+         * Api/ directory carries, so the mount derives it from the path. Zero
+         * matches before the first build is fine: the app keeps running
+         * unconfigured and /health answers 200.
          *
-         * The call is POSITIONAL on purpose: a named `revokeSession:` argument
-         * breaks every routes.php that does not declare the parameter. To mount
-         * everything under a common prefix, pass it as the third argument:
+         * The call is POSITIONAL on purpose: a named argument (e.g.
+         * `revokeSession:`) breaks every routes.php that does not declare the
+         * parameter, while PHP ignores surplus positional arguments of a closure
+         * with three or four parameters. To mount everything under a common
+         * prefix, pass it as the third argument:
          *
-         *   (require $routesFile)($routes, $facade, '/api', $revoke);
+         *   (require $routesFile)($routes, $facade, '/api', $revoke, $kernel);
          *
          * Hand-written routes are still welcome right here, next to the loop; a
          * public one is `$routes->anonymous()->get(...)`.
@@ -153,7 +159,7 @@ final class BuildHttpApp
             $facade = $bootstrapped[lcfirst(basename(dirname($routesFile)))] ?? null;
 
             if (is_object($facade)) {
-                (require $routesFile)($routes, $facade, '', $revoke);
+                (require $routesFile)($routes, $facade, '', $revoke, $kernel);
             }
         }
 
