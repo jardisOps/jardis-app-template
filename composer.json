@@ -12,7 +12,7 @@
         "jardisadapter/http": "^1.1",
         "jardiscore/app": "^3.7",
         "jardiscore/kernel": "^2.9",
-        "jardissupport/acl": "^1.2",
+        "jardissupport/acl": "^1.2.1",
         "jardissupport/auth": "^2.0",
         "jardissupport/classversion": "^1.0",
         "jardissupport/contracts": "^2.22",
