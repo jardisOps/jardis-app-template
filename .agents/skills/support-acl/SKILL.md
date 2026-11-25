@@ -99,6 +99,7 @@ public function run(
     Closure $groupOfCreator,      // @param Closure(?string, list<string>): array<string, int>
     int|Closure|null $fallbackGroup,  // @param int|Closure(?string): ?int|null — closure: fallback group of a tenant, null = none
     int $batch = 1000,
+    ?Closure $progress = null,    // @param (Closure(BackfillResult): void)|null
 ): BackfillResult
 
 public function judge(BackfillResult ...$results): void   // @throws BackfillUnresolved
@@ -107,6 +108,7 @@ public function judge(BackfillResult ...$results): void   // @throws BackfillUnr
 - Group of a record: `$groupOfCreator($tenant, $creators)` returns the group per creator (called once per tenant and batch; tenant from `$tenantColumn`, `null` without one); no creator or creator unknown → `$fallbackGroup`; without a fallback group the record is skipped and stays without an entry.
 - `$fallbackGroup` closure `(?string $tenant): ?int` is asked at most once per tenant and batch and only when a record of that tenant needs it; `null` → records of that tenant skipped.
 - `judge(...$results)`: sums `withCreator()` and `resolved()` over the results of all `run` calls of a pass; sum `withCreator` > 0 and sum `resolved` = 0 → `BackfillUnresolved` (`RuntimeException`, public `int $withCreator`). `run` never throws it; `judge` writes nothing. Put all `run` calls and `judge` into ONE `RunInTransaction` bracket of the caller: the exception then rolls the whole pass back. Records left without a group (no fallback group) are seen alone by the next pass, which `judge` refuses again; nothing is written.
+- `$progress` (since 1.2.0): called after each page read and written with a `BackfillResult` of the running totals up to there (last call = returned result); empty source → never called; no total, no duration; result and transaction promises unchanged; an exception from it flies through.
 - Names (`$sourceTable`, `$keyColumn`, `$creatorColumn`, `$tenantColumn`) are validated as plain identifiers before anything runs; `$batch < 1` → `InvalidArgumentException`. Works in key order, batch by batch; no transaction.
 
 ## DATA CLASSES (`src/Data/`)
