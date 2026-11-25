@@ -105,7 +105,7 @@ public function run(
 public function judge(BackfillResult ...$results): void   // @throws BackfillUnresolved
 ```
 - Writes one entry `all` for each record of `$sourceTable` that holds no entry of the kind; records with an entry are never touched, a second run writes nothing.
-- Group of a record: `$groupOfCreator($tenant, $creators)` returns the group per creator (called once per tenant and batch; tenant from `$tenantColumn`, `null` without one); no creator or creator unknown → `$fallbackGroup`; without a fallback group the record is skipped and stays without an entry.
+- Group of a record: `$groupOfCreator($tenant, $creators)` returns the group per creator (called once per tenant and batch; tenant from `$tenantColumn`, `null` without one); no creator (null, `''` or `0`) or creator unknown → `$fallbackGroup`; without a fallback group the record is skipped and stays without an entry.
 - `$fallbackGroup` closure `(?string $tenant): ?int` is asked at most once per tenant and batch and only when a record of that tenant needs it; `null` → records of that tenant skipped.
 - `judge(...$results)`: sums `withCreator()` and `resolved()` over the results of all `run` calls of a pass; sum `withCreator` > 0 and sum `resolved` = 0 → `BackfillUnresolved` (`RuntimeException`, public `int $withCreator`). `run` never throws it; `judge` writes nothing. Put all `run` calls and `judge` into ONE `RunInTransaction` bracket of the caller: the exception then rolls the whole pass back. Records left without a group (no fallback group) are seen alone by the next pass, which `judge` refuses again; nothing is written.
 - `$progress` (since 1.2.0): called after each page read and written with a `BackfillResult` of the running totals up to there (last call = returned result); empty source → never called; no total, no duration; result and transaction promises unchanged; an exception from it flies through.
@@ -133,7 +133,7 @@ public function __construct(
 public function written(): int      // entries written in total
 public function toFallback(): int   // of those, given to the fallback group
 public function skipped(): int      // records left without an entry (no creator group, no fallback)
-public function withCreator(): int  // records met with a creator (not null, not '')
+public function withCreator(): int  // records met with a creator (not null, not '', not 0)
 public function resolved(): int     // of those, given the group of their creator
 
 final class BackfillUnresolved extends \RuntimeException   // namespace JardisSupport\Acl\Exception
