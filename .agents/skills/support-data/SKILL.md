@@ -70,10 +70,12 @@ $fm->fromAggregate(array $data, callable $mapProvider, string $entity): array
 
 ## VALUE-BASED DETECTION (no `#[Relation]` attribute needed)
 - **DB column:** `null`, scalar, `DateTimeInterface`, `BackedEnum`, plain scalar arrays
+  - `hydrateAggregate()` judges `null` by the property type: at a relation property (object property = class type other than `DateTimeInterface`/`BackedEnum`; list property = accepts `array` and the element class resolves) `null` is set but stays out of the snapshot, like a missing key. `hydrate()`/`apply()`/`mergeSnapshot()` keep `null` as a column.
 - **Relation:** objects, arrays of objects
 - `array` property + flat scalar array → hydrate (JSON column)
 - `array` property + indexed array of assoc arrays → skip (MANY-relation)
 - Class property + array value → skip (ONE-relation)
+- **< v1.7.1:** `hydrateAggregate()` put a relation key delivered as `null` into the snapshot, so `toArray()` and `getChanges()` listed it as a column.
 
 ## WIRE PROJECTION
 `ProjectWire` (PHP → JSON wire, counterpart to `TypeCaster`): `(new ProjectWire())($payload, $typeMap)` with formats `date` | `date-time` | `time` or a nested map. Wire values are UTC: a `date-time` `DateTimeInterface` is **converted to UTC** before formatting (since v1.4.0; earlier its wall clock was read as UTC; the caller's object is never modified), strings without offset are read as UTC, strings with offset are converted. `date`/`time` objects keep their own wall clock. Zero-dates/empty/unparsable → `null`; unmapped keys pass through.
@@ -100,6 +102,7 @@ $fm->fromAggregate(array $data, callable $mapProvider, string $entity): array
 ## AGGREGATE HYDRATION TYPE RESOLUTION
 MANY relations: adder `add{Singular}()` param type → `@var ClassName[]` / `@var array<int, ClassName>` docblock.
 ONE relations: property type hint. Numeric array keys (collection indices) skipped.
+The same resolution decides whether a `null` value is a relation (kept out of the snapshot) or a column; a non-nullable `array` property given `null` throws `TypeError` (no silent `[]`).
 
 ## UUID DETAILS
 - **v7** (recommended): time-ordered, RFC 9562. Lexicographically sortable. Timestamp and 12-bit counter are **process-wide** (static in `GenerateUuid7`): within one PHP process a later UUID is always greater, across all `Identity` objects (a new `Identity` per call is fine). Not across processes.

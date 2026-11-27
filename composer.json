@@ -16,7 +16,7 @@
         "jardissupport/auth": "^2.0",
         "jardissupport/classversion": "^1.0",
         "jardissupport/contracts": "^2.22",
-        "jardissupport/data": "^1.7",
+        "jardissupport/data": "^1.7.1",
         "jardissupport/dbquery": "^1.4",
         "jardissupport/dotenv": "^1.0",
         "jardissupport/factory": "^1.0",
