@@ -20,6 +20,7 @@ next: [support-repository]
 $h = new Hydration();
 $h->hydrate(object $entity, array $row): object           // DB row → entity + snapshot (merge)
 $h->apply(object $entity, array $data, array $skipNullKeys = []): object  // set properties, NO snapshot update; keys in $skipNullKeys with null are NOT written (field untouched)
+$h->mergeSnapshot(object $entity, array $row): object     // merge columns into snapshot ONLY, typed as by hydrate(); properties + other snapshot cols stay
 $h->hydrateAggregate(object $agg, array $data): object    // recursive nested hydration
 $h->loadMultiple(object $template, array $rows): array    // clone template per row
 
@@ -57,12 +58,15 @@ $fm->fromAggregate(array $data, callable $mapProvider, string $entity): array
 ```
 
 ## HYDRATE vs APPLY
-| Aspect | `hydrate()` | `apply()` |
-|--------|-------------|-----------|
-| Updates snapshot | Yes (merge) | No |
-| `getChanges()` after | Empty | Contains changed fields |
-| Typical caller | Repository (DB load) | AggregateHandler (Set/Add) |
-| Type Casting | Yes | Yes |
+| Aspect | `hydrate()` | `apply()` | `mergeSnapshot()` |
+|--------|-------------|-----------|-------------------|
+| Sets properties | Yes | Yes | No |
+| Updates snapshot | Yes (merge) | No | Yes (merge, given columns only) |
+| `getChanges()` after | Empty | Contains changed fields | Columns whose current value differs from the merged one |
+| Typical caller | Repository (DB load) | AggregateHandler (Set/Add) | AggregateHandler (record read basis) |
+| Type Casting | Yes | Yes | Yes (same filter + cast, snapshot form equals `hydrate()`) |
+
+`mergeSnapshot()`: a column without a matching property lands as `null`, as with `hydrate()`. Not covered: a setter/getter that reshapes the value (`hydrate()` stores the value read back through the getter, `mergeSnapshot()` the cast value).
 
 ## VALUE-BASED DETECTION (no `#[Relation]` attribute needed)
 - **DB column:** `null`, scalar, `DateTimeInterface`, `BackedEnum`, plain scalar arrays
@@ -98,7 +102,7 @@ MANY relations: adder `add{Singular}()` param type → `@var ClassName[]` / `@va
 ONE relations: property type hint. Numeric array keys (collection indices) skipped.
 
 ## UUID DETAILS
-- **v7** (recommended): time-ordered, RFC 9562. Lexicographically sortable.
+- **v7** (recommended): time-ordered, RFC 9562. Lexicographically sortable. Timestamp and 12-bit counter are **process-wide** (static in `GenerateUuid7`): within one PHP process a later UUID is always greater, across all `Identity` objects (a new `Identity` per call is fine). Not across processes.
 - **v5**: deterministic — same namespace+name = same UUID. Use for stable identities from business data.
 - **NanoID**: default 21 chars ~126 bits entropy, configurable alphabet+length.
 - **Convention:** Aggregate `identifier` = UUID v7 `CHAR(36)` UNIQUE (external/API). PK = autoincrement INT (internal/FK).

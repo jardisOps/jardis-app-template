@@ -4,20 +4,20 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "0e25ff1be1bfd657c55efd581bb1013a",
+    "content-hash": "336d2beb1590bdd7f9e4057648ed9216",
     "packages": [
         {
             "name": "jardisadapter/dbconnection",
-            "version": "v1.4.1",
+            "version": "v1.5.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/jardisAdapter/dbConnection.git",
-                "reference": "4f014187fda11680ea505d0f5fd4803fde286a4f"
+                "reference": "e97e06adffa966162505511c5eab72641f21a6c5"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/jardisAdapter/dbConnection/zipball/4f014187fda11680ea505d0f5fd4803fde286a4f",
-                "reference": "4f014187fda11680ea505d0f5fd4803fde286a4f",
+                "url": "https://api.github.com/repos/jardisAdapter/dbConnection/zipball/e97e06adffa966162505511c5eab72641f21a6c5",
+                "reference": "e97e06adffa966162505511c5eab72641f21a6c5",
                 "shasum": ""
             },
             "require": {
@@ -67,9 +67,9 @@
                 "docs": "https://docs.jardis.io/en/adapter/dbconnection",
                 "email": "jardisDev@headgent.com",
                 "issues": "https://github.com/jardisAdapter/dbConnection/issues",
-                "source": "https://github.com/jardisAdapter/dbConnection/tree/v1.4.1"
+                "source": "https://github.com/jardisAdapter/dbConnection/tree/v1.5.0"
             },
-            "time": "2026-10-16T00:24:05+00:00"
+            "time": "2026-11-26T18:48:44+00:00"
         },
         {
             "name": "jardisadapter/filesystem",
@@ -654,16 +654,16 @@
         },
         {
             "name": "jardissupport/data",
-            "version": "v1.6.0",
+            "version": "v1.7.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/jardisSupport/data.git",
-                "reference": "a885362c0f1eeaf735c0bd191855427d3041dbac"
+                "reference": "6c2b035927d78c7805f0cf1df476723e08ea4009"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/jardisSupport/data/zipball/a885362c0f1eeaf735c0bd191855427d3041dbac",
-                "reference": "a885362c0f1eeaf735c0bd191855427d3041dbac",
+                "url": "https://api.github.com/repos/jardisSupport/data/zipball/6c2b035927d78c7805f0cf1df476723e08ea4009",
+                "reference": "6c2b035927d78c7805f0cf1df476723e08ea4009",
                 "shasum": ""
             },
             "require": {
@@ -715,9 +715,9 @@
                 "docs": "https://docs.jardis.io/en/support/data",
                 "email": "jardisDev@headgent.com",
                 "issues": "https://github.com/jardisSupport/data/issues",
-                "source": "https://github.com/jardisSupport/data/tree/v1.6.0"
+                "source": "https://github.com/jardisSupport/data/tree/v1.7.0"
             },
-            "time": "2026-11-09T06:51:00+00:00"
+            "time": "2026-11-26T17:02:11+00:00"
         },
         {
             "name": "jardissupport/dbquery",
