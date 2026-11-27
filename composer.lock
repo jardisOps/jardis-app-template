@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "336d2beb1590bdd7f9e4057648ed9216",
+    "content-hash": "0f8aae91a9853a9a31fe5e382b143ccd",
     "packages": [
         {
             "name": "jardisadapter/dbconnection",
@@ -654,16 +654,16 @@
         },
         {
             "name": "jardissupport/data",
-            "version": "v1.7.0",
+            "version": "v1.7.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/jardisSupport/data.git",
-                "reference": "6c2b035927d78c7805f0cf1df476723e08ea4009"
+                "reference": "54346721501a670f48d7ad5fba11af0490731f07"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/jardisSupport/data/zipball/6c2b035927d78c7805f0cf1df476723e08ea4009",
-                "reference": "6c2b035927d78c7805f0cf1df476723e08ea4009",
+                "url": "https://api.github.com/repos/jardisSupport/data/zipball/54346721501a670f48d7ad5fba11af0490731f07",
+                "reference": "54346721501a670f48d7ad5fba11af0490731f07",
                 "shasum": ""
             },
             "require": {
@@ -715,9 +715,9 @@
                 "docs": "https://docs.jardis.io/en/support/data",
                 "email": "jardisDev@headgent.com",
                 "issues": "https://github.com/jardisSupport/data/issues",
-                "source": "https://github.com/jardisSupport/data/tree/v1.7.0"
+                "source": "https://github.com/jardisSupport/data/tree/v1.7.1"
             },
-            "time": "2026-11-26T17:02:11+00:00"
+            "time": "2026-11-27T18:05:33+00:00"
         },
         {
             "name": "jardissupport/dbquery",
