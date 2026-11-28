@@ -141,6 +141,20 @@ $result->toFields('order');   // [['field' => 'lines[1].quantity', 'reason' => '
 $fieldErrors = fn(ValidatorInterface $v) => $v->validate($order)->toFields('order');
 ```
 
+## FIELD SELECTION (opt-in, `^1.9`)
+```php
+$validator = new ObjectValidator($registry, fieldPaths: true, selection: $selection);   // 5th ctor arg, named
+// $selection = fn(object $object): ?array — asked once per reached object with a registered validator:
+//   null      → all registered fields of this object (as without selection)
+//   ['street'] → only these property names
+//   []        → no field of this object
+(new CompositeFieldValidator())->validateFields($address, ['street']);   // same narrowing, direct
+```
+- The run always descends into children and lists and asks the selection again there; paths stay whole (`customer.address.street`).
+- `CompositeFieldValidator`: break/normal/each rules of listed fields only; a break rule of an unlisted field stops nothing, an each rule of an unlisted field reports nothing; a listed field without rule = no finding.
+- Other registered `ValidatorInterface` implementations cannot check single fields: skipped on `[]`, called whole on a non-empty list.
+- `Absent` stays skipped, visit guard stays. Without selection (default `null`) = result identical to 1.8.
+
 ## LAYER
 - **Application:** validate Commands/DTOs before Domain
 - **Domain:** NEVER imports Validation
