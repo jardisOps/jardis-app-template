@@ -15,7 +15,7 @@ next: [generated-code-versioning]
 ```
 ClassVersion::__invoke($class, $version)
   0. (optional) ClassResolutionCache.remember(key=$class|$version) → hit: return
-  1. LoadClassFromProxy       → object|null (registered proxy)
+  1. LoadClassFromProxy       → object|null (registered proxy; falls back to the proxy registered without version)
   2. null? ClassVersionConfig resolves label → subdirectory key
   3. Active class finder (pick ONE per instance):
        LoadClassFromSubDirectory → injects $version BEFORE class name
@@ -115,6 +115,9 @@ $config->fallbackChain(null);      // []
 $proxy->addProxy(Logger::class, new FileLogger(), 'prod')->addProxy(...);  // fluent
 $proxy->removeProxy(Logger::class, 'prod');   // cleans up empty buckets
 // With config: version() for alias resolution; without: trim($version ?? '')
+$proxy->addProxy(Clock::class, new FixedClock());   // no version: answers every requested version
+// Lookup: proxy under the requested version, else the proxy without version, else null
+// (no chain v3 → v2); a versioned proxy overrides the versionless one
 ```
 
 ## USAGE

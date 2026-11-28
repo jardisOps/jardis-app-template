@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "9d87144b538174a76e68d789cada006e",
+    "content-hash": "c854eb200ea9f03809cd063e35b807b9",
     "packages": [
         {
             "name": "jardisadapter/dbconnection",
@@ -455,16 +455,16 @@
         },
         {
             "name": "jardissupport/auth",
-            "version": "v2.0.1",
+            "version": "v2.0.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/jardisSupport/auth.git",
-                "reference": "f31320f41945ce6e69f817d73b9c050e182a4748"
+                "reference": "2d0ac308b7a855ceb623affff8006bd8e7d080d0"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/jardisSupport/auth/zipball/f31320f41945ce6e69f817d73b9c050e182a4748",
-                "reference": "f31320f41945ce6e69f817d73b9c050e182a4748",
+                "url": "https://api.github.com/repos/jardisSupport/auth/zipball/2d0ac308b7a855ceb623affff8006bd8e7d080d0",
+                "reference": "2d0ac308b7a855ceb623affff8006bd8e7d080d0",
                 "shasum": ""
             },
             "require": {
@@ -516,22 +516,22 @@
                 "docs": "https://docs.jardis.io/en/support/auth",
                 "email": "jardisDev@headgent.com",
                 "issues": "https://github.com/jardisSupport/auth/issues",
-                "source": "https://github.com/jardisSupport/auth/tree/v2.0.1"
+                "source": "https://github.com/jardisSupport/auth/tree/v2.0.2"
             },
-            "time": "2026-11-16T20:21:40+00:00"
+            "time": "2026-11-26T20:04:28+00:00"
         },
         {
             "name": "jardissupport/classversion",
-            "version": "v1.0.6",
+            "version": "v1.0.7",
             "source": {
                 "type": "git",
                 "url": "https://github.com/jardisSupport/classversion.git",
-                "reference": "7849a02badae9270ea7ffbfb67cfa523855dce14"
+                "reference": "7a55cc6cacac41acb63c34b276c9ee96ff86a96c"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/jardisSupport/classversion/zipball/7849a02badae9270ea7ffbfb67cfa523855dce14",
-                "reference": "7849a02badae9270ea7ffbfb67cfa523855dce14",
+                "url": "https://api.github.com/repos/jardisSupport/classversion/zipball/7a55cc6cacac41acb63c34b276c9ee96ff86a96c",
+                "reference": "7a55cc6cacac41acb63c34b276c9ee96ff86a96c",
                 "shasum": ""
             },
             "require": {
@@ -578,9 +578,9 @@
                 "docs": "https://docs.jardis.io/en/support/classversion",
                 "email": "jardisDev@headgent.com",
                 "issues": "https://github.com/jardisSupport/classversion/issues",
-                "source": "https://github.com/jardisSupport/classversion/tree/v1.0.6"
+                "source": "https://github.com/jardisSupport/classversion/tree/v1.0.7"
             },
-            "time": "2026-10-02T12:28:32+00:00"
+            "time": "2026-11-26T19:41:03+00:00"
         },
         {
             "name": "jardissupport/contracts",
