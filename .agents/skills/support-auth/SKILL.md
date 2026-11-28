@@ -43,6 +43,7 @@ $sm->create(Subject|string $subject, array $claims = []): SessionResult   // str
     // session->tokenHash = sid = HashedToken::hashOf(refreshToken); payload {typ:"access",sub,sid,iat,exp,claims}
 $sm->refresh(string $refreshToken): SessionResult
     // Returns: events=[SessionCreated, SessionRefreshed]
+    // Accepts only a refresh token: unknown token or a token of another kind (invitation, password reset, ...) -> AuthenticationException('Invalid refresh token'), nothing revoked, the presented token stays valid.
 $sm->invalidate(SessionInterface $session): SessionInvalidated
 $sm->invalidateByReference(string $sessionReference): void   // since v1.6 void (contract); handler Handler/Session/InvalidateSessionByReference still returns the SessionInvalidated event. Revokes the refresh token of exactly one session (sid); idempotent. An issued access token stays valid until exp.
 // refresh(): new refresh + new access (new sid); the refreshed session keeps the claims of the original session.
